@@ -46,5 +46,7 @@ export const reducer = (initialState, actions) => {
 };
 
 export const reducers = (state = {}) => {
-    return Object.keys(state).reduce((reducers, key) => ({...reducers, [key]: reducer(state[key], actions(key))}), {});
+    return Object
+        .keys(state)
+        .reduce((reducers, key) => ({...reducers, [key]: reducer(state[key], actions(key))}), {});
 };

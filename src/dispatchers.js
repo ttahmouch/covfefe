@@ -1,41 +1,16 @@
+/* eslint-disable no-use-before-define,no-unused-vars */
 import {actions} from './actions';
+import {asyncRequest} from './request';
+
+/**
+ * Refactor for dependency injection.
+ */
 
 export const noop = (event) => console.log(event);
 
-export const asyncRequest = (metadata, callback = noop) => {
-    const client = new XMLHttpRequest();
-    const {
-        method = 'GET', uri = '/', headers = {}, body = '', username = '', password = '', withCredentials = 'false'
-    } = metadata;
-    const {'content-type': type = ''} = headers;
-
-    client.open(method, uri, true, username, password);
-
-    Object.keys(headers).forEach((header) => client.setRequestHeader(header, headers[header]));
-
-    client.withCredentials = withCredentials === 'true';
-    client.responseType = 'text';
-    client.addEventListener('loadstart', callback);
-    client.addEventListener('progress', callback);
-    client.addEventListener('error', callback);
-    client.addEventListener('abort', callback);
-    client.addEventListener('timeout', callback);
-    client.addEventListener('load', (event) => {
-        const {status = 200, responseText: body = ''} = client;
-        const headers = client.getAllResponseHeaders()
-            .split('\r\n')
-            .filter((header) => header)
-            .map((header) => header.split(': '))
-            .reduce((headers, [name, value]) => ({...headers, [name.toLowerCase()]: value}), {});
-        const {'content-type': type = ''} = headers;
-
-        return callback(event, {status, headers, body: type.includes('application/json') ? JSON.parse(body) : body});
-    });
-    client.addEventListener('loadend', callback);
-    client.send(type.includes('application/json') ? JSON.stringify(body) : body);
-};
-
-export const mapChildrenToState = (children = [], stateType = 'string', state = '') => {
+export const mapChildrenToState = (children = [],
+                                   stateType = 'string',
+                                   state = '') => {
     switch (stateType) {
         case 'array':
             return children
@@ -51,52 +26,93 @@ export const mapChildrenToState = (children = [], stateType = 'string', state = 
     }
 };
 
+export const dispatch = (store = {dispatch: noop}, action = {}) => store.dispatch(action);
+
 // Move to app?
-export const dispatcher = (type, store) => (event) => {
-    const {target} = event;
-    const {value: stateValue = '', dataset: {stateType = 'string'}} = target;
-    const children = Array.from(target);
-    const value = mapChildrenToState(children, stateType, stateValue);
+export const syncDispatcher = (type = '',
+                               store = {},
+                               dependencies = {
+                                   mapChildrenToState,
+                                   dispatch,
+                                   preventDefault: noop
+                               }) => {
+    const {mapChildrenToState, dispatch, preventDefault} = dependencies;
 
-    event.preventDefault();
+    return (event = {preventDefault}) => {
+        const {target} = event;
+        const {
+            value: stateValue = '',
+            dataset: {stateType = 'string'}
+        } = target;
+        const children = Array.from(target);
+        const value = mapChildrenToState(children, stateType, stateValue);
 
-    // console.log(`Dispatching a sync action, ${type}, with value, ${JSON.stringify(value, null, 4)}.`);
-    return store.dispatch({type, value});
-};
+        event.preventDefault();
 
-export const asyncDispatcher = (type, store) => (event) => {
-    const {target} = event;
-    const {value: stateValue = '', dataset: {stateType = 'string', request: metadata = '{}'}} = target;
-    const request = {
-        headers: {'content-type': 'application/json'},
-        body: mapChildrenToState(Array.from(target), stateType, stateValue),
-        ...JSON.parse(metadata)
+        return dispatch(store, {type, value});
     };
-
-    event.preventDefault();
-    store.dispatch({type, request});
-
-    // console.log(`Dispatching async action, ${type}, with request: ${JSON.stringify(request, null, 4)}`);
-    return asyncRequest(request, (event, response) => {
-        store.dispatch({type, request, event, response});
-        // console.log(`Dispatching a sync action, ${type}, with event ${event.type} and response: ${JSON.stringify(response, null, 4)}.`);
-    });
 };
 
-export const dispatchers = (state = {}, store) => {
-    return Object.keys(state).reduce((dispatchers, key) => {
-        let {create, read, update, remove, async_create, async_read, async_update, async_remove} = actions(key);
+export const asyncDispatcher = (type = '',
+                                store = {},
+                                dependencies = {
+                                    mapChildrenToState,
+                                    asyncRequest,
+                                    dispatch,
+                                    preventDefault: noop
+                                }) => {
+    const {mapChildrenToState, asyncRequest, dispatch, preventDefault} = dependencies;
 
-        return {
-            ...dispatchers,
-            [create]: dispatcher(create, store),
-            [read]: dispatcher(read, store),
-            [update]: dispatcher(update, store),
-            [remove]: dispatcher(remove, store),
-            [async_create]: asyncDispatcher(async_create, store),
-            [async_read]: asyncDispatcher(async_read, store),
-            [async_update]: asyncDispatcher(async_update, store),
-            [async_remove]: asyncDispatcher(async_remove, store)
+    return (event = {preventDefault}) => {
+        const {target} = event;
+        const {
+            value: stateValue = '',
+            dataset: {stateType = 'string', request: metadata = '{}'}
+        } = target;
+        const children = Array.from(target);
+        const request = {
+            headers: {'content-type': 'application/json'},
+            body: mapChildrenToState(children, stateType, stateValue),
+            ...JSON.parse(metadata)
         };
-    }, {});
+
+        event.preventDefault();
+        dispatch(store, {type, request});
+
+        return asyncRequest(request, (event, response) => dispatch(store, {type, request, event, response}));
+    };
+};
+
+export const reduceDispatchers = (dispatchers = {},
+                                  state = '',
+                                  store = {},
+                                  dependencies = {
+                                      actions,
+                                      syncDispatcher,
+                                      asyncDispatcher
+                                  }) => {
+    const {actions, syncDispatcher, asyncDispatcher} = dependencies;
+    const {create, read, update, remove, async_create, async_read, async_update, async_remove} = actions(state);
+
+    return {
+        ...dispatchers,
+        [create]: syncDispatcher(create, store),
+        [read]: syncDispatcher(read, store),
+        [update]: syncDispatcher(update, store),
+        [remove]: syncDispatcher(remove, store),
+        [async_create]: asyncDispatcher(async_create, store),
+        [async_read]: asyncDispatcher(async_read, store),
+        [async_update]: asyncDispatcher(async_update, store),
+        [async_remove]: asyncDispatcher(async_remove, store)
+    };
+};
+
+export const dispatchers = (state = {},
+                            store = {},
+                            dependencies = {reduceDispatchers}) => {
+    const {reduceDispatchers} = dependencies;
+
+    return Object
+        .keys(state)
+        .reduce((dispatchers, state) => reduceDispatchers(dispatchers, state, store), {});
 };
