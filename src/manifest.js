@@ -1,8 +1,8 @@
 const manifest = {
     "state": {
         "title": "",
-        "titlesArray": [],
-        "titlesDictionary": {}
+        "titles_array": [],
+        "titles_dictionary": {}
     },
     "style": {
         "header": {
@@ -15,19 +15,32 @@ const manifest = {
         }
     },
     "request": {
-        "createTitlesDictionary": {
+        "async_create_titles_dictionary": {
             "method": "POST",
             "uri": "/titlesDictionary.json",
             "headers": {
                 "content-type": "application/json",
-                "accept": "application/json"
+                "accept": "application/json",
+                "header": {
+                    "@js_template": "{value1}{value2}",
+                    "value1": "value1",
+                    "value2": "value2"
+                }
             },
             "body": {
-                "titles": []
+                "titles": [
+                    {
+                        "title": {"@view_state": "$.title[0]"}
+                    },
+                    {
+                        "title": {
+                            "@js_template": "{value1}{value2}",
+                            "value1": "value1",
+                            "value2": {"@app_state": "$.title"}
+                        }
+                    }
+                ]
             },
-            "username": "",
-            "password": "",
-            "withCredentials": "false",
             "responses": [
                 {
                     "status": 201,
@@ -46,7 +59,7 @@ const manifest = {
                 }
             ]
         },
-        "readTitlesDictionary": {
+        "async_read_titles_dictionary": {
             "method": "GET",
             "uri": "/titlesDictionary.json",
             "headers": {
@@ -73,7 +86,7 @@ const manifest = {
                 }
             ]
         },
-        "updateTitlesDictionary": {
+        "async_update_titles_dictionary": {
             "method": "PUT",
             "uri": "/titlesDictionary.json",
             "headers": {
@@ -103,7 +116,7 @@ const manifest = {
                 }
             ]
         },
-        "removeTitlesDictionary": {
+        "async_remove_titles_dictionary": {
             "method": "DELETE",
             "uri": "/titlesDictionary.json",
             "headers": {

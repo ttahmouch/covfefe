@@ -1,3 +1,13 @@
 {
-  "titles": []
+  "titles": [
+    {
+      "title": "First Title"
+    },
+    {
+      "title": "Second Title"
+    },
+    {
+      "title": "Third Title"
+    }
+  ]
 }

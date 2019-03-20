@@ -67,7 +67,7 @@ export class App extends Component {
                 'data-state-prop': stateProp = 'data-state-prop',
                 'data-action': action = '',
                 'data-action-prop': actionProp = 'data-action-prop',
-                'data-action-request': actionRequest = ''
+                'data-action-request': actionRequest = `${action}_${state}`
             } = props;
 
             return React.cloneElement(child, {

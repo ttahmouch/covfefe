@@ -1,10 +1,8 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
+import jsonpath from 'jsonpath/jsonpath.min';
+import URITemplate from 'urijs/src/URITemplate';
 import {actions} from './actions';
 import {asyncRequest} from './request';
-
-/**
- * Refactor for dependency injection.
- */
 
 export const noop = (event) => console.log(event);
 
@@ -53,15 +51,72 @@ export const syncDispatcher = (type = '',
     };
 };
 
+export const templateExpression = /{([^{}]*)}/g;
+
+export const interpolateJsTemplate = (template = '', params = {}, dependencies = {templateExpression}) => {
+    const {templateExpression} = dependencies;
+
+    return template.replace(templateExpression, (match, param) => params[param] || match);
+};
+
+export const selectState = (state = {}, selector = '', dependencies = {jsonpath}) => {
+    const {jsonpath} = dependencies;
+
+    return jsonpath.value(state, selector);
+};
+
+export const interpolateUriTemplate = (template = '', params = {}, dependencies = {URITemplate}) => {
+    const {URITemplate} = dependencies;
+
+    return new URITemplate(template).expand(params);
+};
+
+export const reviver = (key = '',
+                        value = null,
+                        appState = {},
+                        viewState = {},
+                        dependencies = {
+                            selectState,
+                            interpolateUriTemplate,
+                            interpolateJsTemplate
+                        }) => {
+    const {selectState, interpolateUriTemplate, interpolateJsTemplate} = dependencies;
+    const type = value === null ? 'null' : typeof value;
+
+    if (type === 'object') {
+        const {
+            '@app_state': appStateSelector = '',
+            '@view_state': viewStateSelector = '',
+            '@uri_template': uriTemplate = '',
+            '@js_template': jsTemplate = ''
+        } = value;
+
+        if (appStateSelector) {
+            return selectState(appState, appStateSelector);
+        }
+        if (viewStateSelector) {
+            return selectState(viewState, viewStateSelector);
+        }
+        if (uriTemplate) {
+            return interpolateUriTemplate(uriTemplate, value);
+        }
+        if (jsTemplate) {
+            return interpolateJsTemplate(jsTemplate, value);
+        }
+    }
+    return value;
+};
+
 export const asyncDispatcher = (type = '',
-                                store = {},
+                                store = {getState: noop},
                                 dependencies = {
                                     mapChildrenToState,
                                     asyncRequest,
                                     dispatch,
-                                    preventDefault: noop
+                                    preventDefault: noop,
+                                    reviver
                                 }) => {
-    const {mapChildrenToState, asyncRequest, dispatch, preventDefault} = dependencies;
+    const {mapChildrenToState, asyncRequest, dispatch, preventDefault, reviver} = dependencies;
 
     return (event = {preventDefault}) => {
         const {target} = event;
@@ -70,14 +125,15 @@ export const asyncDispatcher = (type = '',
             dataset: {stateType = 'string', request: metadata = '{}'}
         } = target;
         const children = Array.from(target);
-        const request = {
-            headers: {'content-type': 'application/json'},
-            body: mapChildrenToState(children, stateType, stateValue),
-            ...JSON.parse(metadata)
-        };
+        const appState = store.getState();
+        const viewState = mapChildrenToState(children, stateType, stateValue);
+        const request = JSON.parse(metadata, (key, value) => reviver(key, value, appState, viewState));
 
         event.preventDefault();
         dispatch(store, {type, request});
+
+        console.log(JSON.stringify(JSON.parse(metadata), null, 4));
+        console.log(JSON.stringify(request, null, 4));
 
         return asyncRequest(request, (event, response) => dispatch(store, {type, request, event, response}));
     };
