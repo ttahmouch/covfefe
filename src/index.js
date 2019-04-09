@@ -92,6 +92,10 @@ ReactDOM.render(
                     </form>
                 </>
                 <>
+                    <JsonString data-state='status'
+                                data-state-prop='string'/>
+                    <JsonString data-state='header'
+                                data-state-prop='string'/>
                     <form data-action-prop='onSubmit'
                           data-action='async_create'
                           data-state='titles_dictionary'

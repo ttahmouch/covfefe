@@ -1,5 +1,7 @@
 const manifest = {
     "state": {
+        "status": 0,
+        "header": "",
         "title": "",
         "titles_array": [],
         "titles_dictionary": {}
@@ -30,32 +32,55 @@ const manifest = {
             "body": {
                 "titles": [
                     {
-                        "title": {"@view_state": "$.title[0]"}
+                        "title": {"@from_view_state": "$.title[0]"}
                     },
                     {
                         "title": {
                             "@js_template": "{value1}{value2}",
                             "value1": "value1",
-                            "value2": {"@app_state": "$.title"}
+                            "value2": {"@from_app_state": "$.title"}
                         }
                     }
                 ]
             },
             "responses": [
                 {
-                    "status": 201,
+                    "status": {
+                        "@literal_comparison": 201,
+                        "@to_app_state": [{"type": "UPDATE_STATE"}]
+                    },
                     "headers": {
-                        "content-type": "application/json",
-                        "location": "/titlesDictionary.json"
+                        "content-type": {"@literal_comparison": "application/json"},
+                        "location": {"@literal_comparison": "/titlesDictionary.json"},
+                        "header": {
+                            "@regexp_comparison": "(application)[/](json)",
+                            "@to_app_state": [
+                                {"type": "UPDATE_STATE", "@from_response_state": "$.0"},
+                                {"type": "UPDATE_STATE", "@from_response_state": "$.1"},
+                                {"type": "UPDATE_STATE"}
+                            ],
+                        },
+                        "other-header": {
+                            "@schema_comparison": {"type": "string", "pattern": "[/]titlesDictionary[.]json"},
+                            "@to_app_state": [{"type": "UPDATE_STATE"}]
+                        }
                     },
                     "body": {
-                        "type": "object",
-                        "properties": {
-                            "titles": {
-                                "type": "array"
-                            }
-                        }
-                    }
+                        "@schema_comparison": {
+                            "type": "object",
+                            "properties": {"titles": {"type": "array"}}
+                        },
+                        "@to_app_state": [
+                            {"type": "UPDATE_TITLE", "@from_response_state": "$.titles.0.title"},
+                            {"type": "UPDATE_TITLES_ARRAY", "@from_response_state": "$.titles"},
+                            {"type": "UPDATE_TITLES_DICTIONARY"}
+                        ]
+                    },
+                },
+                {
+                    "status": {"@literal_comparison": 404},
+                    "headers": {},
+                    "body": {"@schema_comparison": {}}
                 }
             ]
         },
@@ -71,17 +96,29 @@ const manifest = {
             "withCredentials": "false",
             "responses": [
                 {
-                    "status": 200,
+                    "status": {
+                        "@literal_comparison": 200,
+                        "@to_app_state": [{"type": "UPDATE_STATUS"}]
+                    },
                     "headers": {
-                        "content-type": "application/json"
+                        "content-type": {
+                            "@schema_comparison": {
+                                "type": "string",
+                                "pattern": "application[/]json"
+                            },
+                            "@to_app_state": [{"type": "UPDATE_HEADER"}]
+                        }
                     },
                     "body": {
-                        "type": "object",
-                        "properties": {
-                            "titles": {
-                                "type": "array"
-                            }
-                        }
+                        "@schema_comparison": {
+                            "type": "object",
+                            "properties": {"titles": {"type": "array"}}
+                        },
+                        "@to_app_state": [
+                            {"type": "UPDATE_TITLE", "@from_response_state": "$.titles.0.title"},
+                            {"type": "UPDATE_TITLES_ARRAY", "@from_response_state": "$.titles"},
+                            {"type": "UPDATE_TITLES_DICTIONARY"}
+                        ]
                     }
                 }
             ]
