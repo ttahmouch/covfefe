@@ -56,13 +56,13 @@ export const asyncRequest = (request = {},
 
     client.withCredentials = withCredentials === 'true';
     client.responseType = 'text';
-    client.addEventListener('loadstart', callback);
-    client.addEventListener('progress', callback);
-    client.addEventListener('error', callback);
-    client.addEventListener('abort', callback);
-    client.addEventListener('timeout', callback);
-    client.addEventListener('load', (event) => callback(event, getResponse(client)));
-    client.addEventListener('loadend', callback);
+    client.addEventListener('loadstart', (event) => callback(request, event));
+    client.addEventListener('progress', (event) => callback(request, event));
+    client.addEventListener('error', (event) => callback(request, event));
+    client.addEventListener('abort', (event) => callback(request, event));
+    client.addEventListener('timeout', (event) => callback(request, event));
+    client.addEventListener('load', (event) => callback(request, event, getResponse(client)));
+    client.addEventListener('loadend', (event) => callback(request, event));
 
     return client.send(getRequestBody(headers, body));
 };
