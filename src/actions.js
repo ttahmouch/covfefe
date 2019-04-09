@@ -1,6 +1,9 @@
+/* eslint-disable no-use-before-define */
 export const action = (action, state) => `${action}_${state}`.toUpperCase();
 
-export const actions = (state) => {
+export const actions = (state, dependencies = {action}) => {
+    const {action} = dependencies;
+
     return {
         create: action('create', state),
         read: action('read', state),
