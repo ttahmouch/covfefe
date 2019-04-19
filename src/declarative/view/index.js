@@ -1,11 +1,11 @@
 import React from 'react';
 import {BrowserRouter as Router, Route, Link} from "react-router-dom";
-import {App} from "../imperative/components";
-import style from "./style"
-import state from "./state";
-import request from "./async";
-import {reducers} from "../imperative/reducers";
-import {dispatchers} from "../imperative/dispatchers";
+import style from "../style"
+import state from "../state";
+import request from "../async";
+import {App} from "../../imperative/components";
+import {reducers} from "../../imperative/reducers";
+import {dispatchers} from "../../imperative/dispatchers";
 
 export default (
     <App state={state}

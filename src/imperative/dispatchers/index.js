@@ -2,8 +2,8 @@
 import jsonpath from 'jsonpath/jsonpath.min';
 import URITemplate from 'urijs/src/URITemplate';
 import Ajv from 'ajv';
-import {actions} from './actions';
-import {asyncRequest} from './request';
+import {actions} from '../actions';
+import {asyncRequest} from '../request';
 
 export const noop = (event) => console.log(event);
 
