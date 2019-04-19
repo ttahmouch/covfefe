@@ -1,3 +1,6 @@
+/**
+ * TODO:
+ */
 /* eslint-disable no-use-before-define */
 export const action = (action, state) => `${action}_${state}`.toUpperCase();
 

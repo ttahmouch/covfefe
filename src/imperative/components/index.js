@@ -1,3 +1,6 @@
+/**
+ * TODO:
+ */
 import React, {Component} from 'react';
 import {createStore, combineReducers} from 'redux';
 import {Provider} from 'react-redux';
@@ -89,41 +92,5 @@ export class App extends Component {
                 {React.Children.map(children, mapChild)}
             </Provider>
         );
-    }
-}
-
-// Just for example.
-export class JsonString extends Component {
-    render() {
-        const {props: {string = ''}} = this;
-        return (
-            <pre>{JSON.stringify(string, null, 4)}</pre>
-        );
-    }
-}
-
-export class JsonList extends Component {
-    render() {
-        const {props: {list = []}} = this;
-        return (
-            <pre>{JSON.stringify(list, null, 4)}</pre>
-        );
-    }
-}
-
-export class JsonDictionary extends Component {
-    render() {
-        const {props: {dictionary = {}}} = this;
-        return (
-            <pre>{JSON.stringify(dictionary, null, 4)}</pre>
-        );
-    }
-}
-
-// Necessary?
-export class RootView extends Component {
-    render() {
-        const {props: {children}} = this;
-        return (children);
     }
 }
