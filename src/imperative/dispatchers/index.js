@@ -5,7 +5,7 @@
 import jsonpath from 'jsonpath/jsonpath.min';
 import URITemplate from 'urijs/src/URITemplate';
 import Ajv from 'ajv';
-import {actions} from '../actions';
+import {action, actions} from '../actions';
 import {asyncRequest} from '../request';
 
 export const noop = (event) => console.log(event);
@@ -113,27 +113,29 @@ export const compareRegexp = (declaredRegexp = '', value = '', regexp = new RegE
 export const compareSchema = (declaredSchema = {}, value = {}, schema = new Ajv()) => schema.validate(declaredSchema, value);
 
 export const dispatchDeclaredActionsWithResponseState = (declaredActions = {
-                                                             '@regexp_comparison': undefined,
-                                                             '@schema_comparison': undefined,
-                                                             "@to_app_state": []
+                                                             '$regexp_comparison': undefined,
+                                                             '$schema_comparison': undefined,
+                                                             "$to_app_state": []
                                                          },
                                                          responseState = undefined,
                                                          store = {},
-                                                         dependencies = {dispatch, selectState}) => {
-    const {dispatch, selectState} = dependencies;
+                                                         dependencies = {dispatch, selectState, action}) => {
+    const {dispatch, selectState, action} = dependencies;
     const {
-        '@regexp_comparison': regexp = undefined,
-        '@schema_comparison': schema = undefined,
-        "@to_app_state": appStateActions = []
+        '$regexp_comparison': regexp = undefined,
+        '$schema_comparison': schema = undefined,
+        "$to_app_state": appStateActions = []
     } = declaredActions;
     // Uppercase the action type?
     const dispatchAction = ({
-                                "@from_response_state": selector = '',
-                                "@selected_response_state": value = selectState(responseState, selector, {
+                                "$from_response_state": selector = '',
+                                "$selected_response_state": value = selectState(responseState, selector, {
                                     regexp,
                                     schema
                                 }),
-                                type
+                                "$action": declaredAction = '',
+                                "$state": declaredState = '',
+                                "$type": type = action(declaredAction, declaredState)
                             }) => dispatch(store, {type, value});
 
     return appStateActions.forEach(dispatchAction);
@@ -161,13 +163,13 @@ export const reviver = (key = '',
 
     if (type === 'object') {
         const {
-            '@from_app_state': appStateSelector = '',
-            '@from_view_state': viewStateSelector = '',
-            '@uri_template': uriTemplate = '',
-            '@js_template': jsTemplate = '',
-            '@literal_comparison': literal = undefined,
-            '@regexp_comparison': regexp = undefined,
-            '@schema_comparison': schema = undefined
+            '$from_app_state': appStateSelector = '',
+            '$from_view_state': viewStateSelector = '',
+            '$uri_template': uriTemplate = '',
+            '$js_template': jsTemplate = '',
+            '$literal_comparison': literal = undefined,
+            '$regexp_comparison': regexp = undefined,
+            '$schema_comparison': schema = undefined
         } = value;
 
         if (appStateSelector) {
