@@ -94,3 +94,12 @@ export class App extends Component {
         );
     }
 }
+
+export class Json extends Component {
+    render() {
+        const {props: {json = {}}} = this;
+        return (
+            <pre>{JSON.stringify(json, null, 4)}</pre>
+        );
+    }
+}
