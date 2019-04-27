@@ -38,11 +38,11 @@ export default (
                 <div style={card_main_content}/>
             </div>
             <div>
-                <Json data-state='status'
+                <Json data-state='titles_array'
                       data-state-prop='json'/>
                 <form data-action-prop='onSubmit'
                       data-action='async_read'
-                      data-state='titles_dictionary'
+                      data-state='titles_array'
                       data-state-type='dictionary'>
                     <div>
                         <label>Title:</label>
