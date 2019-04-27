@@ -1,5 +1,6 @@
 /**
  * TODO:
+ * + Allow defining initial application state using JSON Schema.
  */
 export default {
     "status": 0,
