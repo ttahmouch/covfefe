@@ -1,5 +1,7 @@
 /**
  * TODO:
+ * Allow comparison of anything declared; not just response state.
+ * Possibly treat request and response state the same with respect to comparing and dispatching selected state.
  */
 /* eslint-disable no-use-before-define,no-unused-vars */
 import jsonpath from 'jsonpath/jsonpath.min';
@@ -7,6 +9,9 @@ import URITemplate from 'urijs/src/URITemplate';
 import Ajv from 'ajv';
 import {action, actions} from '../actions';
 import {asyncRequest} from '../request';
+import schema from '../../declarative/schema';
+
+const {anything_schema, any_positive_integer_schema} = schema;
 
 export const noop = (event) => console.log(event);
 
@@ -112,10 +117,10 @@ export const compareRegexp = (declaredRegexp = '', value = '', regexp = new RegE
 
 export const compareSchema = (declaredSchema = {}, value = {}, schema = new Ajv()) => schema.validate(declaredSchema, value);
 
-export const dispatchDeclaredActionsWithResponseState = (declaredActions = {
+export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
                                                              '$regexp_comparison': undefined,
                                                              '$schema_comparison': undefined,
-                                                             "$to_app_state": []
+                                                             '$to_app_state': []
                                                          },
                                                          responseState = undefined,
                                                          store = {},
@@ -124,21 +129,122 @@ export const dispatchDeclaredActionsWithResponseState = (declaredActions = {
     const {
         '$regexp_comparison': regexp = undefined,
         '$schema_comparison': schema = undefined,
-        "$to_app_state": appStateActions = []
+        '$to_app_state': appStateActions = []
     } = declaredActions;
     // Uppercase the action type?
     const dispatchAction = ({
-                                "$from_response_state": selector = '',
-                                "$selected_response_state": value = selectState(responseState, selector, {
+                                '$from_response_state': selector = '',
+                                '$selected_response_state': value = selectState(responseState, selector, {
                                     regexp,
                                     schema
                                 }),
-                                "$action": declaredAction = '',
-                                "$state": declaredState = '',
-                                "$type": type = action(declaredAction, declaredState)
+                                '$action': declaredAction = '',
+                                '$state': declaredState = '',
+                                '$type': type = action(declaredAction, declaredState)
                             }) => dispatch(store, {type, value});
 
     return appStateActions.forEach(dispatchAction);
+};
+
+export const compare = ({
+                            '$literal_comparison': literal = undefined,
+                            '$regexp_comparison': regexp = undefined,
+                            '$schema_comparison': schema = undefined
+                        },
+                        value = '',
+                        dependencies = {compareLiteral, compareRegexp, compareSchema}) => {
+    const {compareLiteral, compareRegexp, compareSchema} = dependencies;
+
+    if (regexp !== undefined) {
+        return compareRegexp(regexp, value);
+    }
+
+    if (schema !== undefined) {
+        return compareSchema(schema, value);
+    }
+
+    return compareLiteral(literal, value);
+};
+
+export const toComparableDeclarative = (declaredComparable = {}, dependencies = {compare}) => {
+    const {compare} = dependencies;
+
+    return {
+        ...declaredComparable,
+        compare: (state) => compare(declaredComparable, state)
+    };
+};
+
+export const toDispatchableDeclarative = (declaredComparable = {},
+                                          store = {},
+                                          dependencies = {dispatchDeclaredActionsWithSelectedState}) => {
+    const {dispatchDeclaredActionsWithSelectedState} = dependencies;
+
+    return {
+        ...declaredComparable,
+        dispatch: (state) => dispatchDeclaredActionsWithSelectedState(declaredComparable, state, store)
+    };
+};
+
+export const toDeclarativeStatus = (declaredStatus = {'$schema_comparison': any_positive_integer_schema}) => {
+    return typeof declaredStatus !== 'number' ? declaredStatus : {'$literal_comparison': declaredStatus};
+};
+
+export const toDeclarativeHeader = (declaredHeader = '') => {
+    return typeof declaredHeader !== 'string' ? declaredHeader : {'$regexp_comparison': declaredHeader};
+};
+
+export const toDeclarativeHeaders = (declaredHeaders = {}, dependencies = {toDeclarativeHeader}) => {
+    const {toDeclarativeHeader} = dependencies;
+    const toHeadersArray = (header) => [header, declaredHeaders[header]];
+    const toHeadersObject = (headers, [header, value]) => ({...headers, [header]: toDeclarativeHeader(value)});
+
+    return Object.keys(declaredHeaders).map(toHeadersArray).reduce(toHeadersObject, {});
+};
+
+export const toDeclarativeBody = (declaredBody = {'$schema_comparison': anything_schema}) => {
+    return typeof declaredBody['$schema'] !== 'string' ? declaredBody : {'$schema_comparison': declaredBody};
+};
+
+export const toDeclarativeResponse = ({
+                                          '$status': declaredStatus = undefined,
+                                          '$headers': declaredHeaders = undefined,
+                                          '$body': declaredBody = undefined
+                                      },
+                                      dependencies = {
+                                          toDeclarativeStatus,
+                                          toDeclarativeHeader,
+                                          toDeclarativeHeaders,
+                                          toDeclarativeBody
+                                      }) => {
+    const {toDeclarativeStatus, toDeclarativeHeaders, toDeclarativeBody} = dependencies;
+
+    return {
+        '$status': toDeclarativeStatus(declaredStatus),
+        '$headers': toDeclarativeHeaders(declaredHeaders, dependencies),
+        '$body': toDeclarativeBody(declaredBody)
+    };
+};
+
+export const toDeclarativeResponses = (declaredResponses = [],
+                                       dependencies = {
+                                           toDeclarativeStatus,
+                                           toDeclarativeHeader,
+                                           toDeclarativeHeaders,
+                                           toDeclarativeBody,
+                                           toDeclarativeResponse
+                                       }) => {
+    const {toDeclarativeResponse} = dependencies;
+
+    return declaredResponses.map((declaredResponse) => toDeclarativeResponse(declaredResponse, dependencies));
+};
+
+export const toDecoratedDeclarative = (declarative = {},
+                                       store = {},
+                                       dependencies = {toDispatchableDeclarative, toComparableDeclarative}) => {
+    const {toDispatchableDeclarative, toComparableDeclarative} = dependencies;
+
+    return toDispatchableDeclarative(toComparableDeclarative(declarative), store);
 };
 
 export const reviver = (key = '',
@@ -147,29 +253,31 @@ export const reviver = (key = '',
                         appState = {},
                         viewState = {},
                         dependencies = {
-                            selectStateUsingJsonPath,
-                            interpolateUriTemplate,
-                            interpolateJsTemplate,
-                            compareLiteral,
-                            compareRegexp,
-                            compareSchema,
-                            dispatchDeclaredActionsWithResponseState
+                            selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplate,
+                            toDeclarativeStatus, toDeclarativeHeader, toDeclarativeHeaders, toDeclarativeBody,
+                            toDeclarativeResponse, toDeclarativeResponses, toDecoratedDeclarative
                         }) => {
     const {
-        selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplate, compareLiteral, compareRegexp,
-        compareSchema, dispatchDeclaredActionsWithResponseState
+        selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplate, toDeclarativeStatus,
+        toDeclarativeHeader, toDeclarativeBody, toDeclarativeResponses, toDecoratedDeclarative
     } = dependencies;
     const type = value === null ? 'null' : typeof value;
+
+    if (key === '$responses' && Array.isArray(value)) {
+        return toDeclarativeResponses(value, {
+            ...dependencies,
+            toDeclarativeStatus: (declaredStatus) => toDecoratedDeclarative(toDeclarativeStatus(declaredStatus), store),
+            toDeclarativeHeader: (declaredHeader) => toDecoratedDeclarative(toDeclarativeHeader(declaredHeader), store),
+            toDeclarativeBody: (declaredBody) => toDecoratedDeclarative(toDeclarativeBody(declaredBody), store),
+        });
+    }
 
     if (type === 'object') {
         const {
             '$from_app_state': appStateSelector = '',
             '$from_view_state': viewStateSelector = '',
             '$uri_template': uriTemplate = '',
-            '$js_template': jsTemplate = '',
-            '$literal_comparison': literal = undefined,
-            '$regexp_comparison': regexp = undefined,
-            '$schema_comparison': schema = undefined
+            '$js_template': jsTemplate = ''
         } = value;
 
         if (appStateSelector) {
@@ -184,31 +292,8 @@ export const reviver = (key = '',
         if (jsTemplate) {
             return interpolateJsTemplate(jsTemplate, value);
         }
-
-        if (literal !== undefined) {
-            return {
-                ...value,
-                compare: (responseState) => compareLiteral(literal, responseState),
-                dispatch: (responseState) => dispatchDeclaredActionsWithResponseState(value, responseState, store)
-            };
-        }
-
-        if (regexp !== undefined) {
-            return {
-                ...value,
-                compare: (responseState) => compareRegexp(regexp, responseState),
-                dispatch: (responseState) => dispatchDeclaredActionsWithResponseState(value, responseState, store)
-            };
-        }
-
-        if (schema !== undefined) {
-            return {
-                ...value,
-                compare: (responseState) => compareSchema(schema, responseState),
-                dispatch: (responseState) => dispatchDeclaredActionsWithResponseState(value, responseState, store)
-            };
-        }
     }
+
     return value;
 };
 
@@ -226,9 +311,9 @@ export const filterDeclaredResponsesMatchingResponse = (declaredResponses = [],
                                                         dependencies = {compareHeaders, noop}) => {
     const {compareHeaders, noop} = dependencies;
     const {status = 0, headers = {}, body = {}} = response;
-    const onStatus = ({status: {compare = noop}}) => compare(status);
-    const onHeaders = ({headers: declaredHeaders = {}}) => compareHeaders(declaredHeaders, headers);
-    const onBody = ({body: {compare = noop}}) => compare(body);
+    const onStatus = ({'$status': {compare = noop}}) => compare(status);
+    const onHeaders = ({'$headers': declaredHeaders = {}}) => compareHeaders(declaredHeaders, headers);
+    const onBody = ({'$body': {compare = noop}}) => compare(body);
 
     return declaredResponses.filter(onStatus).filter(onHeaders).filter(onBody);
 };
@@ -247,9 +332,9 @@ export const dispatchDeclaredResponsesWithResponseState = (declaredResponses = [
                                                            dependencies = {dispatchHeaders, noop}) => {
     const {dispatchHeaders, noop} = dependencies;
     const dispatch = ({
-                          status: {dispatch: dispatchStatus = noop},
-                          headers: declaredHeaders = {},
-                          body: {dispatch: dispatchBody = noop}
+                          '$status': {dispatch: dispatchStatus = noop},
+                          '$headers': declaredHeaders = {},
+                          '$body': {dispatch: dispatchBody = noop}
                       }) => {
         dispatchStatus(status);
         dispatchHeaders(declaredHeaders, headers);
@@ -262,7 +347,7 @@ export const dispatchDeclaredResponsesWithResponseState = (declaredResponses = [
 export const dispatchResponse = (store = {},
                                  {
                                      type = '',
-                                     request = {responses: []},
+                                     request = {'$responses': []},
                                      event = {type: ''},
                                      response = {status: 0, headers: {}, body: {}}
                                  },
@@ -276,7 +361,7 @@ export const dispatchResponse = (store = {},
         filterDeclaredResponsesMatchingResponse,
         dispatchDeclaredResponsesWithResponseState
     } = dependencies;
-    const {responses: declaredResponses = []} = request;
+    const {'$responses': declaredResponses = []} = request;
     const {type: eventType = ''} = event;
 
     switch (eventType) {
