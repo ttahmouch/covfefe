@@ -47,8 +47,8 @@ export const asyncRequest = (request = {},
                              }) => {
     const {getRequestBody, getResponse} = dependencies;
     const {
-        method = 'GET', uri = '/', headers = {}, body = '',
-        username = '', password = '', withCredentials = 'false'
+        '$method': method = 'GET', '$uri': uri = '/', '$headers': headers = {}, '$body': body = '',
+        '$username': username = '', '$password': password = '', '$withCredentials': withCredentials = 'false'
     } = request;
 
     client.open(method, uri, true, username, password);
