@@ -441,6 +441,7 @@ export const reduceDispatchers = (dispatchers = {},
     };
 };
 
+// Dispatchers probably need to be regenerated whenever state is changed especially added.
 export const dispatchers = (state = {},
                             store = {},
                             dependencies = {reduceDispatchers}) => {
