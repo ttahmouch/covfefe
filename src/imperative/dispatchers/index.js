@@ -16,10 +16,7 @@ import {asyncRequest} from '../request';
 
 export const noop = (event) => console.log(event);
 
-export const dispatch = (store = {dispatch: noop}, action = {}) => {
-    console.log(action);
-    return store.dispatch(action);
-};
+export const dispatch = (store = {dispatch: noop}, action = {}) => store.dispatch(action);
 
 export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
                                                              '$regexp_comparison': undefined,
@@ -35,19 +32,17 @@ export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
         '$schema_comparison': schema = undefined,
         '$to_app_state': appStateActions = []
     } = declaredActions;
-    // Uppercase the action type?
-    const dispatchAction = ({
-                                '$from_response_state': selector = '',
-                                '$selected_response_state': value = selectState(responseState, selector, {
-                                    regexp,
-                                    schema
-                                }),
-                                '$action': declaredAction = '',
-                                '$state': declaredState = '',
-                                '$type': type = action(declaredAction, declaredState)
-                            }) => dispatch(store, {type, value});
 
-    return appStateActions.forEach(dispatchAction);
+    return appStateActions.forEach(({
+                                        '$from_response_state': selector = '',
+                                        '$selected_response_state': value = selectState(responseState, selector, {
+                                            regexp,
+                                            schema
+                                        }),
+                                        '$action': declaredAction = '',
+                                        '$state': declaredState = '',
+                                        '$type': type = action(declaredAction, declaredState)
+                                    }) => dispatch(store, {type, value}));
 };
 
 //
@@ -61,9 +56,9 @@ export const toComparableDeclarative = (declaredComparable = {}, dependencies = 
     };
 };
 
-export const toDispatchableDeclarative = (declaredComparable = {},
-                                          store = {},
-                                          dependencies = {dispatchDeclaredActionsWithSelectedState}) => {
+export const toDispatchableDeclarative = (declaredComparable = {}, store = {}, dependencies = {
+    dispatchDeclaredActionsWithSelectedState
+}) => {
     const {dispatchDeclaredActionsWithSelectedState} = dependencies;
 
     return {
@@ -72,24 +67,19 @@ export const toDispatchableDeclarative = (declaredComparable = {},
     };
 };
 
-export const toDecoratedDeclarative = (declarative = {},
-                                       store = {},
-                                       dependencies = {toDispatchableDeclarative, toComparableDeclarative}) => {
+export const toDecoratedDeclarative = (declarative = {}, store = {}, dependencies = {
+    toDispatchableDeclarative, toComparableDeclarative
+}) => {
     const {toDispatchableDeclarative, toComparableDeclarative} = dependencies;
 
     return toDispatchableDeclarative(toComparableDeclarative(declarative), store);
 };
 
-export const reviver = (key = '',
-                        value = null,
-                        store = {},
-                        appState = {},
-                        viewState = {},
-                        dependencies = {
-                            selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression,
-                            toDeclarativeStatus, toDeclarativeHeader, toDeclarativeHeaders, toDeclarativeBody,
-                            toDeclarativeResponse, toDeclarativeResponses, toDecoratedDeclarative
-                        }) => {
+export const reviver = (key = '', value = null, store = {}, appState = {}, viewState = {}, dependencies = {
+    selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression,
+    toDeclarativeStatus, toDeclarativeHeader, toDeclarativeHeaders, toDeclarativeBody,
+    toDeclarativeResponse, toDeclarativeResponses, toDecoratedDeclarative
+}) => {
     const {
         selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression, toDeclarativeStatus,
         toDeclarativeHeader, toDeclarativeBody, toDeclarativeResponses, toDecoratedDeclarative
@@ -145,17 +135,16 @@ export const dispatchDeclaredResponsesWithResponseState = (declaredResponses = [
                                                            {status, headers, body} = {status: 0, headers: {}, body: {}},
                                                            dependencies = {dispatchHeaders, noop}) => {
     const {dispatchHeaders, noop} = dependencies;
-    const dispatch = ({
-                          '$status': {dispatch: dispatchStatus = noop},
-                          '$headers': declaredHeaders = {},
-                          '$body': {dispatch: dispatchBody = noop}
-                      }) => {
+
+    return declaredResponses.forEach(({
+                                          '$status': {dispatch: dispatchStatus = noop},
+                                          '$headers': declaredHeaders = {},
+                                          '$body': {dispatch: dispatchBody = noop}
+                                      }) => {
         dispatchStatus(status);
         dispatchHeaders(declaredHeaders, headers);
         dispatchBody(body);
-    };
-
-    return declaredResponses.forEach(dispatch);
+    });
 };
 
 export const dispatchResponse = (store = {},
@@ -166,15 +155,10 @@ export const dispatchResponse = (store = {},
                                      response = {status: 0, headers: {}, body: {}}
                                  },
                                  dependencies = {
-                                     dispatch,
-                                     filterDeclaredResponsesMatchingResponse,
+                                     dispatch, filterDeclaredResponsesMatchingResponse,
                                      dispatchDeclaredResponsesWithResponseState
                                  }) => {
-    const {
-        dispatch,
-        filterDeclaredResponsesMatchingResponse,
-        dispatchDeclaredResponsesWithResponseState
-    } = dependencies;
+    const {dispatch, filterDeclaredResponsesMatchingResponse, dispatchDeclaredResponsesWithResponseState} = dependencies;
     const {'$responses': declaredResponses = []} = request;
     const {type: eventType = ''} = event;
 
@@ -214,8 +198,9 @@ export const mapChildrenToState = (children = [], stateType = 'string', state = 
 };
 
 // Move to app?
-export const syncDispatcher = (type = '', store = {},
-                               dependencies = {mapChildrenToState, dispatch, preventDefault: noop}) => {
+export const syncDispatcher = (type = '', store = {}, dependencies = {
+    mapChildrenToState, dispatch, preventDefault: noop
+}) => {
     const {mapChildrenToState, dispatch, preventDefault} = dependencies;
 
     return (event = {preventDefault}) => {
@@ -233,17 +218,10 @@ export const syncDispatcher = (type = '', store = {},
     };
 };
 
-export const asyncDispatcher = (type = '',
-                                store = {getState: noop},
-                                dependencies = {
-                                    mapChildrenToState, asyncRequest, dispatch,
-                                    reviver, dispatchResponse,
-                                    preventDefault: noop
-                                }) => {
-    const {
-        mapChildrenToState, asyncRequest, dispatch,
-        reviver, dispatchResponse, preventDefault
-    } = dependencies;
+export const asyncDispatcher = (type = '', store = {getState: noop}, dependencies = {
+    mapChildrenToState, dispatch, preventDefault: noop, asyncRequest, reviver, dispatchResponse
+}) => {
+    const {mapChildrenToState, dispatch, preventDefault, asyncRequest, reviver, dispatchResponse} = dependencies;
 
     return (event = {preventDefault}) => {
         const {target} = event;
@@ -267,14 +245,9 @@ export const asyncDispatcher = (type = '',
     };
 };
 
-export const reduceDispatchers = (dispatchers = {},
-                                  state = '',
-                                  store = {},
-                                  dependencies = {
-                                      actions,
-                                      syncDispatcher,
-                                      asyncDispatcher
-                                  }) => {
+export const reduceDispatchers = (dispatchers = {}, state = '', store = {}, dependencies = {
+    actions, syncDispatcher, asyncDispatcher
+}) => {
     const {actions, syncDispatcher, asyncDispatcher} = dependencies;
     const {create, read, update, remove, async_create, async_read, async_update, async_remove} = actions(state);
 
@@ -292,9 +265,7 @@ export const reduceDispatchers = (dispatchers = {},
 };
 
 // Dispatchers probably need to be regenerated whenever state is changed especially added.
-export const dispatchers = (state = {},
-                            store = {},
-                            dependencies = {reduceDispatchers}) => {
+export const dispatchers = (state = {}, store = {}, dependencies = {reduceDispatchers}) => {
     const {reduceDispatchers} = dependencies;
 
     return Object
