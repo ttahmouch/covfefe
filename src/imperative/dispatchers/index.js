@@ -6,17 +6,16 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
 import {action, actions} from '../actions';
 import {compare, filterDeclaredResponsesMatchingResponse} from '../comparators';
-import {
-    toDeclarativeBody, toDeclarativeHeader, toDeclarativeHeaders, toDeclarativeResponse, toDeclarativeResponses,
-    toDeclarativeStatus
-} from '../declarators';
-import {interpolateJsTemplateUsingExpression, interpolateUriTemplate} from '../interpolators';
-import {selectState, selectStateUsingJsonPath} from '../selectors';
+import {toDeclarativeHttpTransaction} from '../declarators';
+import {selectState} from '../selectors';
 import {asyncRequest} from '../request';
 
 export const noop = (event) => console.log(event);
 
-export const dispatch = (store = {dispatch: noop}, action = {}) => store.dispatch(action);
+export const dispatch = (store = {dispatch: noop}, action = {}) => {
+    console.log(action);
+    return store.dispatch(action);
+};
 
 export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
                                                              '$regexp_comparison': undefined,
@@ -44,83 +43,6 @@ export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
                                         '$type': type = action(declaredAction, declaredState)
                                     }) => dispatch(store, {type, value}));
 };
-
-//
-
-export const toComparableDeclarative = (declaredComparable = {}, dependencies = {compare}) => {
-    const {compare} = dependencies;
-
-    return {
-        ...declaredComparable,
-        compare: (state) => compare(declaredComparable, state)
-    };
-};
-
-export const toDispatchableDeclarative = (declaredComparable = {}, store = {}, dependencies = {
-    dispatchDeclaredActionsWithSelectedState
-}) => {
-    const {dispatchDeclaredActionsWithSelectedState} = dependencies;
-
-    return {
-        ...declaredComparable,
-        dispatch: (state) => dispatchDeclaredActionsWithSelectedState(declaredComparable, state, store)
-    };
-};
-
-export const toDecoratedDeclarative = (declarative = {}, store = {}, dependencies = {
-    toDispatchableDeclarative, toComparableDeclarative
-}) => {
-    const {toDispatchableDeclarative, toComparableDeclarative} = dependencies;
-
-    return toDispatchableDeclarative(toComparableDeclarative(declarative), store);
-};
-
-export const reviver = (key = '', value = null, store = {}, appState = {}, viewState = {}, dependencies = {
-    selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression,
-    toDeclarativeStatus, toDeclarativeHeader, toDeclarativeHeaders, toDeclarativeBody,
-    toDeclarativeResponse, toDeclarativeResponses, toDecoratedDeclarative
-}) => {
-    const {
-        selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression, toDeclarativeStatus,
-        toDeclarativeHeader, toDeclarativeBody, toDeclarativeResponses, toDecoratedDeclarative
-    } = dependencies;
-    const type = value === null ? 'null' : typeof value;
-
-    if (key === '$responses' && Array.isArray(value)) {
-        return toDeclarativeResponses(value, {
-            ...dependencies,
-            toDeclarativeStatus: (declaredStatus) => toDecoratedDeclarative(toDeclarativeStatus(declaredStatus), store),
-            toDeclarativeHeader: (declaredHeader) => toDecoratedDeclarative(toDeclarativeHeader(declaredHeader), store),
-            toDeclarativeBody: (declaredBody) => toDecoratedDeclarative(toDeclarativeBody(declaredBody), store),
-        });
-    }
-
-    if (type === 'object') {
-        const {
-            '$from_app_state': appStateSelector = '',
-            '$from_view_state': viewStateSelector = '',
-            '$uri_template': uriTemplate = '',
-            '$js_template': jsTemplate = ''
-        } = value;
-
-        if (appStateSelector) {
-            return selectStateUsingJsonPath(appState, appStateSelector);
-        }
-        if (viewStateSelector) {
-            return selectStateUsingJsonPath(viewState, viewStateSelector);
-        }
-        if (uriTemplate) {
-            return interpolateUriTemplate(uriTemplate, value);
-        }
-        if (jsTemplate) {
-            return interpolateJsTemplateUsingExpression(jsTemplate, value);
-        }
-    }
-
-    return value;
-};
-
-//
 
 export const dispatchHeaders = (declaredHeaders = {}, headers = {}, dependencies = {noop}) => {
     const {noop} = dependencies;
@@ -217,11 +139,27 @@ export const syncDispatcher = (type = '', store = {}, dependencies = {
         return dispatch(store, action);
     };
 };
+// I think it's done enough to start implementing to_app_state for requests.
+export const toDecoratedDeclarative = (declarative = {}, store = {}, dependencies = {
+    compare, dispatchDeclaredActionsWithSelectedState
+}) => {
+    const {compare, dispatchDeclaredActionsWithSelectedState} = dependencies;
+
+    return {
+        ...declarative,
+        compare: (state) => compare(declarative, state),
+        dispatch: (state) => dispatchDeclaredActionsWithSelectedState(declarative, state, store)
+    };
+};
 
 export const asyncDispatcher = (type = '', store = {getState: noop}, dependencies = {
-    mapChildrenToState, dispatch, preventDefault: noop, asyncRequest, reviver, dispatchResponse
+    mapChildrenToState, dispatch, preventDefault: noop,
+    asyncRequest, toDeclarativeHttpTransaction, toDecoratedDeclarative, dispatchResponse
 }) => {
-    const {mapChildrenToState, dispatch, preventDefault, asyncRequest, reviver, dispatchResponse} = dependencies;
+    const {
+        mapChildrenToState, dispatch, preventDefault,
+        asyncRequest, toDeclarativeHttpTransaction, toDecoratedDeclarative, dispatchResponse
+    } = dependencies;
 
     return (event = {preventDefault}) => {
         const {target} = event;
@@ -232,7 +170,13 @@ export const asyncDispatcher = (type = '', store = {getState: noop}, dependencie
         const children = Array.from(target);
         const appState = store.getState();
         const viewState = mapChildrenToState(children, stateType, stateValue);
-        const request = JSON.parse(declaredRequest, (key, value) => reviver(key, value, store, appState, viewState));
+        const onDeclarative = (declarative) => toDecoratedDeclarative(declarative, store);
+        const delegate = {
+            onDeclarativeStatus: onDeclarative,
+            onDeclarativeHeader: onDeclarative,
+            onDeclarativeBody: onDeclarative
+        };
+        const request = toDeclarativeHttpTransaction(declaredRequest, appState, viewState, delegate);
         const onResponse = (request, event, response) => dispatchResponse(store, {type, request, event, response});
 
         event.preventDefault();
