@@ -32,18 +32,19 @@ export const mapCustomPropsToReactProps = (props = {}, styles = {}, requests = {
         style,
         'data-style': $style = '',
         'data-state': $state = '',
-        'data-state-prop': stateProp = 'children',
+        'data-state-prop': $stateProp = 'children',
         'data-action': $action = '',
-        'data-action-prop': actionProp = 'data-action-prop',
-        'data-action-request': $request = action($action, $state)
+        'data-action-prop': $actionProp = 'data-action-prop',
+        'data-action-request': $actionRequest = action($action, $state),
+        'data-request': $request = JSON.stringify(getRequest(requests, $actionRequest) || {})
     } = props;
 
     return {
         ...props,
         style: style || getStyle(styles, $style),
-        [stateProp]: getState(store.getState(), $state),
-        [actionProp]: getDispatcher(dispatchers, action($action, $state)),
-        'data-request': JSON.stringify(getRequest(requests, $request) || {})
+        [$stateProp]: getState(store.getState(), $state),
+        [$actionProp]: getDispatcher(dispatchers, action($action, $state)),
+        'data-request': $request
     };
 };
 
