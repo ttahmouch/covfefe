@@ -1,14 +1,17 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
 import schema from '../../declarative/schema';
-import {interpolateJsTemplateUsingExpression, interpolateUriTemplate} from '../interpolators';
-import {selectStateUsingJsonPath} from '../selectors';
 
 const {anything_schema, any_positive_integer_schema} = schema;
 
 export const delegate = {
     onDeclarativeStatus: (declarative) => declarative,
     onDeclarativeHeader: (declarative) => declarative,
-    onDeclarativeBody: (declarative) => declarative
+    onDeclarativeBody: (declarative) => declarative,
+    onDeclarativeAppStateSelector: (declarative) => declarative,
+    onDeclarativeViewStateSelector: (declarative) => declarative,
+    onDeclarativeUriTemplateInterpolator: (declarative) => declarative,
+    onDeclarativeJsTemplateInterpolator: (declarative) => declarative
+    // onDeclarativeResponseStateSelector: (declarative) => declarative,
 };
 
 export const toDeclarativeStatus = (declaredStatus = {'$schema_comparison': any_positive_integer_schema}) => {
@@ -60,15 +63,9 @@ export const toDeclarativeResponses = (declaredResponses = [], delegate = delega
     return declaredResponses.map((declaredResponse) => toDeclarativeResponse(declaredResponse, delegate));
 };
 
-export const toDeclarativeHttpTransaction = (declaredRequest = '{}', appState = {}, viewState = {}, delegate = delegate,
-                                             dependencies = {
-                                                 selectStateUsingJsonPath, interpolateUriTemplate,
-                                                 interpolateJsTemplateUsingExpression, toDeclarativeResponses
-                                             }) => {
-    const {
-        selectStateUsingJsonPath, interpolateUriTemplate, interpolateJsTemplateUsingExpression,
-        toDeclarativeResponses
-    } = dependencies;
+export const toDeclarativeHttpTransaction = (declaredRequest = '{}', delegate = delegate,
+                                             dependencies = {toDeclarativeResponses}) => {
+    const {toDeclarativeResponses} = dependencies;
 
     return JSON.parse(declaredRequest, (key = '', value = null) => {
         const type = value === null ? 'null' : typeof value;
@@ -77,6 +74,11 @@ export const toDeclarativeHttpTransaction = (declaredRequest = '{}', appState = 
             return toDeclarativeResponses(value, delegate);
         }
 
+        // If key is '' meaning it's the root request, then check the properties allowed on a request for interpolation
+        // and selection.
+        // Make a `toDeclarativeRequest` method so that we can manage where selection and interpolation is allowed
+        // instead of assuming it can happen anywhere, and handle dispatching actions from the request context.
+        console.log(key);
         if (type === 'object') {
             const {
                 '$from_app_state': appStateSelector = '',
@@ -86,16 +88,16 @@ export const toDeclarativeHttpTransaction = (declaredRequest = '{}', appState = 
             } = value;
 
             if (appStateSelector) {
-                return selectStateUsingJsonPath(appState, appStateSelector);
+                return delegate.onDeclarativeAppStateSelector(value);
             }
             if (viewStateSelector) {
-                return selectStateUsingJsonPath(viewState, viewStateSelector);
+                return delegate.onDeclarativeViewStateSelector(value);
             }
             if (uriTemplate) {
-                return interpolateUriTemplate(uriTemplate, value);
+                return delegate.onDeclarativeUriTemplateInterpolator(value);
             }
             if (jsTemplate) {
-                return interpolateJsTemplateUsingExpression(jsTemplate, value);
+                return delegate.onDeclarativeJsTemplateInterpolator(value);
             }
         }
 

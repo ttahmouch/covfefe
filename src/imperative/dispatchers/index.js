@@ -7,8 +7,9 @@
 import {action, actions} from '../actions';
 import {compare, filterDeclaredResponsesMatchingResponse} from '../comparators';
 import {toDeclarativeHttpTransaction} from '../declarators';
-import {selectState} from '../selectors';
+import {interpolateTemplate} from '../interpolators';
 import {asyncRequest} from '../request';
+import {selectState} from '../selectors';
 
 export const noop = (event) => console.log(event);
 
@@ -34,10 +35,14 @@ export const dispatchDeclaredActionsWithSelectedState = (declaredActions = {
 
     return appStateActions.forEach(({
                                         '$from_response_state': selector = '',
-                                        '$selected_response_state': value = selectState(responseState, selector, {
-                                            regexp,
-                                            schema
-                                        }),
+                                        '$selected_response_state': value = selectState(
+                                            {
+                                                '$regexp_comparison': regexp,
+                                                '$schema_comparison': schema,
+                                                '$from_response_state': selector
+                                            },
+                                            responseState
+                                        ),
                                         '$action': declaredAction = '',
                                         '$state': declaredState = '',
                                         '$type': type = action(declaredAction, declaredState)
@@ -139,16 +144,20 @@ export const syncDispatcher = (type = '', store = {}, dependencies = {
         return dispatch(store, action);
     };
 };
+
 // I think it's done enough to start implementing to_app_state for requests.
 export const toDecoratedDeclarative = (declarative = {}, store = {}, dependencies = {
-    compare, dispatchDeclaredActionsWithSelectedState
+    compare, dispatchDeclaredActionsWithSelectedState, interpolateTemplate, selectState
 }) => {
-    const {compare, dispatchDeclaredActionsWithSelectedState} = dependencies;
+    const {compare, dispatchDeclaredActionsWithSelectedState, interpolateTemplate, selectState} = dependencies;
 
     return {
         ...declarative,
         compare: (state) => compare(declarative, state),
-        dispatch: (state) => dispatchDeclaredActionsWithSelectedState(declarative, state, store)
+        dispatch: (state) => dispatchDeclaredActionsWithSelectedState(declarative, state, store),
+        // Distinguish these between request and response context.
+        interpolate: (state) => interpolateTemplate(declarative, state),
+        select: (state) => selectState(declarative, state)
     };
 };
 
@@ -171,12 +180,20 @@ export const asyncDispatcher = (type = '', store = {getState: noop}, dependencie
         const appState = store.getState();
         const viewState = mapChildrenToState(children, stateType, stateValue);
         const onDeclarative = (declarative) => toDecoratedDeclarative(declarative, store);
+        const onDeclarativeAppStateSelector = (declarative) => onDeclarative(declarative).select(appState);
+        const onDeclarativeViewStateSelector = (declarative) => onDeclarative(declarative).select(viewState);
+        const onDeclarativeInterpolator = (declarative) => onDeclarative(declarative).interpolate(declarative);
+        // Allow for lazy selection and interpolation so the context of the interpolation and selection doesn't matter.
         const delegate = {
             onDeclarativeStatus: onDeclarative,
             onDeclarativeHeader: onDeclarative,
-            onDeclarativeBody: onDeclarative
+            onDeclarativeBody: onDeclarative,
+            onDeclarativeAppStateSelector,
+            onDeclarativeViewStateSelector,
+            onDeclarativeUriTemplateInterpolator: onDeclarativeInterpolator,
+            onDeclarativeJsTemplateInterpolator: onDeclarativeInterpolator
         };
-        const request = toDeclarativeHttpTransaction(declaredRequest, appState, viewState, delegate);
+        const request = toDeclarativeHttpTransaction(declaredRequest, delegate);
         const onResponse = (request, event, response) => dispatchResponse(store, {type, request, event, response});
 
         event.preventDefault();

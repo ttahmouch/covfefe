@@ -3,10 +3,6 @@ import Ajv from 'ajv';
 
 export const noop = (event) => console.log(event);
 
-/**
- * State Comparison.
- */
-
 export const compareLiteral = (declaredLiteral = 0, value = 0) => declaredLiteral === value;
 
 export const compareRegexp = (declaredRegexp = '',
