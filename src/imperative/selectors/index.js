@@ -1,31 +1,30 @@
 /* eslint-disable no-use-before-define */
 import jsonpath from 'jsonpath/jsonpath.min';
 
-/**
- * State Selection.
- */
-
-export const selectStateUsingJsonPath = (state = {},
-                                         selector = '',
+export const selectStateUsingJsonPath = (selector = '',
+                                         state = {},
                                          jsonPath = jsonpath) => selector ? jsonPath.value(state, selector) : state;
 
-export const selectStateUsingRegExp = (state = '',
-                                       selector = '',
+export const selectStateUsingRegExp = (selector = '',
+                                       state = '',
                                        regexp = new RegExp(selector)) => (regexp.exec(state) || []).slice(1);
 
-export const selectState = (state = {},
-                            selector = '',
-                            {regexp = undefined, schema = undefined},
+// Schema is not necessary.
+export const selectState = ({
+                                '$regexp_comparison': regexp = undefined,
+                                '$schema_comparison': schema = undefined,
+                                '$from_app_state': appStateSelector = '',
+                                '$from_view_state': viewStateSelector = '',
+                                '$from_response_state': responseStateSelector = '',
+                                '$selector': $selector = appStateSelector || viewStateSelector || responseStateSelector || ''
+                            },
+                            state = {},
                             dependencies = {selectStateUsingJsonPath, selectStateUsingRegExp}) => {
     const {selectStateUsingJsonPath, selectStateUsingRegExp} = dependencies;
 
     if (regexp !== undefined) {
-        return selectStateUsingJsonPath(selectStateUsingRegExp(state, regexp), selector);
+        return selectStateUsingJsonPath($selector, selectStateUsingRegExp(regexp, state));
     }
 
-    if (schema !== undefined) {
-        return selectStateUsingJsonPath(state, selector);
-    }
-
-    return state;
+    return selectStateUsingJsonPath($selector, state);
 };
