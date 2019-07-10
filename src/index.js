@@ -14,14 +14,14 @@ import {reducers} from './imperative/reducers';
 import {dispatchers} from './imperative/dispatchers';
 import {App} from './imperative/components';
 
+const children = <RootView/>;
+
 ReactDOM.render(
-    (
-        <App states={states}
-             styles={styles}
-             requests={requests}
-             reducers={reducers}
-             dispatchers={dispatchers}
-             children={<RootView/>}/>
-    ),
+    <App states={states}
+         styles={styles}
+         requests={requests}
+         reducers={reducers}
+         dispatchers={dispatchers}
+         children={children}/>,
     document.getElementById('root')
 );
