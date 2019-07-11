@@ -8,5 +8,8 @@ export default {
     "length": "",
     "title": "",
     "titles_array": [],
-    "titles_dictionary": {}
+    "titles_dictionary": {},
+    "card_title": "Locks: 12:37 PM Succeeded",
+    "card_title_2": "Locks: 12:38 PM Succeeded",
+    "page_title": "Remote Commands"
 };
