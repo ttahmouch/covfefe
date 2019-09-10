@@ -7,6 +7,9 @@ export const delegate = {
     onDeclarativeStatus: (declarative) => declarative,
     onDeclarativeHeader: (declarative) => declarative,
     onDeclarativeBody: (declarative) => declarative,
+    // Get rid of these and shift state selection and interpolation to later right before a request happens or right
+    // after a response is received. Try to keep the state of the request declaration immutable, and create a new
+    // data structure with the interpolation and selection done for the request that is made.
     onDeclarativeAppStateSelector: (declarative) => declarative,
     onDeclarativeViewStateSelector: (declarative) => declarative,
     onDeclarativeUriTemplateInterpolator: (declarative) => declarative,
@@ -15,11 +18,11 @@ export const delegate = {
 };
 
 export const toDeclarativeStatus = (declaredStatus = {'$schema_comparison': any_positive_integer_schema}) => {
-    return typeof declaredStatus !== 'number' ? declaredStatus : {'$literal_comparison': declaredStatus};
+    return typeof declaredStatus !== 'number' ? declaredStatus : {'$literal': declaredStatus};
 };
 
 export const toDeclarativeHeader = (declaredHeader = '') => {
-    return typeof declaredHeader !== 'string' ? declaredHeader : {'$regexp_comparison': declaredHeader};
+    return typeof declaredHeader !== 'string' ? declaredHeader : {'$regexp': declaredHeader};
 };
 
 export const toDeclarativeHeaders = (declaredHeaders = {}, delegate = delegate,
@@ -63,44 +66,128 @@ export const toDeclarativeResponses = (declaredResponses = [], delegate = delega
     return declaredResponses.map((declaredResponse) => toDeclarativeResponse(declaredResponse, delegate));
 };
 
-export const toDeclarativeHttpTransaction = (declaredRequest = '{}', delegate = delegate,
-                                             dependencies = {toDeclarativeResponses}) => {
-    const {toDeclarativeResponses} = dependencies;
+export const toDeclarativeSelector = (declaredSelector = {$selector: '', $from: ''},
+                                      delegate = delegate) => {
+    // Support functional selectors.
+    const {$selector = '', $from = ''} = declaredSelector;
 
-    return JSON.parse(declaredRequest, (key = '', value = null) => {
-        const type = value === null ? 'null' : typeof value;
-
-        if (key === '$responses' && Array.isArray(value)) {
-            return toDeclarativeResponses(value, delegate);
-        }
-
-        // If key is '' meaning it's the root request, then check the properties allowed on a request for interpolation
-        // and selection.
-        // Make a `toDeclarativeRequest` method so that we can manage where selection and interpolation is allowed
-        // instead of assuming it can happen anywhere, and handle dispatching actions from the request context.
-        console.log(key);
-        if (type === 'object') {
-            const {
-                '$from_app_state': appStateSelector = '',
-                '$from_view_state': viewStateSelector = '',
-                '$uri_template': uriTemplate = '',
-                '$js_template': jsTemplate = ''
-            } = value;
-
-            if (appStateSelector) {
-                return delegate.onDeclarativeAppStateSelector(value);
-            }
-            if (viewStateSelector) {
-                return delegate.onDeclarativeViewStateSelector(value);
-            }
-            if (uriTemplate) {
-                return delegate.onDeclarativeUriTemplateInterpolator(value);
-            }
-            if (jsTemplate) {
-                return delegate.onDeclarativeJsTemplateInterpolator(value);
-            }
-        }
-
-        return value;
-    });
+    switch ($from) {
+        case 'app':
+            return delegate.onDeclarativeAppStateSelector(declaredSelector);
+        case 'view':
+            return delegate.onDeclarativeViewStateSelector(declaredSelector);
+        default:
+            return declaredSelector;
+    }
 };
+
+
+export const toDeclarativeInterpolator = (declaredInterpolator = {'$uri_template': '', '$js_template': ''},
+                                          delegate = delegate) => {
+    const {
+        '$uri_template': uriInterpolator = '',
+        '$js_template': jsInterpolator = ''
+    } = declaredInterpolator;
+
+    if (uriInterpolator) {
+        return delegate.onDeclarativeUriTemplateInterpolator(declaredInterpolator);
+    }
+
+    if (jsInterpolator) {
+        return delegate.onDeclarativeJsTemplateInterpolator(declaredInterpolator);
+    }
+
+    return declaredInterpolator;
+};
+
+export const compose = (...composers) => (composed = {}, ...rest) => {
+    return composers.reduceRight((composed, composer) => composer(composed, ...rest), composed);
+};
+
+export const toComposedDeclarative = (declarative = {},
+                                      delegate = delegate,
+                                      dependencies = {compose, toDeclarativeInterpolator, toDeclarativeSelector}) => {
+    const {compose, toDeclarativeInterpolator, toDeclarativeSelector} = dependencies;
+
+    return compose(toDeclarativeInterpolator, toDeclarativeSelector)(declarative, delegate);
+};
+
+export const toRecursivelyComposedDeclarative = (declarative = {},
+                                                 delegate = delegate,
+                                                 dependencies = {toComposedDeclarative}) => {
+    const {toComposedDeclarative} = dependencies;
+    const onKey = (object, key) => ({...object, [key]: toRecursivelyComposedDeclarative(object[key], delegate)});
+    const onObject = (object = {}, onKey = onKey) => Object.keys(object).reduce(onKey, object);
+
+    return declarative === null || typeof declarative !== 'object' || Array.isArray(declarative)
+        ? declarative
+        : toComposedDeclarative(onObject(declarative, onKey), delegate);
+};
+
+export const toDeclarativeRequestField = (key = '',
+                                          object = null,
+                                          delegate = delegate,
+                                          dependencies = {
+                                              toDeclarativeResponses,
+                                              toRecursivelyComposedDeclarative
+                                          }) => {
+    const {toDeclarativeResponses, toRecursivelyComposedDeclarative} = dependencies;
+
+    switch (key) {
+        case'$method':
+        case'$uri':
+        case'$headers':
+        case'$body':
+        case'$username':
+        case'$password':
+        case'$withCredentials':
+        case'$actions':
+            return toRecursivelyComposedDeclarative(object, delegate);
+        case '$responses':
+            return !Array.isArray(object) ? object : toDeclarativeResponses(object, delegate);
+        default:
+            return object;
+    }
+};
+
+export const toDeclarativeRequest = (request = {
+                                         '$method': 'GET',
+                                         '$uri': '/',
+                                         '$headers': {},
+                                         '$body': '',
+                                         '$username': '',
+                                         '$password': '',
+                                         '$withCredentials': 'false',
+                                         '$actions': [],
+                                         '$responses': []
+                                     },
+                                     delegate = delegate,
+                                     dependencies = {toDeclarativeRequestField}) => {
+    const {toDeclarativeRequestField} = dependencies;
+    const onField = (request, key) => ({...request, [key]: toDeclarativeRequestField(key, request[key], delegate)});
+
+    return Object.keys(request).reduce(onField, request);
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// const selector = {$selector: "$.title", $from: "app"};
+// const other_selector = ({app, view, response}) => true;
+// const interpolator = {$uri_template: "/{path}", path: selector};
+// const action = {$action: "update", $state: "title", $select: selector};
+// const other_action = {$action: "update", $state: "loading", $select: other_selector};
+// // const other_action = {$action: "update", $state: "loading", $select: {$selector: ({app, view, response}) => true}};
+// const literal_comparator = {$literal: 200, $actions: [action, other_action]};
+// const regexp_comparator = {$regexp: "^([0-9]+)$", $actions: [action, other_action]};
+// const schema_comparator = {$schema_comparison: {"$schema": ""}, $actions: [action, other_action]};
+// const request = {
+//     $method: interpolator,
+//     $uri: interpolator,
+//     $headers: {"content-type": interpolator},
+//     $actions: [action, other_action],
+//     $responses: [{
+//         $status: literal_comparator,
+//         $headers: {"content-type": schema_comparator, "content-length": regexp_comparator},
+//         $body: schema_comparator
+//     }]
+// };
