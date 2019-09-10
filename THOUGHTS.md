@@ -172,3 +172,126 @@
 // Dispatch this action to signify the asynchrony is possibly complete depending on the event.
 // Is this even necessary anymore? Because we're no longer expecting to derive state directly from the event actions.
 // We are now updating store state as synchronous dispatching based on if responses match the declared responses.
+
+
+                <JsonString data-state='title' data-state-prop='string'/>
+                <form data-action-prop='onSubmit' data-action='remove' data-state='title'>
+                    <div>
+                        <label>Update Title:</label>
+                        <input data-action-prop='onChange' data-action='update' data-state='title'
+                               data-state-prop='value'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Delete Title</button>
+                    </div>
+                </form>
+                <JsonList data-state='titles_array' data-state-prop='list'/>
+                <form data-action-prop='onSubmit' data-action='create' data-state='titles_array'
+                      data-state-type='array'>
+                    <div>
+                        <label>First Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Second Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Not Title:</label>
+                        <input name='nottitle'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Submit</button>
+                    </div>
+                    <div>
+                        <button data-action-prop='onClick' data-action='remove' data-state='titles_array'
+                                data-state-type='array'>
+                            Remove Array
+                        </button>
+                    </div>
+                </form>
+                <JsonDictionary data-state='titles_dictionary' data-state-prop='dictionary'/>
+                <form data-action-prop='onSubmit' data-action='remove' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <button type='submit'>Remove Dictionary</button>
+                    </div>
+                </form>
+                <form data-action-prop='onSubmit' data-action='create' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <label>First Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Second Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Not Title:</label>
+                        <input name='nottitle'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Create Dictionary</button>
+                    </div>
+                </form>
+                <JsonString data-state='status' data-state-prop='string'/>
+                <JsonString data-state='header' data-state-prop='string'/>
+                <JsonString data-state='length' data-state-prop='string'/>
+                <form data-action-prop='onSubmit' data-action='async_create' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <label>First Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Second Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Not Title:</label>
+                        <input name='nottitle'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Create Titles Dictionary Async</button>
+                    </div>
+                </form>
+                <form data-action-prop='onSubmit' data-action='async_read' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <label>Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Read Titles Dictionary Async</button>
+                    </div>
+                </form>
+                <button data-action-prop='onClick' data-action='async_read' data-state='titles_dictionary'
+                        data-state-type='dictionary'>
+                    Read Titles Dictionary Async
+                </button>
+                <form data-action-prop='onSubmit' data-action='async_update' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <label>First Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Second Title:</label>
+                        <input name='title'/>
+                    </div>
+                    <div>
+                        <label>Not Title:</label>
+                        <input name='nottitle'/>
+                    </div>
+                    <div>
+                        <button type='submit'>Update Titles Dictionary Async</button>
+                    </div>
+                </form>
+                <form data-action-prop='onSubmit' data-action='async_remove' data-state='titles_dictionary'
+                      data-state-type='dictionary'>
+                    <div>
+                        <button type='submit'>Remove Titles Dictionary Async</button>
+                    </div>
+                </form>
+            
