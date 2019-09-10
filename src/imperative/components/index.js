@@ -24,10 +24,12 @@ export const getState = (states = {}, state = '') => states[state];
 
 export const getRequest = (requests = {}, request = '') => requests[request];
 
-export const mapCustomPropsToReactProps = (props = {}, styles = {}, requests = {},
-                                           store = {getState: getEmptyObject}, dispatchers = {},
-                                           dependencies = {getStyle, getState, getDispatcher, getRequest, action}) => {
-    const {getStyle, getState, getDispatcher, getRequest, action} = dependencies;
+export const mapCustomPropsToReactProps = (props = {},
+                                           styles = {},
+                                           store = {getState: getEmptyObject},
+                                           dispatchers = {},
+                                           dependencies = {getStyle, getState, getDispatcher, action}) => {
+    const {getStyle, getState, getDispatcher, action} = dependencies;
     const {
         style,
         'data-style': $style = '',
@@ -36,7 +38,6 @@ export const mapCustomPropsToReactProps = (props = {}, styles = {}, requests = {
         'data-action': $action = '',
         'data-action-prop': $actionProp = 'data-action-prop',
         'data-action-request': $actionRequest = action($action, $state),
-        'data-request': $request = JSON.stringify(getRequest(requests, $actionRequest) || {})
     } = props;
 
     return {
@@ -44,7 +45,7 @@ export const mapCustomPropsToReactProps = (props = {}, styles = {}, requests = {
         style: style || getStyle(styles, $style),
         [$stateProp]: getState(store.getState(), $state),
         [$actionProp]: getDispatcher(dispatchers, action($action, $state)),
-        'data-request': $request
+        'data-action-request': $actionRequest,
     };
 };
 
@@ -56,17 +57,17 @@ export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
     return props !== null && typeof props === 'object' && Object.keys(props).filter(isDataProp).length;
 };
 
-export const toReactProps = (props = {}, styles = {}, requests = {}, store = {}, dispatchers = {},
+export const toReactProps = (props = {}, styles = {}, store = {}, dispatchers = {},
                              dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
     const {areDataProps, mapCustomPropsToReactProps} = dependencies;
 
-    return areDataProps(props) ? mapCustomPropsToReactProps(props, styles, requests, store, dispatchers) : props;
+    return areDataProps(props) ? mapCustomPropsToReactProps(props, styles, store, dispatchers) : props;
 };
 
-export const reactMethodWithCustomDataProps = (method = React.createElement, styles = {}, requests = {}, store = {},
+export const reactMethodWithCustomDataProps = (method = React.createElement, styles = {}, store = {},
                                                dispatchers = {}, dependencies = {toReactProps}) => {
     const {toReactProps} = dependencies;
-    const fromCustomDataPropsToReactProps = (props) => toReactProps(props, styles, requests, store, dispatchers);
+    const fromCustomDataPropsToReactProps = (props) => toReactProps(props, styles, store, dispatchers);
 
     return (...args) => method.apply(this, Array.from(args).map(fromCustomDataPropsToReactProps));
 };
@@ -78,12 +79,12 @@ export const toClonedElement = (element = {}) => {
     return React.cloneElement(element, props, React.Children.map(children, toClonedElement));
 };
 
-export const proxyReactMethodsToSupportCustomDataProps = (styles = {}, requests = {}, store = {}, dispatchers = {},
+export const proxyReactMethodsToSupportCustomDataProps = (styles = {}, store = {}, dispatchers = {},
                                                           dependencies = {reactMethodWithCustomDataProps}) => {
     const {reactMethodWithCustomDataProps} = dependencies;
 
-    React.createElement = reactMethodWithCustomDataProps(React.createElement, styles, requests, store, dispatchers);
-    React.cloneElement = reactMethodWithCustomDataProps(React.cloneElement, styles, requests, store, dispatchers);
+    React.createElement = reactMethodWithCustomDataProps(React.createElement, styles, store, dispatchers);
+    React.cloneElement = reactMethodWithCustomDataProps(React.cloneElement, styles, store, dispatchers);
 };
 
 export class App extends Component {
@@ -98,7 +99,7 @@ export class App extends Component {
         this.store = store;
 
         // The state is probably still not needed here as it can be derived from the store.
-        proxyReactMethodsToSupportCustomDataProps(styles, requests, store, dispatchers(states, store));
+        proxyReactMethodsToSupportCustomDataProps(styles, store, dispatchers(states, store, requests));
     }
 
     componentWillMount() {
