@@ -4,12 +4,12 @@
  * Possibly treat request and response state the same with respect to comparing and dispatching selected state.
  */
 /* eslint-disable no-use-before-define,no-unused-vars */
-import {action, actions} from '../actions';
-import {compare, filterDeclaredResponsesMatchingResponse} from '../comparators';
-import {toDeclarativeRequest} from '../declarators';
-import {interpolateTemplate} from '../interpolators';
-import {asyncRequest} from '../request';
-import {selectState, captureAndSelectState} from '../selectors';
+import {action, actions} from './actions';
+import {compare, filterDeclaredResponsesMatchingResponse} from './comparators';
+import {toDeclarativeRequest} from './declarators';
+import {interpolateTemplate} from './interpolators';
+import {asyncRequest} from './request';
+import {selectState, captureAndSelectState} from './selectors';
 
 export const noop = (event) => console.log(event);
 

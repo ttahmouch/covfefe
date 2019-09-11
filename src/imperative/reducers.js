@@ -1,7 +1,7 @@
 /**
  * TODO:
  */
-import {actions} from '../actions';
+import {actions} from './actions';
 
 // Move to app?
 export const reducer = (initialState, actions) => {

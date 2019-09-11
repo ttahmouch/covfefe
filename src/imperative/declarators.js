@@ -1,7 +1,10 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
-import schema from '../../declarative/schema';
-
-const {anything_schema, any_positive_integer_schema} = schema;
+export const anything_schema = {"$schema": "http://json-schema.org/schema#"};
+export const any_positive_integer_schema = {
+    "$schema": "http://json-schema.org/schema#",
+    "type": "integer",
+    "minimum": 0
+};
 
 export const delegate = {
     onDeclarativeStatus: (declarative) => declarative,

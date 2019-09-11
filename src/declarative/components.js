@@ -1,6 +1,12 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {BrowserRouter as Router, Link, Route} from 'react-router-dom';
-import {Json} from '../../imperative/components';
+
+export class Json extends Component {
+    render() {
+        const {props: {json = {}}} = this;
+        return (<pre>{JSON.stringify(json, null, 4)}</pre>);
+    }
+}
 
 export const RootView = (props) => (
     <Router>

@@ -12,7 +12,7 @@
 import React, {Component} from 'react';
 import {combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
-import {action} from '../actions';
+import {action} from './actions';
 
 export const getEmptyObject = () => ({});
 
@@ -114,14 +114,5 @@ export class App extends Component {
 
     componentWillUnmount() {
         this.unsubscribe();
-    }
-}
-
-export class Json extends Component {
-    render() {
-        const {props: {json = {}}} = this;
-        return (
-            <pre>{JSON.stringify(json, null, 4)}</pre>
-        );
     }
 }
