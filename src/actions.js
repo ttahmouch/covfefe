@@ -63,6 +63,15 @@ export default {
         ],
         $responses: [
             {
+                $status: 200,
+                $headers: {"content-type": "application[/]json"},
+                $body: {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "properties": {"titles": {"type": "array"}}
+                }
+            },
+            {
                 $status: {
                     $literal: 200,
                     $actions: [
@@ -142,45 +151,6 @@ export default {
                             $action: "update",
                             $state: "title",
                             $select: ({response = {titles: [{title: ''}]}}) => response.titles[0].title
-                        },
-                        {
-                            $action: "update",
-                            $state: "titles_array",
-                            $select: ({response = {titles: []}}) => response.titles
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    "ASYNC_READ_TITLES_ARRAY": {
-        // Revise these to use $ prefix.
-        $method: "GET",
-        $uri: "/titlesDictionary.json",
-        $responses: [
-            {
-                $status: 200,
-                $headers: {"content-type": "application[/]json"},
-                $body: {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "properties": {"titles": {"type": "array"}}
-                }
-            },
-            {
-                $status: 200,
-                $headers: {"content-type": "application[/]json"},
-                $body: {
-                    $schema_comparison: {
-                        "$schema": "http://json-schema.org/schema#",
-                        "type": "object",
-                        "properties": {"titles": {"type": "array"}}
-                    },
-                    $actions: [
-                        {
-                            $action: "update",
-                            $state: "titles_array",
-                            $select: {$selector: "$.titles", $from: "response"}
                         },
                         {
                             $action: "update",
