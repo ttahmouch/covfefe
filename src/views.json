@@ -1,0 +1,30 @@
+{
+    "json_element": {
+        "type": "button",
+        "props": {
+            "data-style": "form_button_gray",
+            "data-state": "title_form_submit_button_label",
+            "type": "submit"
+        }
+    },
+    "json_component_element": {
+        "type": "Json",
+        "props": {
+            "data-state": "titles_dictionary",
+            "data-bind-state": "json"
+        }
+    },
+    "json_fragment_element": {
+        "type": "Fragment",
+        "props": {
+            "children": {
+                "type": "Fragment",
+                "props": {
+                    "data-view": "json_element",
+                    "data-style": "form_button_red",
+                    "data-state-value": "JSON"
+                }
+            }
+        }
+    }
+}
