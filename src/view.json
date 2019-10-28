@@ -1,4 +1,6 @@
 {
-    "type": "div",
-    "props": {"data-view": "root"}
+    "type": "Fragment",
+    "props": {
+        "data-view": "root"
+    }
 }
