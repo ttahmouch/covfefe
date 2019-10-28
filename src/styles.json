@@ -49,7 +49,8 @@
     "display": "flex",
     "margin": ".5em",
     "backgroundColor": "#F00",
-    "height": "100%"
+    "height": "100%",
+    "overflowY": "auto"
   },
   "root": {
     "display": "flex",
@@ -82,8 +83,30 @@
     "fontSize": "2em"
   },
   "footer": {
+    "display": "flex",
+    "flexDirection": "column",
     "width": "100%",
-    "height": "500px",
-    "background": "gray"
+    "height": "75em",
+    "overflowY": "auto"
+  },
+  "form_button_gray": {
+    "background": "gray",
+    "width":"100%",
+    "display": "block"
+  },
+  "form_button_red": {
+    "background": "red",
+    "width":"100%",
+    "display": "block"
+  },
+  "form_button_yellow": {
+    "background": "yellow",
+    "width":"100%",
+    "display": "block"
+  },
+  "json_state": {
+    "color": "white",
+    "fontSize": "2em",
+    "display": "block"
   }
 }
