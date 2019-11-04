@@ -1,0 +1,7 @@
+{
+    "title_from_app": {"$selector": "$.title", "$from": "app"},
+    "title_from_view": {"$selector": "$.title[0]", "$from": "view"},
+    "first_capture_from_header": {"$selector": "$.0", "$from": "response"},
+    "first_title_from_body": {"$selector": "$.titles.0.title", "$from": "response"},
+    "titles_from_body": {"$selector": "$.titles", "$from": "response"}
+}
