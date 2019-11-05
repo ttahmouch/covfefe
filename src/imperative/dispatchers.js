@@ -225,6 +225,7 @@ export const asyncDispatcher = (type = '',
         const {value: stateValue = '', dataset} = target;
         // const {stateType = 'string', request: declaredRequest = '{}'} = dataset;
         const {stateType = 'string', actionRequest = ''} = dataset;
+        // getRequest?
         const declaredRequest = requests[actionRequest] || {};
         const children = Array.from(target);
         const app = store.getState();
@@ -284,10 +285,11 @@ export const reduceDispatchers = (dispatchers = {},
 };
 
 // Dispatchers probably need to be regenerated whenever state is changed especially added.
-export const dispatchers = (state = {},
-                            store = {},
-                            requests = {},
-                            dependencies = {reduceDispatchers}) => {
+// The state is probably still not needed here as it can be derived from the store.
+export const dispatchersForStore = (state = {},
+                                    store = {},
+                                    requests = {},
+                                    dependencies = {reduceDispatchers}) => {
     const {reduceDispatchers} = dependencies;
 
     return Object
