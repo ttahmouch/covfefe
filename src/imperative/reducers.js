@@ -1,6 +1,3 @@
-/**
- * TODO:
- */
 import {actions} from './actions';
 
 // Move to app?
@@ -40,7 +37,7 @@ export const reducer = (initialState, actions) => {
     };
 };
 
-export const reducers = (state = {}) => {
+export const reducersFromStates = (state = {}) => {
     return Object
         .keys(state)
         .reduce((reducers, key) => ({...reducers, [key]: reducer(state[key], actions(key))}), {});
