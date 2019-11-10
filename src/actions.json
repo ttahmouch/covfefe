@@ -1,0 +1,28 @@
+{
+    "read_json_card_view": {
+        "$method": "GET",
+        "$uri": "/card.json",
+        "$actions": [{"$action": "update", "$state": "loading", "$value": true}],
+        "$responses": [
+            {
+                "$status": 200,
+                "$headers": {"content-type": "application[/]json"},
+                "$body": {"$schema": "http://json-schema.org/schema#"},
+                "$actions": [{"$action": "update", "$state": "loading", "$value": false}]
+            }
+        ]
+    },
+    "read_xml_card_view": {
+        "$method": "GET",
+        "$uri": "/card.xml",
+        "$actions": [{"$action": "update", "$state": "loading", "$value": true}],
+        "$responses": [
+            {
+                "$status": 200,
+                "$headers": {"content-type": "application[/]json"},
+                "$body": {"$schema": "http://json-schema.org/schema#"},
+                "$actions": [{"$action": "update", "$state": "loading", "$value": false}]
+            }
+        ]
+    }
+}

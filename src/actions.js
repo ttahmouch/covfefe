@@ -1,4 +1,7 @@
+import actions from './actions.json';
+
 export default {
+    ...actions,
     "ASYNC_READ_TITLES_DICTIONARY": {
         "$method": "GET",
         "$uri": {"$uri_template": "/{path}{extension}", "path": "titlesDictionary", "extension": ".json"},
