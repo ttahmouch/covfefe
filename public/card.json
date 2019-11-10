@@ -1,0 +1,27 @@
+{
+    "type": "div",
+    "props": {
+        "data-style": "card",
+        "children": [
+            {
+                "type": "header",
+                "props": {
+                    "data-style": "card_header",
+                    "data-state": "card_title"
+                }
+            },
+            {
+                "type": "div",
+                "props": {
+                    "data-style": "card_main_content",
+                    "children": {
+                        "type": "Fragment",
+                        "props": {
+                            "data-view": "form"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}
