@@ -9,7 +9,7 @@
     "position": "fixed",
     "top": 0
   },
-  "navigation_bar_back_button": {
+  "navigation_bar_button": {
     "height": "100%",
     "width": "3em",
     "display": "flex",

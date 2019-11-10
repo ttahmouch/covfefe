@@ -2,9 +2,6 @@ import React, {Fragment} from "react";
 import views from './views.json';
 import {Json} from './components';
 
-/**
- * FOCUS ON GETTING THIS COMMITTED SO I CAN MOVE ON WITH MY LIFE.
- */
 export default {
     ...views,
     "jsx_element": <button data-style="form_button_gray"
@@ -53,9 +50,9 @@ export default {
     "root": (
         <div data-style="root">
             <nav data-style="navigation_bar">
-                <div data-style="navigation_bar_back_button"
+                <div data-style="navigation_bar_button"
                      data-state="back"/>
-                <div data-style="navigation_bar_back_button"
+                <div data-style="navigation_bar_button"
                      data-state="forward"/>
                 <div data-style="navigation_bar_title"
                      data-state="page_title"/>
