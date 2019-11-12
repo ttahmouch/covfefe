@@ -1,0 +1,7 @@
+{
+    "type": "Json",
+    "props": {
+        "data-state": "titles_dictionary",
+        "data-bind-state": "json"
+    }
+}
