@@ -1,4 +1,4 @@
-import {actions} from './actions';
+import {actions} from './actions.js';
 
 // Move to app?
 export const reducer = (initialState, actions) => {

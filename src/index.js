@@ -7,8 +7,8 @@
  */
 import ReactDOM from 'react-dom';
 import React, {createElement} from 'react';
-import app from './app';
-import {App, reactMethodWithCustomDataProps} from './imperative/components';
+import app from './app.js';
+import {App, reactMethodWithCustomDataProps} from './imperative/components.js';
 
 React.createElement = reactMethodWithCustomDataProps({createElement}, app);
 

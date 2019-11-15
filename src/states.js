@@ -1,7 +1,7 @@
 import states from './states.json';
-import styles from './styles';
-import actions from './actions';
-import views from './views';
+import styles from './styles.json';
+import actions from './actions/index.js';
+import views from './views/index.js';
 
 export default {
     ...states,
