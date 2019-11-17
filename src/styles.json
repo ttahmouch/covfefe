@@ -34,7 +34,6 @@
   "card": {
     "display": "flex",
     "flexDirection": "column",
-    "height": "9em",
     "borderStyle": "solid",
     "borderColor": "#c3c3c3",
     "borderRadius": "5px",

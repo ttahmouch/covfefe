@@ -24,10 +24,6 @@ export default (
             <div data-view="card"/>
             <div data-view="card"/>
             <div data-view="card"/>
-            <div data-view="card"/>
-            <div data-view="card"/>
-            <div data-view="card"/>
-            <div data-view="card"/>
         </div>
     </div>
 );
