@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 
 export const Json = ({json = {}}) => (
     <pre data-style="json_state">
@@ -7,7 +7,7 @@ export const Json = ({json = {}}) => (
 );
 
 export const Root = () => (
-    <Fragment data-view="root"/>
+    <div data-view="root"/>
 );
 
 // noinspection JSUnusedGlobalSymbols

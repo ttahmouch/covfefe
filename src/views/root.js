@@ -1,4 +1,4 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 
 export default (
     <div data-style="root">
@@ -21,13 +21,13 @@ export default (
                data-state="selected_vehicle"/>
         </div>
         <div data-style="footer">
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
-            <Fragment data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
+            <div data-view="card"/>
         </div>
     </div>
 );
