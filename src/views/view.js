@@ -1,4 +1,6 @@
 import React from 'react';
-import {Root} from '../components.js';
+import $components from '../components/index.js';
+
+const {Root} = $components;
 
 export default <Root/>;

@@ -1,5 +1,7 @@
 import React from 'react';
-import {Json} from '../components.js';
+import $components from '../components/index.js';
+
+const {Json} = $components;
 
 export default (
     <Json data-state="titles_dictionary"
