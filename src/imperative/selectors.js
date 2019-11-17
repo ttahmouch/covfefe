@@ -62,3 +62,15 @@ export const captureAndSelectState = (captor = {'$regexp': '', '$from': 'respons
 
     return selectState(selector, {...state, [$from]: $captured});
 };
+
+export const getEmptyObject = () => ({});
+
+export const getStyle = (styles = {}, style = '') => styles[style];
+
+export const getDispatcher = (dispatchers = {}, action = '') => dispatchers[action];
+
+export const getState = (states = {}, state = '') => states[state];
+
+export const getView = (views = {}, view = '') => views[view];
+
+export const getRequest = (requests = {}, request = '') => requests[request];

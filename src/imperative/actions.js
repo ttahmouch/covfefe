@@ -1,20 +1,12 @@
-/**
- * TODO:
- */
-/* eslint-disable no-use-before-define */
-export const action = (action, state) => `${action}_${state}`.toUpperCase();
-
-export const actions = (state, dependencies = {action}) => {
-    const {action} = dependencies;
-
+export const actions = (state) => {
     return {
-        create: action('create', state),
-        read: action('read', state),
-        update: action('update', state),
-        remove: action('remove', state),
-        async_create: action('async_create', state),
-        async_read: action('async_read', state),
-        async_update: action('async_update', state),
-        async_remove: action('async_remove', state)
+        create: `create_${state}`,
+        read: `read_${state}`,
+        update: `update_${state}`,
+        remove: `remove_${state}`,
+        async_create: `async_create_${state}`,
+        async_read: `async_read_${state}`,
+        async_update: `async_update_${state}`,
+        async_remove: `async_remove_${state}`
     };
 };

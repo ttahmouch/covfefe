@@ -11,24 +11,12 @@
 import React, {Component, createElement, Fragment, isValidElement} from 'react';
 import {combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
-import {action} from './actions';
-
-export const getEmptyObject = () => ({});
-
-export const getStyle = (styles = {}, style = '') => styles[style];
-
-export const getDispatcher = (dispatchers = {}, action = '') => dispatchers[action];
-
-export const getState = (states = {}, state = '') => states[state];
-
-export const getView = (views = {}, view = '') => views[view];
-
-export const getRequest = (requests = {}, request = '') => requests[request];
+import {getDispatcher, getEmptyObject, getState, getStyle, getView} from './selectors.js';
 
 // Support data-platform and data-view and data-compare=comparator with data-state|view|style=selector.
 // Support view stacks and stack selection using a selector.
 // Support custom data structure operations in the reducers.
-// Support data-action=crud data-state|view|style=selector data-event=onRender
+// Support data-action=crud data-state|view|style=selector data-bind-action=onRender
 
 export const mapCustomPropsToReactProps = (props = {},
                                            app = {
@@ -37,16 +25,16 @@ export const mapCustomPropsToReactProps = (props = {},
                                                $dispatchers: {},
                                            },
                                            dependencies = {
+                                               getEmptyObject,
                                                getStyle,
                                                getState,
                                                getDispatcher,
-                                               action,
                                            }) => {
     const {
+        getEmptyObject,
         getStyle,
         getState,
         getDispatcher,
-        action,
     } = dependencies;
     const {
         $store = {getState: getEmptyObject},
@@ -55,31 +43,27 @@ export const mapCustomPropsToReactProps = (props = {},
     } = app;
     const $states = $store.getState();
     // data-view-inject vs data-view-replace; Support both? Probably keep only one way.
-    // Dispatchers aren't working right now.
     // Extract selectors out into the selectors.js(on).
     // Make actions determine if they are async or sync based on their declared type or duck type as opposed to their name.
     // Make reducers support generic data structure operations such as push, pop, insert, etc.
     const {
         style,
-        'data-style': $style = '',
-        'data-state': $state = '',
-        'data-action': $action = '',
-        'data-dispatcher': $dispatcher = action($action, $state),
-        'data-event': $event = 'data-event',
-        'data-style-value': $styleValue = getStyle($styles, $style),
-        'data-state-value': $stateValue = getState($states, $state),
-        'data-dispatcher-value': $dispatcherValue = getDispatcher($dispatchers, $dispatcher),
-        'data-bind-style': $bindStyle = $style ? 'style' : 'data-bind-style',
-        'data-bind-state': $bindState = $state ? 'children' : 'data-state',
-        'data-action-request': $actionRequest = action($action, $state),
+        'data-style': $styleSelector = '',
+        'data-state': $stateSelector = '',
+        'data-action': $actionSelector = '',
+        'data-style-value': $styleValue = getStyle($styles, $styleSelector),
+        'data-state-value': $stateValue = getState($states, $stateSelector),
+        'data-action-value': $actionValue = getDispatcher($dispatchers, $actionSelector),
+        'data-bind-style': $bindStyle = $styleValue || style ? 'style' : 'data-bind-style',
+        'data-bind-state': $bindState = $stateValue ? 'children' : 'data-state',
+        'data-bind-action': $bindAction = 'data-bind-action'
     } = props;
 
     return {
         ...props,
         [$bindStyle]: style || $styleValue,
         [$bindState]: $stateValue,
-        [$event]: $dispatcherValue,
-        'data-action-request': $actionRequest,
+        [$bindAction]: $actionValue
     };
 };
 

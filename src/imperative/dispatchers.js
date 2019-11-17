@@ -4,12 +4,12 @@
  * Possibly treat request and response state the same with respect to comparing and dispatching selected state.
  */
 /* eslint-disable no-use-before-define,no-unused-vars */
-import {action, actions} from './actions';
-import {compare, filterDeclaredResponsesMatchingResponse} from './comparators';
-import {toDeclarativeRequest} from './declarators';
-import {interpolateTemplate} from './interpolators';
-import {asyncRequest} from './request';
-import {selectState, captureAndSelectState} from './selectors';
+import {actions} from './actions.js';
+import {compare, filterDeclaredResponsesMatchingResponse} from './comparators.js';
+import {toDeclarativeRequest} from './declarators.js';
+import {interpolateTemplate} from './interpolators.js';
+import {asyncRequest} from './request.js';
+import {selectState, captureAndSelectState} from './selectors.js';
 
 export const noop = (event) => console.log(event);
 
@@ -23,17 +23,13 @@ export const dispatch = (store = {dispatch: noop}, action = {}) => {
 export const dispatchDeclaredActionsWithSelectedState = (actions = [],
                                                          state = {},
                                                          store = {},
-                                                         dependencies = {dispatch, captureAndSelectState, action}) => {
-    const {dispatch, captureAndSelectState, action} = dependencies;
+                                                         dependencies = {dispatch, captureAndSelectState}) => {
+    const {dispatch, captureAndSelectState} = dependencies;
 
     return actions.forEach(({
-                                $action = '',
-                                $state = '',
-                                // $capture,
-                                // $select,
-                                $capture = {},
-                                $select = {},
-                                '$type': type = action($action, $state),
+                                '$action': type = '',
+                                '$capture': $capture = {},
+                                '$select': $select = {},
                                 '$value': value = captureAndSelectState($capture, $select, state)
                             }) => dispatch(store, {type, value}));
 };
@@ -205,6 +201,7 @@ export const toOnDeclarativeDelegate = (store = {},
 
 export const asyncDispatcher = (type = '',
                                 store = {getState: noop},
+                                // Should requests be called actions when sync and async actions are handled the same?
                                 requests = {},
                                 dependencies = {
                                     mapChildrenToState,
@@ -223,8 +220,7 @@ export const asyncDispatcher = (type = '',
     return (event = {preventDefault}) => {
         const {target} = event;
         const {value: stateValue = '', dataset} = target;
-        // const {stateType = 'string', request: declaredRequest = '{}'} = dataset;
-        const {stateType = 'string', actionRequest = ''} = dataset;
+        const {stateType = 'string', action: actionRequest = ''} = dataset;
         // getRequest?
         const declaredRequest = requests[actionRequest] || {};
         const children = Array.from(target);
