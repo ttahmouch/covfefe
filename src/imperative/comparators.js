@@ -13,8 +13,6 @@ export const compareSchema = (declaredSchema = {},
                               value = {},
                               schema = new Ajv()) => schema.validate(declaredSchema, value);
 
-// Disambiguate `$schema_comparison` from `$schema`.
-// Support `$compare`
 export const compare = ({
                             '$literal': literal = undefined,
                             '$regexp': regexp = undefined,

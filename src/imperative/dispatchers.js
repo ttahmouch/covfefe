@@ -1,41 +1,39 @@
-/**
- * TODO:
- * Allow comparison of anything declared; not just response state.
- * Possibly treat request and response state the same with respect to comparing and dispatching selected state.
- */
 /* eslint-disable no-use-before-define,no-unused-vars */
-import {actions} from './actions.js';
+// import {actions} from './actions.js';
 import {compare, filterDeclaredResponsesMatchingResponse} from './comparators.js';
 import {toDeclarativeRequest} from './declarators.js';
 import {interpolateTemplate} from './interpolators.js';
 import {asyncRequest} from './request.js';
-import {selectState, captureAndSelectState} from './selectors.js';
+import {captureAndSelectState, selectState} from './selectors.js';
 
 export const noop = (event) => console.log(event);
 
 export const dispatch = (store = {dispatch: noop}, action = {}) => {
+    console.group('Application Action:');
     console.log(action);
+    console.groupEnd();
+
     return store.dispatch(action);
 };
 
-// store, state, actions
-// Support $with in place of $select?
 export const dispatchDeclaredActionsWithSelectedState = (actions = [],
-                                                         state = {},
+                                                         state = {'app': {}, 'view': {}, 'response': {}},
                                                          store = {},
                                                          dependencies = {dispatch, captureAndSelectState}) => {
     const {dispatch, captureAndSelectState} = dependencies;
 
     return actions.forEach(({
                                 '$action': type = '',
-                                '$capture': $capture = {},
+                                '$capture': $capture = {'$regexp': ''},
                                 '$select': $select = {},
                                 '$value': value = captureAndSelectState($capture, $select, state)
-                            }) => dispatch(store, {type, value}));
+                            }) => {
+        return dispatch(store, {type, value, state});
+    });
 };
 
 export const dispatchDeclarative = (declarative = {'$actions': [], '$regexp': ''},
-                                    state = {},
+                                    state = {'app': {}, 'view': {}, 'response': {}},
                                     store = {},
                                     dependencies = {dispatchDeclaredActionsWithSelectedState}) => {
     const {dispatchDeclaredActionsWithSelectedState} = dependencies;
@@ -44,20 +42,41 @@ export const dispatchDeclarative = (declarative = {'$actions': [], '$regexp': ''
     return dispatchDeclaredActionsWithSelectedState(actions.map((action) => ({'$capture': {$regexp}, ...action})), state, store);
 };
 
-export const dispatchRequest = (store = {},
-                                state = {},
-                                action = {type: '', request: {'$actions': []}},
-                                dependencies = {dispatch, dispatchDeclarative}) => {
-    const {dispatch, dispatchDeclarative} = dependencies;
-    const {type = '', request = {'$actions': []}} = action;
+export const dispatchRequestToStoreWithState = (request = {'$actions': []},
+                                                store = {},
+                                                state = {'app': {}, 'view': {}, 'response': {}},
+                                                dependencies = {
+                                                    dispatchDeclarative,
+                                                    asyncRequest,
+                                                    dispatchResponse
+                                                }) => {
+    const {
+        dispatchDeclarative,
+        asyncRequest,
+        dispatchResponse
+    } = dependencies;
+    // const {$actions = []} = request;
 
-    // Should this happen before this method is called? It feels like a lot of setup just to dispatch the action from
-    // this method.
-    dispatch(store, {type, request});
-    return dispatchDeclarative(request, state, store);
+    console.group('Application Request:');
+    console.log(request);
+    console.group('Application Request Actions:');
+    dispatchDeclarative(request, state, store);
+    console.groupEnd();
+    console.groupEnd();
+
+    return asyncRequest(request, (request, event, response) => {
+        console.group(`Application Response Event ${event.type.toUpperCase()}:`);
+        console.log(response);
+        console.log(event);
+        console.group('Application Response Actions:');
+        dispatchResponse(store, state, {request, event, response});
+        console.groupEnd();
+        console.groupEnd();
+    });
+    // dispatch(store, {type, request});
 };
 
-export const dispatchHeaders = (state = {},
+export const dispatchHeaders = (state = {'app': {}, 'view': {}, 'response': {}},
                                 declaredHeaders = {},
                                 headers = {},
                                 dependencies = {noop}) => {
@@ -69,7 +88,7 @@ export const dispatchHeaders = (state = {},
     return declaredHeaderNames.map(toDeclaredHeader).forEach(dispatchHeader);
 };
 
-export const dispatchDeclaredResponsesWithResponseState = (state = {},
+export const dispatchDeclaredResponsesWithResponseState = (state = {'app': {}, 'view': {}, 'response': {}},
                                                            declaredResponses = [],
                                                            {status, headers, body} = {status: 0, headers: {}, body: {}},
                                                            dependencies = {dispatchHeaders, noop}) => {
@@ -87,28 +106,29 @@ export const dispatchDeclaredResponsesWithResponseState = (state = {},
 };
 
 export const dispatchResponse = (store = {},
-                                 state = {},
+                                 state = {'app': {}, 'view': {}, 'response': {}},
                                  {
-                                     type = '',
                                      request = {'$responses': []},
                                      event = {type: ''},
                                      response = {status: 0, headers: {}, body: {}}
                                  },
                                  dependencies = {
-                                     dispatch, filterDeclaredResponsesMatchingResponse,
+                                     filterDeclaredResponsesMatchingResponse,
                                      dispatchDeclaredResponsesWithResponseState
                                  }) => {
-    const {dispatch, filterDeclaredResponsesMatchingResponse, dispatchDeclaredResponsesWithResponseState} = dependencies;
+    const {
+        filterDeclaredResponsesMatchingResponse,
+        dispatchDeclaredResponsesWithResponseState
+    } = dependencies;
     const {'$responses': declaredResponses = []} = request;
     const {type: eventType = ''} = event;
 
     switch (eventType) {
         case 'load':
-            // Make these composable.
             const declaredResponsesMatchingResponse = filterDeclaredResponsesMatchingResponse(declaredResponses, response);
 
-            dispatchDeclaredResponsesWithResponseState(state, declaredResponsesMatchingResponse, response);
-            break;
+            return dispatchDeclaredResponsesWithResponseState(state, declaredResponsesMatchingResponse, response);
+        // break;
         case 'loadstart':
         case 'progress':
         case 'error':
@@ -119,7 +139,7 @@ export const dispatchResponse = (store = {},
             break;
     }
 
-    return dispatch(store, {type, request, event, response});
+    // return dispatch(store, {type, request, event, response});
 };
 
 export const mapChildrenToState = (children = [], stateType = 'string', state = '') => {
@@ -138,157 +158,223 @@ export const mapChildrenToState = (children = [], stateType = 'string', state = 
     }
 };
 
-// Move to app?
-export const syncDispatcher = (type = '', store = {}, dependencies = {
-    mapChildrenToState, dispatch, preventDefault: noop
-}) => {
-    const {mapChildrenToState, dispatch, preventDefault} = dependencies;
-
-    return (event = {preventDefault}) => {
-        const {target} = event;
-        const {value: stateValue = '', dataset: {stateType = 'string'}} = target;
-        const children = Array.from(target);
-        const value = mapChildrenToState(children, stateType, stateValue);
-        const action = {type, value};
-
-        event.preventDefault();
-
-        console.log(action);
-
-        return dispatch(store, action);
-    };
-};
-
-// I think it's done enough to start implementing to_app_state for requests.
-export const toDecoratedDeclarative = (declarative = {}, store = {}, dependencies = {
-    compare, dispatchDeclarative, interpolateTemplate, selectState
-}) => {
-    const {compare, dispatchDeclarative, interpolateTemplate, selectState} = dependencies;
+export const toDecoratedDeclarative = (declarative = {},
+                                       store = {},
+                                       dependencies = {
+                                           compare,
+                                           dispatchDeclarative,
+                                           interpolateTemplate,
+                                           selectState
+                                       }) => {
+    const {
+        compare,
+        dispatchDeclarative,
+        interpolateTemplate,
+        selectState
+    } = dependencies;
 
     return {
         ...declarative,
         compare: (state) => compare(declarative, state),
         dispatch: (state) => dispatchDeclarative(declarative, state, store),
-        // Distinguish these between request and response context.
+
         interpolate: (state) => interpolateTemplate(declarative, state),
         select: (state) => selectState(declarative, state)
     };
 };
 
-export const toOnDeclarativeDelegate = (store = {},
-                                        state = {app: {}, view: {}},
-                                        dependencies = {toDecoratedDeclarative}) => {
-    // const {app = {}, view = {}} = state;
-    const {toDecoratedDeclarative} = dependencies;
+export const viewStateFromEvent = (event = {'target': {'value': '', 'dataset': {'stateType': 'string'}}},
+                                   dependencies = {mapChildrenToState}) => {
+    const {mapChildrenToState} = dependencies;
+    const {target} = event;
+    const {value = '', dataset: {stateType: type = 'string'}} = target;
+    const children = Array.from(target);
 
-    return {
-        onDeclarativeStatus: (declarative) => toDecoratedDeclarative(declarative, store),
-        onDeclarativeHeader: (declarative) => toDecoratedDeclarative(declarative, store),
-        onDeclarativeBody: (declarative) => toDecoratedDeclarative(declarative, store),
-        // These should probably not be done because interpolating the state of the selectors and interpolators should
-        // happen dynamically as late as possible, i.e., immediately before a request or after a response when
-        // dispatching actions.
-        // This will make context of the selection and interpolation far more relevant now because before they just
-        // happened as a part of the JSON revival indiscriminately. Moving it to after the revival would mean that we
-        // have to be aware of where the selection and interpolation is taking place, e.g., method, uri, headers, body,
-        // username, password, actions, etc.
-        onDeclarativeAppStateSelector: (declarative) => toDecoratedDeclarative(declarative, store).select(state),
-        onDeclarativeViewStateSelector: (declarative) => toDecoratedDeclarative(declarative, store).select(state),
-        onDeclarativeUriTemplateInterpolator: (declarative) => toDecoratedDeclarative(declarative, store).interpolate(declarative),
-        onDeclarativeJsTemplateInterpolator: (declarative) => toDecoratedDeclarative(declarative, store).interpolate(declarative)
-    };
+    return mapChildrenToState(children, type, value);
 };
 
-export const asyncDispatcher = (type = '',
-                                store = {getState: noop},
-                                // Should requests be called actions when sync and async actions are handled the same?
-                                requests = {},
-                                dependencies = {
-                                    mapChildrenToState,
-                                    preventDefault: noop,
-                                    asyncRequest,
-                                    toDeclarativeRequest,
-                                    toOnDeclarativeDelegate,
-                                    dispatchRequest,
-                                    dispatchResponse
-                                }) => {
+export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
+
+export const actionsFromAppState = ({$actions = {}} = {'$actions': {}}) => $actions;
+
+export const actionFromEvent = ({target: {dataset: {action = ''}}} = {'target': {'dataset': {'action': ''}}}) => action;
+
+export const getAction = (actions = {}, action = '') => actions[action];
+
+// noinspection JSValidateTypes
+export const isAsyncAction = ({$uri = ''} = {'$uri': ''}) => (
+    (typeof $uri === 'string' && $uri.length > 0)
+    || (typeof $uri === 'object' && $uri !== null)
+);
+
+// export const typeFromAction = ({$type = ''} = {'$type': ''}) => $type;
+
+export const eventFromAction = ({event = {'target': {'dataset': {'action': ''}}}} = {'event': {'target': {'dataset': {'action': ''}}}}) => event;
+
+export const typeFromAction = ({type = ''} = {'type': ''}) => type;
+
+export const stateFromAction = ({state} = {'state': {'app': {}, 'view': {}, 'response': {}}}) => state;
+
+export const dispatchActionToStoreWithState = (action = {'$type': '', '$uri': ''},
+                                               store = {getState: () => ({'$actions': {}})},
+                                               state = {'app': {}, 'view': {}, 'response': {}},
+                                               dependencies = {
+                                                   toDecoratedDeclarative,
+                                                   toDeclarativeRequest,
+                                                   isAsyncAction,
+                                                   dispatchRequestToStoreWithState,
+                                                   dispatchDeclarative
+                                               }) => {
     const {
-        mapChildrenToState, preventDefault, asyncRequest, toDeclarativeRequest,
-        toOnDeclarativeDelegate, dispatchRequest, dispatchResponse
+        toDecoratedDeclarative,
+        toDeclarativeRequest,
+        isAsyncAction,
+        dispatchRequestToStoreWithState,
+        dispatchDeclarative
+    } = dependencies;
+    const onDeclarativeResponseState = (declarative) => toDecoratedDeclarative(declarative, store);
+    const onDeclarativeSelector = (declarative) => toDecoratedDeclarative(declarative, store).select(state);
+    const onDeclarativeInterpolator = (declarative) => toDecoratedDeclarative(declarative, store).interpolate(declarative);
+    const delegate = {
+        onDeclarativeStatus: onDeclarativeResponseState,
+        onDeclarativeHeader: onDeclarativeResponseState,
+        onDeclarativeBody: onDeclarativeResponseState,
+        onDeclarativeAppStateSelector: onDeclarativeSelector,
+        onDeclarativeViewStateSelector: onDeclarativeSelector,
+        onDeclarativeUriTemplateInterpolator: onDeclarativeInterpolator,
+        onDeclarativeJsTemplateInterpolator: onDeclarativeInterpolator
+    };
+    // const request = toDeclarativeRequest(action, delegate);
+    // const type = typeFromAction(action);
+
+    return isAsyncAction(action)
+        ? dispatchRequestToStoreWithState(toDeclarativeRequest(action, delegate), store, state)
+        : dispatchDeclarative(action, state, store);
+};
+
+// export const dispatcherForActionFromStore = (type = '',
+//                                              store = {getState: () => ({'$actions': {}})},
+//                                              dependencies = {
+//                                                  viewStateFromEvent,
+//                                                  appStateFromStore,
+//                                                  actionsFromAppState,
+//                                                  actionFromEvent,
+//                                                  getAction,
+//                                                  preventDefault: noop,
+//                                                  dispatchActionToStoreWithState
+//                                              }) => {
+//     const {
+//         viewStateFromEvent,
+//         appStateFromStore,
+//         actionsFromAppState,
+//         actionFromEvent,
+//         getAction,
+//         preventDefault,
+//         dispatchActionToStoreWithState
+//     } = dependencies;
+//
+//     return (event = {preventDefault}) => {
+//         const app = appStateFromStore(store) || {};
+//         const view = viewStateFromEvent(event) || {};
+//         const state = {app, view};
+//         const actions = actionsFromAppState(app) || {};
+//         const actionSelector = actionFromEvent(event) || '';
+//         const action = getAction(actions, actionSelector) || {'$uri': ''};
+//
+//         event.preventDefault();
+//
+//         return dispatchActionToStoreWithState(action, store, state);
+//     };
+// };
+
+export const createActionsMiddleware = (dependencies = {
+    eventFromAction,
+    viewStateFromEvent,
+    appStateFromStore,
+    actionsFromAppState,
+    typeFromAction,
+    stateFromAction,
+    // actionFromEvent,
+    getAction,
+    dispatchActionToStoreWithState
+}) => {
+    const {
+        eventFromAction,
+        viewStateFromEvent,
+        appStateFromStore,
+        actionsFromAppState,
+        typeFromAction,
+        stateFromAction,
+        // actionFromEvent,
+        getAction,
+        dispatchActionToStoreWithState
     } = dependencies;
 
-    return (event = {preventDefault}) => {
-        const {target} = event;
-        const {value: stateValue = '', dataset} = target;
-        const {stateType = 'string', action: actionRequest = ''} = dataset;
-        // getRequest?
-        const declaredRequest = requests[actionRequest] || {};
-        const children = Array.from(target);
-        const app = store.getState();
-        const view = mapChildrenToState(children, stateType, stateValue);
-        const state = {app, view};
-        const delegate = toOnDeclarativeDelegate(store, state);
-        const request = toDeclarativeRequest(declaredRequest, delegate);
-        const action = {type, request};
-        const onResponse = (request, event, response) => {
-            const action = {type, request, event, response};
+    return (store = {
+        getState: () => ({'$actions': {}}),
+        dispatch: (action) => action
+    }) => {
+        return (next = (action) => action) => {
+            return (action = {
+                'type': '',
+                'event': {'target': {'dataset': {'action': ''}}},
+                'state': {'app': {}, 'view': {}, 'response': {}}
+            }) => {
+                // Think through control flow of actions in sequence or parallel and passing state between asynchronous actions, e.g., cascading response state.
 
-            console.group('Dispatch Actions on Response:');
+                const event = eventFromAction(action) || {'target': {'dataset': {'action': ''}}};
+                const app = appStateFromStore(store) || {};
+                const view = viewStateFromEvent(event) || {};
+                const state = {view, ...stateFromAction(action), app};
+                // const state = stateFromAction(action) || {app, view};
+                // const state = {app, view};
+                const actions = actionsFromAppState(app) || {};
+                const selector = typeFromAction(action) || '';
+                // const actionSelector = actionFromEvent(event) || '';
+                const $action = getAction(actions, selector);
 
-            dispatchResponse(store, state, action);
-
-            return console.groupEnd();
+                return $action
+                    ? dispatchActionToStoreWithState($action, store, state)
+                    : next(action);
+            };
         };
+    };
+};
+
+export const actionDispatcherFromStore = (store = {dispatch: (action) => action},
+                                          dependencies = {actionFromEvent}) => {
+    const {actionFromEvent} = dependencies;
+
+    return (event = {preventDefault: () => undefined}) => {
+        const action = {'type': actionFromEvent(event) || '', event};
 
         event.preventDefault();
-
-        console.group('Async Dispatch:');
-        console.log(declaredRequest);
-        console.log(request);
-        console.groupEnd();
-        console.group('Dispatch Actions on Request:');
-
-        dispatchRequest(store, state, action);
-
-        console.groupEnd();
-
-        // Shift the need to interpolate or select state for the request and response to callbacks of the request client.
-        // This will shift the state management to as late as possible. Perhaps allow `{app:()=>store.getState()}` to
-        // allow late binding of app state.
-        return asyncRequest(request, onResponse);
+        store.dispatch(action);
     };
 };
 
-export const reduceDispatchers = (dispatchers = {},
-                                  state = '',
-                                  store = {},
-                                  requests = {},
-                                  dependencies = {actions, syncDispatcher, asyncDispatcher}) => {
-    const {actions, syncDispatcher, asyncDispatcher} = dependencies;
-    const {create, read, update, remove, async_create, async_read, async_update, async_remove} = actions(state);
+// export const reduceDispatchersForStateFromStore = (dispatchers = {},
+//                                                    state = '',
+//                                                    store = {},
+//                                                    dependencies = {actions, dispatcherForActionFromStore}) => {
+//     const {actions, dispatcherForActionFromStore} = dependencies;
+//     const {create, read, update, remove} = actions(state);
+//
+//     return {
+//         ...dispatchers,
+//         [create]: dispatcherForActionFromStore(create, store),
+//         [read]: dispatcherForActionFromStore(read, store),
+//         [update]: dispatcherForActionFromStore(update, store),
+//         [remove]: dispatcherForActionFromStore(remove, store)
+//     };
+// };
 
-    return {
-        ...dispatchers,
-        [create]: syncDispatcher(create, store),
-        [read]: syncDispatcher(read, store),
-        [update]: syncDispatcher(update, store),
-        [remove]: syncDispatcher(remove, store),
-        [async_create]: asyncDispatcher(async_create, store, requests),
-        [async_read]: asyncDispatcher(async_read, store, requests),
-        [async_update]: asyncDispatcher(async_update, store, requests),
-        [async_remove]: asyncDispatcher(async_remove, store, requests)
-    };
-};
-
-// Dispatchers probably need to be regenerated whenever state is changed especially added.
-// The state is probably still not needed here as it can be derived from the store.
-export const dispatchersForStore = (state = {},
-                                    store = {},
-                                    requests = {},
-                                    dependencies = {reduceDispatchers}) => {
-    const {reduceDispatchers} = dependencies;
-
-    return Object
-        .keys(state)
-        .reduce((dispatchers, state) => reduceDispatchers(dispatchers, state, store, requests), {});
-};
+// export const dispatchersFromStore = (store = {getState: getEmptyObject},
+//                                      dependencies = {appStateFromStore, reduceDispatchersForStateFromStore}) => {
+//     const {appStateFromStore, reduceDispatchersForStateFromStore} = dependencies;
+//     const state = appStateFromStore(store) || {};
+//
+//     return Object
+//         .keys(state)
+//         .reduce((dispatchers, state) => reduceDispatchersForStateFromStore(dispatchers, state, store), {});
+// };

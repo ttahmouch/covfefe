@@ -1,51 +1,62 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
-/**
- * TODO:
- * + Extract most logic of App into functions.
- * The dispatchers need to be regenerated every time the state changes because there will be no way to CRUD new state otherwise.
- * Refactor dispatchers() to rely on retrieving the most current state from the store since this is initial state.
- * Am I thinking about this part wrong? Should root state keys never get added at runtime? Should the nest structure of the state keys change instead?
- * That would mean that new reducers and dispatchers wouldn't need to be created dynamically.
- * I probably also need to finally add PATCH support to the reducers and dispatchers.
- */
 import React, {Component, createElement, Fragment, isValidElement} from 'react';
-import {combineReducers, createStore} from 'redux';
+import {applyMiddleware, combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
-import {getDispatcher, getEmptyObject, getState, getStyle, getView} from './selectors.js';
+import {getState, getStyle, getView} from './selectors.js';
+import {reducersFromState} from './reducers';
+import {actionDispatcherFromStore, createActionsMiddleware} from './dispatchers';
 
-// Support data-platform and data-view and data-compare=comparator with data-state|view|style=selector.
-// Support view stacks and stack selection using a selector.
-// Support custom data structure operations in the reducers.
-// Support data-action=crud data-state|view|style=selector data-bind-action=onRender
+export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
+
+export const viewsFromAppState = ({$views = {}} = {'$views': {}}) => $views;
+
+export const viewFromAppState = ({$view = []} = {'$view': []}) => $view;
+
+export const viewFromStore = (store = {getState: () => ({'$view': []})},
+                              dependencies = {viewFromAppState, appStateFromStore}) => {
+    const {viewFromAppState, appStateFromStore} = dependencies;
+
+    return viewFromAppState(appStateFromStore(store));
+};
+
+export const stylesFromAppState = ({$styles = {}} = {'$styles': {}}) => $styles;
+
+export const componentsFromAppState = ({$components = {}} = {'$components': {}}) => $components;
 
 export const mapCustomPropsToReactProps = (props = {},
-                                           app = {
-                                               $store: {getState: getEmptyObject},
-                                               $styles: {},
-                                               $dispatchers: {},
-                                           },
+                                           store = {getState: () => ({'$styles': {}})},
+                                           // app = {
+                                           //     $store: {getState: getEmptyObject},
+                                           //     $styles: {},
+                                           //     $dispatchers: {},
+                                           // },
                                            dependencies = {
-                                               getEmptyObject,
+                                               // getEmptyObject,
+                                               appStateFromStore,
+                                               stylesFromAppState,
                                                getStyle,
                                                getState,
-                                               getDispatcher,
+                                               actionDispatcherFromStore
+                                               // getDispatcher,
                                            }) => {
+    // dispatcher = actionDispatcherFromStore($store) || (() => ({}))
     const {
-        getEmptyObject,
+        // getEmptyObject,
+        appStateFromStore,
+        stylesFromAppState,
         getStyle,
         getState,
-        getDispatcher,
+        actionDispatcherFromStore
+        // getDispatcher,
     } = dependencies;
-    const {
-        $store = {getState: getEmptyObject},
-        $styles = {},
-        $dispatchers = {},
-    } = app;
-    const $states = $store.getState();
-    // data-view-inject vs data-view-replace; Support both? Probably keep only one way.
-    // Extract selectors out into the selectors.js(on).
-    // Make actions determine if they are async or sync based on their declared type or duck type as opposed to their name.
-    // Make reducers support generic data structure operations such as push, pop, insert, etc.
+    const $states = appStateFromStore(store) || {};
+    const $styles = stylesFromAppState($states) || {};
+    // const {
+    //     $store = {getState: getEmptyObject},
+    //     $styles = {},
+    //     $dispatchers = {},
+    // } = app;
+    // const $states = $store.getState();
     const {
         style,
         'data-style': $styleSelector = '',
@@ -53,7 +64,8 @@ export const mapCustomPropsToReactProps = (props = {},
         'data-action': $actionSelector = '',
         'data-style-value': $styleValue = getStyle($styles, $styleSelector),
         'data-state-value': $stateValue = getState($states, $stateSelector),
-        'data-action-value': $actionValue = getDispatcher($dispatchers, $actionSelector),
+        // 'data-action-value': $actionValue = getDispatcher($dispatchers, $actionSelector),
+        'data-action-value': $actionValue = $actionSelector ? actionDispatcherFromStore(store) : undefined,
         'data-bind-style': $bindStyle = $styleValue || style ? 'style' : 'data-bind-style',
         'data-bind-state': $bindState = $stateValue ? 'children' : 'data-state',
         'data-bind-action': $bindAction = 'data-bind-action'
@@ -76,11 +88,11 @@ export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
 };
 
 export const toReactProps = (props = {},
-                             app = {},
+                             store = {},
                              dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
     const {areDataProps, mapCustomPropsToReactProps} = dependencies;
 
-    return areDataProps(props) ? mapCustomPropsToReactProps(props, app) : props;
+    return areDataProps(props) ? mapCustomPropsToReactProps(props, store) : props;
 };
 
 export const isFragment = (fragment = Fragment) => fragment === Fragment;
@@ -111,14 +123,20 @@ export const getType = (components = {},
 };
 
 export const reactMethodWithCustomDataProps = (method = {createElement},
-                                               app = {$views: {}, $components: {}},
+                                               store = {getState: () => ({'$views': {}, '$components': {}})},
                                                dependencies = {
+                                                   appStateFromStore,
+                                                   viewsFromAppState,
+                                                   componentsFromAppState,
                                                    toReactProps,
                                                    getType,
                                                    getView,
                                                    isElement
                                                }) => {
     const {
+        appStateFromStore,
+        viewsFromAppState,
+        componentsFromAppState,
         toReactProps,
         getType,
         getView,
@@ -127,53 +145,130 @@ export const reactMethodWithCustomDataProps = (method = {createElement},
     const {createElement} = method;
     const toChild = (child) => typeof child === 'string' ? child : toElement(child);
     const toElement = (type = '', props = {}, ...children) => {
-        const {$views = {}, $components = {}} = app;
+        const state = appStateFromStore(store);
+        const views = viewsFromAppState(state);
+        const components = componentsFromAppState(state);
         const {'data-view': $selector = '', ...$props} = props;
-        const $view = getView($views, $selector);
+        const $view = getView(views, $selector);
         const $element = $view || type;
 
         if (isElement($element)) {
             const {type = '', props: {children = [], ...props} = {}} = $element;
-            const $type = getType($components, type);
+            const $type = getType(components, type);
             const $children = [].concat(children).map(toChild);
             return toElement($type, {...props, ...$props}, ...$children);
         }
 
-        return createElement(type, toReactProps(props, app), ...children);
+        return createElement(type, toReactProps(props, store), ...children);
     };
 
     return toElement;
+};
+
+export const componentDependencies = {
+    reducersFromState,
+    combineReducers,
+    createStore,
+    createActionsMiddleware,
+    applyMiddleware,
+    createElement,
+    reactMethodWithCustomDataProps,
+    appStateFromStore,
+    viewFromStore
 };
 
 export class App extends Component {
     constructor(props) {
         super(props);
 
+        const {app = {}, dependencies = componentDependencies} = props;
         const {
-            app: {
-                $states = {},
-                $view = [],
-                $reducers = {},
-                $reducer = combineReducers($reducers),
-                $store = createStore($reducer, $states)
-            }
-        } = props;
+            reducersFromState,
+            combineReducers,
+            createStore,
+            createActionsMiddleware,
+            applyMiddleware,
+            createElement,
+            reactMethodWithCustomDataProps,
+            appStateFromStore,
+            viewFromStore
+        } = dependencies;
+        const {
+            $states = {},
+            $styles = {},
+            $actions = {},
+            $components = {},
+            $views = {},
+            $view = [],
+            $state = {
+                ...$states,
+                $states,
+                $styles,
+                $actions,
+                $components,
+                $views,
+                $view
+            },
+            $reducers = reducersFromState($state) || {},
+            $reducer = combineReducers($reducers) || (() => $state),
+            $middleware = [createActionsMiddleware()],
+            $enhancer = applyMiddleware(...$middleware) || ((createStore) => createStore),
+            $store = createStore($reducer, $state, $enhancer) || {
+                getState: () => ({}),
+                dispatch: (action) => action,
+                subscribe: () => (() => undefined)
+            },
+            $unsubscribe = $store.subscribe(() => {
+                const $state = appStateFromStore($store);
 
-        this.$store = $store;
-        this.$view = $view;
+                console.group('Application State:');
+                console.log($state);
+                console.groupEnd();
+
+                this.setState($state);
+            }) || (() => undefined),
+            $imperative = {
+                $reducers,
+                $reducer,
+                $middleware,
+                $enhancer,
+                $store,
+                $unsubscribe
+            }
+            // $dispatcher = actionDispatcherFromStore($store) || (() => ({}))
+        } = app;
+
+        this.store = $store;
+        this.viewFromStore = viewFromStore;
+        this.unsubscribe = $unsubscribe;
+
+        // app or store?
+        React.createElement = reactMethodWithCustomDataProps({createElement}, $store);
+
+        console.group('Application State:');
+        console.log($state);
+        console.groupEnd();
+
+        console.group('Application Imperative:');
+        console.log($imperative);
+        console.groupEnd();
     }
 
     render() {
-        console.time('Render');
-        const element = <Provider store={this.$store}>{React.createElement(this.$view)}</Provider>;
-        console.timeEnd('Render');
+        console.time('Application Render');
+        const element = (
+            <Provider store={this.store}>
+                {React.createElement(this.viewFromStore(this.store))}
+            </Provider>
+        );
+        console.timeEnd('Application Render');
 
         return element;
     }
 
-    componentDidMount() {
-        this.unsubscribe = this.$store.subscribe(() => this.setState(this.$store.getState()));
-    }
+    // componentDidMount() {
+    //     this.unsubscribe = this.$store.subscribe(() => this.setState(this.$store.getState()));
+    // }
 
     componentWillUnmount() {
         this.unsubscribe();

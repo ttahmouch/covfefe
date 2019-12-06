@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define,no-unused-vars */
 export const anything_schema = {"$schema": "http://json-schema.org/schema#"};
+
 export const any_positive_integer_schema = {
     "$schema": "http://json-schema.org/schema#",
     "type": "integer",
@@ -10,14 +11,11 @@ export const delegate = {
     onDeclarativeStatus: (declarative) => declarative,
     onDeclarativeHeader: (declarative) => declarative,
     onDeclarativeBody: (declarative) => declarative,
-    // Get rid of these and shift state selection and interpolation to later right before a request happens or right
-    // after a response is received. Try to keep the state of the request declaration immutable, and create a new
-    // data structure with the interpolation and selection done for the request that is made.
+
     onDeclarativeAppStateSelector: (declarative) => declarative,
     onDeclarativeViewStateSelector: (declarative) => declarative,
     onDeclarativeUriTemplateInterpolator: (declarative) => declarative,
     onDeclarativeJsTemplateInterpolator: (declarative) => declarative
-    // onDeclarativeResponseStateSelector: (declarative) => declarative,
 };
 
 export const toDeclarativeStatus = (declaredStatus = {'$schema_comparison': any_positive_integer_schema}) => {
@@ -171,26 +169,3 @@ export const toDeclarativeRequest = (request = {
 
     return Object.keys(request).reduce(onField, request);
 };
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-// const selector = {$selector: "$.title", $from: "app"};
-// const other_selector = ({app, view, response}) => true;
-// const interpolator = {$uri_template: "/{path}", path: selector};
-// const action = {$action: "update", $state: "title", $select: selector};
-// const other_action = {$action: "update", $state: "loading", $select: other_selector};
-// // const other_action = {$action: "update", $state: "loading", $select: {$selector: ({app, view, response}) => true}};
-// const literal_comparator = {$literal: 200, $actions: [action, other_action]};
-// const regexp_comparator = {$regexp: "^([0-9]+)$", $actions: [action, other_action]};
-// const schema_comparator = {$schema_comparison: {"$schema": ""}, $actions: [action, other_action]};
-// const request = {
-//     $method: interpolator,
-//     $uri: interpolator,
-//     $headers: {"content-type": interpolator},
-//     $actions: [action, other_action],
-//     $responses: [{
-//         $status: literal_comparator,
-//         $headers: {"content-type": schema_comparator, "content-length": regexp_comparator},
-//         $body: schema_comparator
-//     }]
-// };

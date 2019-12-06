@@ -1,3 +1,9 @@
+CONSOLIDATE EVERYTHING IN THIS FILE.
+
+Work on unifying everything declarative into the store state and allowing them to be selected using the declarative selectors.
+Decide on if everything should be flattened in the store, or if the selectors should select from object namespaces, e.g., views, states, compoenents, styles, etc.
+Add support for data structure reduction, e.g., {} and []. 
+
 + Document
 	+ Interpolators
 	+ Comparators
@@ -49,3 +55,22 @@
   * Start thinking about the structures in the JSON as types based on the properties they retain.
   * Add synchronous actions to this JSON structure by just adding `{$actions:[]}`.
   */
+  
+  // import ReactDOMServer from 'react-dom/server';
+  // const responseXml = ReactDOMServer.renderToString(
+  //     React.createElement(
+  //         'View',
+  //         {},
+  //         React.createElement(
+  //             'FlatList',
+  //             {
+  //                 'data-state': 'array',
+  //                 'data-item': 'view',
+  //                 'data':{display:'block'}
+  //             }
+  //         )
+  //     )
+  // );
+  // console.log(responseXml);
+  // const parsedXml = new DOMParser().parseFromString(responseXml, 'application/xhtml+xml');
+  // console.log(parsedXml);
