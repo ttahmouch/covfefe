@@ -1,10 +1,10 @@
 export default {
     "$actions": [
         {
-            "$action": "update_header"
+            "$type": "update_header"
         },
         {
-            "$action": "update_header",
+            "$type": "update_header",
             "$select": ({response = "application/json"}) => response
         }
     ]

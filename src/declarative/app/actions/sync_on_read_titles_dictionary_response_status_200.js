@@ -1,10 +1,10 @@
 export default {
     "$actions": [
         {
-            "$action": "update_status"
+            "$type": "update_status"
         },
         {
-            "$action": "update_status",
+            "$type": "update_status",
             "$select": ({response = 500}) => response
         }
     ]

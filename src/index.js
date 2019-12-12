@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
-import app from './app/index.js';
-import {App} from './imperative/components.js';
+import app from './declarative/app/index.js';
+import {App} from './imperative/app/index.js';
 
 const element = <App app={app}/>;
 const root = document.getElementById('root');

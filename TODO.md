@@ -74,3 +74,6 @@ Add support for data structure reduction, e.g., {} and [].
   // console.log(responseXml);
   // const parsedXml = new DOMParser().parseFromString(responseXml, 'application/xhtml+xml');
   // console.log(parsedXml);
+  
+// $uri: {$template: "/{path}{extension}", path: "titlesDictionary", extension: ".json"},
+// Support functional selection.

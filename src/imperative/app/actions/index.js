@@ -25,7 +25,7 @@ export const dispatchDeclarative = (declarative = {'$actions': [], '$regexp': ''
     return actions
         .map((action) => ({'$capture': {$regexp}, ...action}))
         .forEach(({
-                      '$action': type = '',
+                      '$type': type = '',
                       '$capture': $capture = {'$regexp': ''},
                       '$select': $select = {},
                       '$value': value = captureAndSelectState($capture, $select, state)

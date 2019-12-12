@@ -1,7 +1,7 @@
 export default {
     "$actions": [
         {
-            "$action": "update_length",
+            "$type": "update_length",
             "$capture": {
                 "$regexp": "^([0-9]+)$",
                 "$from": "response"
@@ -12,7 +12,7 @@ export default {
             }
         },
         {
-            "$action": "update_length",
+            "$type": "update_length",
             "$capture": {
                 "$regexp": "^([0-9]+)$",
                 "$from": "response"

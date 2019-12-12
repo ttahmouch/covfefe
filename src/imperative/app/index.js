@@ -2,61 +2,37 @@
 import React, {Component, createElement, Fragment, isValidElement} from 'react';
 import {applyMiddleware, combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
-import {getState, getStyle, getView} from './selectors.js';
-import {reducersFromState} from './reducers.js';
+import {
+    getState,
+    getStyle,
+    getView,
+    appStateFromStore,
+    stylesFromAppState,
+    viewsFromAppState,
+    componentsFromAppState,
+    viewFromStore
+} from './selectors/index.js';
+import {reducersFromState} from './reducers/index.js';
 import {actionDispatcherFromStore, createActionsMiddleware} from './actions/index.js';
-
-export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
-
-export const viewsFromAppState = ({$views = {}} = {'$views': {}}) => $views;
-
-export const viewFromAppState = ({$view = []} = {'$view': []}) => $view;
-
-export const viewFromStore = (store = {getState: () => ({'$view': []})},
-                              dependencies = {viewFromAppState, appStateFromStore}) => {
-    const {viewFromAppState, appStateFromStore} = dependencies;
-
-    return viewFromAppState(appStateFromStore(store));
-};
-
-export const stylesFromAppState = ({$styles = {}} = {'$styles': {}}) => $styles;
-
-export const componentsFromAppState = ({$components = {}} = {'$components': {}}) => $components;
 
 export const mapCustomPropsToReactProps = (props = {},
                                            store = {getState: () => ({'$styles': {}})},
-                                           // app = {
-                                           //     $store: {getState: getEmptyObject},
-                                           //     $styles: {},
-                                           //     $dispatchers: {},
-                                           // },
                                            dependencies = {
-                                               // getEmptyObject,
                                                appStateFromStore,
                                                stylesFromAppState,
                                                getStyle,
                                                getState,
                                                actionDispatcherFromStore
-                                               // getDispatcher,
                                            }) => {
-    // dispatcher = actionDispatcherFromStore($store) || (() => ({}))
     const {
-        // getEmptyObject,
         appStateFromStore,
         stylesFromAppState,
         getStyle,
         getState,
         actionDispatcherFromStore
-        // getDispatcher,
     } = dependencies;
     const $states = appStateFromStore(store) || {};
     const $styles = stylesFromAppState($states) || {};
-    // const {
-    //     $store = {getState: getEmptyObject},
-    //     $styles = {},
-    //     $dispatchers = {},
-    // } = app;
-    // const $states = $store.getState();
     const {
         style,
         'data-style': $styleSelector = '',
@@ -265,10 +241,6 @@ export class App extends Component {
 
         return element;
     }
-
-    // componentDidMount() {
-    //     this.unsubscribe = this.$store.subscribe(() => this.setState(this.$store.getState()));
-    // }
 
     componentWillUnmount() {
         this.unsubscribe();

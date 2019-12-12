@@ -1,6 +1,6 @@
 import read_json_card_view from './read_json_card_view.json';
 import read_xml_card_view from './read_xml_card_view.json';
-import async_read_titles_dictionary from './async_read_titles_dictionary.js'
+import async_read_titles_dictionary from './async_read_titles_dictionary.json'
 import sync_on_read_titles_dictionary_response_body from './sync_on_read_titles_dictionary_response_body.js';
 import sync_on_read_titles_dictionary_response_status_200 from './sync_on_read_titles_dictionary_response_status_200.js';
 import sync_on_read_titles_dictionary_response_header_content_type from './sync_on_read_titles_dictionary_response_header_content_type.js';

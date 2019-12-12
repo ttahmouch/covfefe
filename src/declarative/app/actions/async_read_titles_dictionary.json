@@ -1,15 +1,13 @@
-export default {
+{
     "$method": "GET",
     "$uri": {
         "$uri_template": "/{path}{extension}",
         "path": "titlesDictionary",
         "extension": ".json"
     },
-    // $uri: {$template: "/{path}{extension}", path: "titlesDictionary", extension: ".json"},
     "$headers": {
         "custom": {
             "$js_template": "{value1}{value2}",
-            // Support functional selection.
             "value1": {
                 "$selector": "$.title[0]",
                 "$from": "view"
@@ -59,4 +57,4 @@ export default {
             }
         }
     ]
-};
+}
