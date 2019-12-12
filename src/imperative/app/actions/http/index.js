@@ -1,5 +1,4 @@
 /* eslint-disable no-use-before-define */
-export const noop = (event) => console.log(event);
 
 export const getResponseBody = (headers = {'content-type': ''}, body = '') => {
     const {'content-type': type = ''} = headers;
@@ -36,7 +35,9 @@ export const getRequestBody = (headers = {'content-type': ''}, body = '') => {
 };
 
 export const asyncRequest = (request = {},
-                             callback = noop,
+                             callback = (request = {},
+                                         event = {type: ''},
+                                         response = {'status': 200, 'headers': {}, 'body': {}}) => console.log({request, event, response}),
                              client = new XMLHttpRequest(),
                              dependencies = {
                                  getRequestBody,

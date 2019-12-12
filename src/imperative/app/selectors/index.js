@@ -54,14 +54,37 @@ export const captureAndSelectState = (captor = {'$regexp': '', '$from': 'respons
     return selectState(selector, {...state, [$from]: $captured});
 };
 
-// export const getEmptyObject = () => ({});
-
 export const getStyle = (styles = {}, style = '') => styles[style];
-
-// export const getDispatcher = (dispatchers = {}, action = '') => dispatchers[action];
 
 export const getState = (states = {}, state = '') => states[state];
 
 export const getView = (views = {}, view = '') => views[view];
 
-// export const getRequest = (requests = {}, request = '') => requests[request];
+export const getAction = (actions = {}, action = '') => actions[action];
+
+export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
+
+export const actionsFromAppState = ({$actions = {}} = {'$actions': {}}) => $actions;
+
+export const actionFromEvent = ({target: {dataset: {action = ''}}} = {'target': {'dataset': {'action': ''}}}) => action;
+
+export const eventFromAction = ({event = {'target': {'dataset': {'action': ''}}}} = {'event': {'target': {'dataset': {'action': ''}}}}) => event;
+
+export const typeFromAction = ({type = ''} = {'type': ''}) => type;
+
+export const stateFromAction = ({state} = {'state': {'app': {}, 'view': {}, 'response': {}}}) => state;
+
+export const viewsFromAppState = ({$views = {}} = {'$views': {}}) => $views;
+
+export const viewFromAppState = ({$view = []} = {'$view': []}) => $view;
+
+export const viewFromStore = (store = {getState: () => ({'$view': []})},
+                              dependencies = {viewFromAppState, appStateFromStore}) => {
+    const {viewFromAppState, appStateFromStore} = dependencies;
+
+    return viewFromAppState(appStateFromStore(store));
+};
+
+export const stylesFromAppState = ({$styles = {}} = {'$styles': {}}) => $styles;
+
+export const componentsFromAppState = ({$components = {}} = {'$components': {}}) => $components;

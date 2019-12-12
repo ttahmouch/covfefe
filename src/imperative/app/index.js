@@ -3,8 +3,8 @@ import React, {Component, createElement, Fragment, isValidElement} from 'react';
 import {applyMiddleware, combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
 import {getState, getStyle, getView} from './selectors.js';
-import {reducersFromState} from './reducers';
-import {actionDispatcherFromStore, createActionsMiddleware} from './dispatchers';
+import {reducersFromState} from './reducers.js';
+import {actionDispatcherFromStore, createActionsMiddleware} from './actions/index.js';
 
 export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
 
