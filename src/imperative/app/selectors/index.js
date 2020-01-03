@@ -1,6 +1,13 @@
 /* eslint-disable no-use-before-define */
 import jsonpath from 'jsonpath/jsonpath.min';
 
+// (function () {
+//     const object = {$fuck: 'not fuck'};
+//     console.log(object);
+//     const value = jsonpath.value(object, "$['$fuck']", 'fuck');
+//     console.log(object);
+// })();
+
 export const selectStateUsingJsonPath = (selector = '',
                                          state = {},
                                          jsonPath = jsonpath) => selector ? jsonPath.value(state, selector) : state;
@@ -88,3 +95,29 @@ export const viewFromStore = (store = {getState: () => ({'$view': []})},
 export const stylesFromAppState = ({$styles = {}} = {'$styles': {}}) => $styles;
 
 export const componentsFromAppState = ({$components = {}} = {'$components': {}}) => $components;
+
+export const mapChildrenToState = (children = [], stateType = 'string', state = '') => {
+    switch (stateType) {
+        case 'array':
+            return children
+                .filter(({name}) => name)
+                .map(({name, value}) => ({[name]: value}));
+        case 'dictionary':
+            return children
+                .filter(({name}) => name)
+                .reduce((map, {name, value}) => ({...map, [name]: [...map[name] || [], value]}), {});
+        case 'string':
+        default:
+            return state;
+    }
+};
+
+export const viewStateFromEvent = (event = {'target': {'value': '', 'dataset': {'stateType': 'string'}}},
+                                   dependencies = {mapChildrenToState}) => {
+    const {mapChildrenToState} = dependencies;
+    const {target} = event;
+    const {value = '', dataset: {stateType: type = 'string'}} = target;
+    const children = Array.from(target);
+
+    return mapChildrenToState(children, type, value);
+};

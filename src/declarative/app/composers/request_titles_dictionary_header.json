@@ -1,0 +1,46 @@
+[
+    {
+        "$default": {"one": "", "two": ""},
+        "$compose": "create",
+        "$value": {
+            "one": {
+                "$default": "",
+                "$compose": "read",
+                "$type": "jsonpath",
+                "$value": "$['view']['title'][0]"
+            },
+            "two": [
+                {
+                    "$default": {"one": "", "two": ""},
+                    "$compose": "create",
+                    "$value": {
+                        "one": {
+                            "$default": "",
+                            "$compose": "read",
+                            "$type": "jsonpath",
+                            "$value": "$['view']['title'][0]"
+                        },
+                        "two": {
+                            "$default": "",
+                            "$compose": "read",
+                            "$type": "jsonpath",
+                            "$value": "$['app']['states']['title']"
+                        }
+                    }
+                },
+                {
+                    "$default": "",
+                    "$compose": "interpolate",
+                    "$type": "template",
+                    "$value": "{one}{two}"
+                }
+            ]
+        }
+    },
+    {
+        "$default": "",
+        "$compose": "interpolate",
+        "$type": "template",
+        "$value": "{one}{two}"
+    }
+]

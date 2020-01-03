@@ -1,0 +1,14 @@
+[
+    {
+        "$default": {"status": 0, "headers": {}, "body": {}},
+        "$compose": "read",
+        "$type": "jsonpath",
+        "$value": "$['response']"
+    },
+    {
+        "$default": false,
+        "$compose": "compare",
+        "$type": "jsonschema",
+        "$value": {"$schema": "response_titles_dictionary_schema"}
+    }
+]

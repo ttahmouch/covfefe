@@ -1,0 +1,15 @@
+{
+    "$method": "GET",
+    "$uri": "/card.xml",
+    "$actions": [{"$type": "update_loading", "$value": true}],
+    "$responses": [
+        {
+            "$status": 200,
+            "$headers": {"content-type": "application[/]json"},
+            "$body": {
+                "$schema_comparison": {"$schema": "http://json-schema.org/schema#"},
+                "$actions": [{"$type": "update_loading", "$value": false}]
+            }
+        }
+    ]
+}

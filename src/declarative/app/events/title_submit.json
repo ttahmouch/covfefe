@@ -1,0 +1,18 @@
+[
+    {
+        "$action": "request_titles_dictionary",
+        "$if": {
+            "$compose": "is_title",
+            "$default": false
+        }
+    },
+    {
+        "$action": "update",
+        "$path": "states.error",
+        "$value": true,
+        "$unless": {
+            "$compose": "is_title",
+            "$default": true
+        }
+    }
+]

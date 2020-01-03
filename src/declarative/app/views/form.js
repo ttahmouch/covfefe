@@ -1,7 +1,8 @@
 import React from 'react';
 
 export default (
-    <form data-action="async_read_titles_dictionary"
+    <form data-event="title_submit"
+          data-action="submit_title"
           data-bind-action="onSubmit"
           data-state-type="dictionary">
         <div>

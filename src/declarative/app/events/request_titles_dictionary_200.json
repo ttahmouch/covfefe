@@ -1,0 +1,44 @@
+[
+    {
+        "$action": "update",
+        "$path": "states.length",
+        "$value": [
+            {
+                "$compose": "read",
+                "$value": "$['response']['headers']['content-length']",
+                "$default": "0"
+            },
+            {
+                "$compose": "capture",
+                "$value": "^([0-9]+)$",
+                "$default": ["0"]
+            },
+            {
+                "$compose": "read",
+                "$value": "$['composed'][0]",
+                "$default": "0"
+            }
+        ]
+    },
+    {
+        "$action": "update",
+        "$path": "states.titles_dictionary",
+        "$value": {
+            "$compose": "response_titles_dictionary",
+            "$default": {}
+        },
+        "$if": {
+            "$compose": "is_response_titles_dictionary",
+            "$default": false
+        }
+    },
+    {
+        "$action": "update",
+        "$path": "states.error",
+        "$value": true,
+        "$unless": {
+            "$compose": "is_response_titles_dictionary",
+            "$default": true
+        }
+    }
+]

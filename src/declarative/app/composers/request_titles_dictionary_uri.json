@@ -1,0 +1,13 @@
+[
+    {
+        "$default": {"path": "", "extension": ""},
+        "$compose": "create",
+        "$value": {"path": "titlesDictionary", "extension": ".json"}
+    },
+    {
+        "$default": "/",
+        "$compose": "interpolate",
+        "$type": "uritemplate",
+        "$value": "/{path}{extension}"
+    }
+]

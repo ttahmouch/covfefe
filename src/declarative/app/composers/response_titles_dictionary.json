@@ -1,0 +1,52 @@
+[
+    {
+        "$default": {},
+        "$compose": "read",
+        "$type": "jsonpath",
+        "$value": "$['response']['body']"
+    },
+    {
+        "$default": {"titles": [{"title": ""}, {"title": ""}]},
+        "$compose": "spread",
+        "$value": {
+            "$default": {"titles": [{"title": ""}, {"title": ""}]},
+            "$compose": "create",
+            "$value": {
+                "titles": [
+                    {
+                        "$default": [],
+                        "$compose": "read",
+                        "$type": "jsonpath",
+                        "$value": "$['response']['body']['titles']"
+                    },
+                    {
+                        "$default": [{"title": ""}, {"title": ""}],
+                        "$compose": "spread",
+                        "$value": {
+                            "$default": [{"title": ""}, {"title": ""}],
+                            "$compose": "create",
+                            "$value": [
+                                {
+                                    "title": {
+                                        "$compose": "read",
+                                        "$type": "jsonpath",
+                                        "$value": "$['app']['states']['title']",
+                                        "$default": ""
+                                    }
+                                },
+                                {
+                                    "title": {
+                                        "$compose": "read",
+                                        "$type": "jsonpath",
+                                        "$value": "$['view']['title'][0]",
+                                        "$default": ""
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+]

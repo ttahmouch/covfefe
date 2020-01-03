@@ -12,7 +12,8 @@ import {
     stateFromAction,
     appStateFromStore,
     actionFromEvent,
-    actionsFromAppState
+    actionsFromAppState,
+    viewStateFromEvent
 } from '../selectors/index.js';
 
 export const dispatchDeclarative = (declarative = {'$actions': [], '$regexp': ''},
@@ -138,22 +139,6 @@ export const dispatchResponse = (store = {},
     }
 };
 
-export const mapChildrenToState = (children = [], stateType = 'string', state = '') => {
-    switch (stateType) {
-        case 'array':
-            return children
-                .filter(({name}) => name)
-                .map(({name, value}) => ({[name]: value}));
-        case 'dictionary':
-            return children
-                .filter(({name}) => name)
-                .reduce((map, {name, value}) => ({...map, [name]: [...map[name] || [], value]}), {});
-        case 'string':
-        default:
-            return state;
-    }
-};
-
 export const toDecoratedDeclarative = (declarative = {},
                                        store = {},
                                        dependencies = {
@@ -177,16 +162,6 @@ export const toDecoratedDeclarative = (declarative = {},
         interpolate: (state) => interpolateTemplate(declarative, state),
         select: (state) => selectState(declarative, state)
     };
-};
-
-export const viewStateFromEvent = (event = {'target': {'value': '', 'dataset': {'stateType': 'string'}}},
-                                   dependencies = {mapChildrenToState}) => {
-    const {mapChildrenToState} = dependencies;
-    const {target} = event;
-    const {value = '', dataset: {stateType: type = 'string'}} = target;
-    const children = Array.from(target);
-
-    return mapChildrenToState(children, type, value);
 };
 
 // noinspection JSValidateTypes
