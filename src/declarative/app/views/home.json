@@ -1,0 +1,85 @@
+{
+    "type": "div",
+    "props": {
+        "data-style": "root",
+        "children": [
+            {
+                "type": "nav",
+                "props": {
+                    "data-style": "navigation_bar",
+                    "children": [
+                        {
+                            "type": "div",
+                            "props": {
+                                "data-style": "navigation_bar_button",
+                                "data-state": "back"
+                            }
+                        },
+                        {
+                            "type": "div",
+                            "props": {
+                                "data-style": "navigation_bar_button",
+                                "data-state": "forward"
+                            }
+                        },
+                        {
+                            "type": "div",
+                            "props": {
+                                "data-style": "navigation_bar_title",
+                                "data-state": "page_title"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "type": "div",
+                "props": {
+                    "data-style": "header",
+                    "children": {
+                        "type": "img",
+                        "props": {
+                            "data-style": "hero-image",
+                            "id": "hero-image",
+                            "src": "dashboard_hero_image_gmc.png",
+                            "alt": "Hero"
+                        }
+                    }
+                }
+            },
+            {
+                "type": "div",
+                "props": {
+                    "data-style": "garage-door",
+                    "children": {
+                        "type": "p",
+                        "props": {
+                            "data-style": "garage-door-text",
+                            "data-state": "selected_vehicle"
+                        }
+                    }
+                }
+            },
+            {
+                "type": "div",
+                "props": {
+                    "data-style": "footer",
+                    "children": [
+                        {
+                            "type": "Fragment",
+                            "props": {"data-view": "card"}
+                        },
+                        {
+                            "type": "Fragment",
+                            "props": {"data-view": "card"}
+                        },
+                        {
+                            "type": "Fragment",
+                            "props": {"data-view": "card"}
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

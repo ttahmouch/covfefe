@@ -1,6 +1,6 @@
 import React from 'react';
-import $components from '../components/index.js';
+import $composers from '../composers/index.js';
 
-const {Root} = $components;
+const {Home} = $composers;
 
-export default <Root/>;
+export default <Home/>;
