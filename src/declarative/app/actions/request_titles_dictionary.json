@@ -1,4 +1,5 @@
 {
+    "$action": "request_titles_dictionary",
     "$request": {
         "$method": "GET",
         "$uri": {

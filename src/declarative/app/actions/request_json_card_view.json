@@ -1,4 +1,5 @@
 {
+    "$action": "request_json_card_view",
     "$request": {
         "$method": "GET",
         "$uri": "/card.json",

@@ -1,46 +1,54 @@
-[
-    {
-        "$default": {"one": "", "two": ""},
-        "$compose": "create",
-        "$value": {
-            "one": {
-                "$default": "",
-                "$compose": "read",
-                "$type": "jsonpath",
-                "$value": "$['view']['title'][0]"
-            },
-            "two": [
-                {
-                    "$default": {"one": "", "two": ""},
-                    "$compose": "create",
-                    "$value": {
-                        "one": {
-                            "$default": "",
-                            "$compose": "read",
-                            "$type": "jsonpath",
-                            "$value": "$['view']['title'][0]"
-                        },
-                        "two": {
-                            "$default": "",
-                            "$compose": "read",
-                            "$type": "jsonpath",
-                            "$value": "$['app']['states']['title']"
-                        }
-                    }
+{
+    "$compose": [
+        {
+            "$compose": "create",
+            "$value": {
+                "one": {
+                    "$compose": "read",
+                    "$type": "json_path",
+                    "$value": "$['view']['title']['0']",
+                    "$default": ""
                 },
-                {
-                    "$default": "",
-                    "$compose": "interpolate",
-                    "$type": "template",
-                    "$value": "{one}{two}"
-                }
-            ]
+                "two": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "one": {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$['view']['title']['0']",
+                                "$default": ""
+                            },
+                            "two": {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$['app']['$states']['title']",
+                                "$default": ""
+                            }
+                        },
+                        "$default": {
+                            "one": "",
+                            "two": ""
+                        }
+                    },
+                    {
+                        "$compose": "expand",
+                        "$type": "template",
+                        "$value": "{one}{two}",
+                        "$default": ""
+                    }
+                ]
+            },
+            "$default": {
+                "one": "",
+                "two": ""
+            }
+        },
+        {
+            "$compose": "expand",
+            "$type": "template",
+            "$value": "{one}{two}",
+            "$default": ""
         }
-    },
-    {
-        "$default": "",
-        "$compose": "interpolate",
-        "$type": "template",
-        "$value": "{one}{two}"
-    }
-]
+    ]
+}

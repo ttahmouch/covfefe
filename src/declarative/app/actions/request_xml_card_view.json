@@ -1,0 +1,44 @@
+{
+    "$action": "request_xml_card_view",
+    "$request": {
+        "$method": "GET",
+        "$uri": "/card.xml",
+        "$events": {
+            "loadstart": {
+                "$action": "update",
+                "$path": "states.loading",
+                "$value": true
+            },
+            "loadend": {
+                "$action": "update",
+                "$path": "states.loading",
+                "$value": false
+            },
+            "200": [
+                {
+                    "$action": "update",
+                    "$path": "views.card",
+                    "$value": {
+                        "$default": {"type": "div"},
+                        "$compose": "read",
+                        "$type": "jsonpath",
+                        "$value": "$['response']['body']"
+                    },
+                    "$if": {
+                        "$default": false,
+                        "$compose": "is_response_json_card_view"
+                    }
+                },
+                {
+                    "$action": "update",
+                    "$path": "states.error",
+                    "$value": true,
+                    "$unless": {
+                        "$default": true,
+                        "$compose": "is_response_json_card_view"
+                    }
+                }
+            ]
+        }
+    }
+}

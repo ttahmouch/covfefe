@@ -1,7 +1,10 @@
-[
-    {
-        "$action": "update",
-        "$path": "states.loading",
-        "$value": true
-    }
-]
+{
+    "$event": "request_titles_dictionary_200",
+    "$actions": [
+        {
+            "$action": "update",
+            "$path": "$['$states']['loading']",
+            "$value": true
+        }
+    ]
+}

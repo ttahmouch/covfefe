@@ -6,6 +6,8 @@
  * EVENT - LOAD, CLICK, SUBMIT, etc. emitted upstream from VIEW, RESPONSE, etc.
  */
 
+import {composition} from "../../../imperative/app/composers";
+
 /**
  * MAPS -
  * INPUT STATE types can be BOOL, NUMBER, STRING, NULL, UNDEFINED, SYMBOL, OBJECT, ARRAY.
@@ -174,3 +176,155 @@ const action = {
         }
     ]
 };
+
+const one = [
+    {"$compose": "read", "$value": "$['response']['headers']['content-length']", "$default": "0"},
+    {"$compose": "capture", "$value": "^([0-9]+)$", "$default": ["0"]},
+    {"$compose": "read", "$value": "$['composed'][0]", "$default": "0"}
+];
+
+const two = [
+    {"$default": {"status": 0, "headers": {}, "body": {}}, "$compose": "read", "$type": "jsonpath", "$value": "$['response']"},
+    {"$default": false, "$compose": "compare", "$type": "jsonschema", "$value": {"$schema": "response_json_card_view_schema"}}
+];
+
+const three = [
+    {
+        "$default": {"one": "", "two": ""}, "$compose": "create",
+        "$value": {
+            "one": {"$default": "", "$compose": "read", "$type": "jsonpath", "$value": "$['view']['title'][0]"},
+            "two": [
+                {
+                    "$default": {"one": "", "two": ""}, "$compose": "create",
+                    "$value": {
+                        "one": {"$default": "", "$compose": "read", "$type": "jsonpath", "$value": "$['view']['title'][0]"},
+                        "two": {"$default": "", "$compose": "read", "$type": "jsonpath", "$value": "$['app']['states']['title']"}
+                    }
+                },
+                {"$default": "", "$compose": "interpolate", "$type": "template", "$value": "{one}{two}"}
+            ]
+        }
+    },
+    {"$default": "", "$compose": "interpolate", "$type": "template", "$value": "{one}{two}"}
+];
+
+const four = [
+    {"$default": {"path": "", "extension": ""}, "$compose": "create", "$value": {"path": "titlesDictionary", "extension": ".json"}},
+    {"$default": "/", "$compose": "interpolate", "$type": "uritemplate", "$value": "/{path}{extension}"}
+];
+
+const five = [
+    {"$default": {}, "$compose": "read", "$type": "jsonpath", "$value": "$['response']['body']"},
+    {
+        "$default": {"titles": [{"title": ""}, {"title": ""}]}, "$compose": "spread",
+        "$value": {
+            "$default": {"titles": [{"title": ""}, {"title": ""}]}, "$compose": "create",
+            "$value": {
+                "titles": [
+                    {"$default": [], "$compose": "read", "$type": "jsonpath", "$value": "$['response']['body']['titles']"},
+                    {
+                        "$default": [{"title": ""}, {"title": ""}], "$compose": "spread",
+                        "$value": {
+                            "$default": [{"title": ""}, {"title": ""}], "$compose": "create",
+                            "$value": [
+                                {"title": {"$compose": "read", "$type": "jsonpath", "$value": "$['app']['states']['title']", "$default": ""}},
+                                {"title": {"$compose": "read", "$type": "jsonpath", "$value": "$['view']['title'][0]", "$default": ""}}
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+];
+
+setTimeout(() => {
+    console.log(
+        composition(
+            // Boolean,Null,Undefined,Number,BigInt,String,Symbol
+            1234567890,
+            {"composed": undefined, "app": {}, "view": {}, "response": {}}
+        )
+    );
+
+    console.log(
+        composition(
+            {"$compose": "read", "$type": "regular_expression", "$value": "^application[/](json)", "$default": "application/xml"},
+            {"composed": "application/json;charset=utf8", "app": {}, "view": {}, "response": {"headers": {"content-type": "application/json;charset=utf8"}}}
+        )
+    );
+
+    console.log(
+        composition(
+            ({composed = undefined, app = {}, view = {}, response = {}}) => composed * 2,
+            {"composed": 1337, "app": {}, "view": {}, "response": {}}
+        )
+    );
+
+    console.log(
+        composition(
+            [{"$compose": "read", "$type": "json_path", "$value": "$['response']['headers']['content-type']", "$default": "application/json"}],
+            {"composed": undefined, "app": {}, "view": {}, "response": {"headers": {"content-type": "text/html"}}}
+        )
+    );
+
+    console.log(
+        composition(
+            [({composed = undefined, app = {}, view = {}, response = {}}) => composed * 3],
+            {"composed": 1337, "app": {}, "view": {}, "response": {}}
+        )
+    );
+
+    console.log(
+        composition(
+            [
+                {"$default": {"path": "", "extension": ""}, "$compose": "create", "$value": {"path": "titlesDictionary", "extension": ".json"}},
+                ({composed = undefined, app = {}, view = {}, response = {}}) => composed,
+                {"$default": "/", "$compose": "expand", "$type": "uri_template", "$value": "/{path}{extension}"}
+            ],
+            {"composed": undefined, "app": {}, "view": {}, "response": {}}
+        )
+    );
+
+    console.log(
+        composition(
+            [
+                {
+                    "$default": {"one": "", "two": ""},
+                    "$compose": "create",
+                    "$value": {
+                        "one": {"$default": "", "$compose": "read", "$type": "json_path", "$value": "$['view']['title'][0]"},
+                        "two": [
+                            {
+                                "$default": {"one": "", "two": ""},
+                                "$compose": "create",
+                                "$value": {
+                                    "one": {"$default": "", "$compose": "read", "$type": "json_path", "$value": "$['view']['title'][0]"},
+                                    "two": {"$default": "", "$compose": "read", "$type": "json_path", "$value": "$['app']['title']"}
+                                }
+                            },
+                            {"$default": "", "$compose": "expand", "$type": "template", "$value": "{one};{two}"}
+                        ]
+                    }
+                },
+                ({composed = undefined, app = {}, view = {}, response = {}}) => composed,
+                {"$default": "", "$compose": "expand", "$type": "template", "$value": "{one};{two}"}
+            ],
+            {"composed": undefined, "app": {"title": "App Title"}, "view": {"title": ["View Title"]}, "response": {}}
+        )
+    );
+
+    console.log(
+        composition(
+            [
+                {"$compose": "read", "$type": "json_path", "$value": "$['response']['headers']['content-length']", "$default": "0"},
+                ({composed = '0', app = {}, view = {}, response = {}}) => `${Math.ceil(Number(composed) / 256)}`,
+                {"$compose": "read", "$type": "regular_expression", "$value": "^([0-9]+)$", "$default": ["0"]},
+                ({composed: [composed] = ['0'], app: {some_string = '652'} = {}, view = {}, response = {}}) => `${composed}${some_string}`,
+                {"$compose": "read", "$type": "json_path", "$value": "$['composed']", "$default": "1234567890"},
+                ({composed = "1234567890", app = {}, view = {}, response = {}}) => composed
+            ],
+            {"composed": undefined, "app": {"some_string": '652'}, "view": {}, "response": {"headers": {"content-length": "65535"}}}
+        )
+    );
+}, 0);

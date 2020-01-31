@@ -1,14 +1,16 @@
-[
-    {
-        "$compose": "read",
-        "$type": "jsonpath",
-        "$value": "$['view']['title'][0]",
-        "$default": ""
-    },
-    {
-        "$compose": "compare",
-        "$type": "jsonschema",
-        "$value": {"$schema": "title_schema"},
-        "$default": false
-    }
-]
+{
+    "$compose": [
+        {
+            "$compose": "read",
+            "$type": "json_path",
+            "$value": "$['view']['title']['0']",
+            "$default": ""
+        },
+        {
+            "$compose": "match",
+            "$type": "json_schema",
+            "$value": {"$schema": "title_schema"},
+            "$default": false
+        }
+    ]
+}

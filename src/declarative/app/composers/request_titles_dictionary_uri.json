@@ -1,13 +1,21 @@
-[
-    {
-        "$default": {"path": "", "extension": ""},
-        "$compose": "create",
-        "$value": {"path": "titlesDictionary", "extension": ".json"}
-    },
-    {
-        "$default": "/",
-        "$compose": "interpolate",
-        "$type": "uritemplate",
-        "$value": "/{path}{extension}"
-    }
-]
+{
+    "$compose": [
+        {
+            "$compose": "create",
+            "$value": {
+                "path": "titlesDictionary",
+                "extension": ".json"
+            },
+            "$default": {
+                "path": "",
+                "extension": ""
+            }
+        },
+        {
+            "$compose": "expand",
+            "$type": "uri_template",
+            "$value": "/{path}{extension}",
+            "$default": "/"
+        }
+    ]
+}

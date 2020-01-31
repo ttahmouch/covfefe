@@ -1,0 +1,15 @@
+{
+    "$compose": [
+        {
+            "$compose": "create",
+            "$value": {
+                "type": "Fragment",
+                "props": {"data-view": "home"}
+            },
+            "$default": {
+                "type": "Fragment",
+                "props": {"data-view": "home"}
+            }
+        }
+    ]
+}
