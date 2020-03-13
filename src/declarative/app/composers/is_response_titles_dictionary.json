@@ -1,20 +1,18 @@
-{
-    "$compose": [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$['response']",
-            "$default": {
-                "status": 0,
-                "headers": {},
-                "body": {}
-            }
-        },
-        {
-            "$compose": "match",
-            "$type": "json_schema",
-            "$value": {"$schema": "response_titles_dictionary_schema"},
-            "$default": false
+[
+    {
+        "$compose": "read",
+        "$type": "json_path",
+        "$value": "$['response']",
+        "$default": {
+            "status": 0,
+            "headers": {},
+            "body": {}
         }
-    ]
-}
+    },
+    {
+        "$compose": "match",
+        "$type": "json_schema",
+        "$value": {"$schema": "response_titles_dictionary_schema"},
+        "$default": false
+    }
+]

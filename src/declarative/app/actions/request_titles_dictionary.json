@@ -3,24 +3,24 @@
     "$request": {
         "$method": "GET",
         "$uri": {
-            "$default": "/",
-            "$compose": "request_titles_dictionary_uri"
+            "$compose": "request_titles_dictionary_uri",
+            "$default": "/"
         },
         "$headers": {
             "header": {
-                "$default": "",
-                "$compose": "request_titles_dictionary_header"
+                "$compose": "request_titles_dictionary_header",
+                "$default": ""
             }
-        },
-        "$events": {
-            "load": {"$event": "load"},
-            "loadstart": {"$event": "request_titles_dictionary_loadstart"},
-            "progress": {"$event": "progress"},
-            "error": {"$event": "error"},
-            "abort": {"$event": "abort"},
-            "timeout": {"$event": "timeout"},
-            "loadend": {"$event": "request_titles_dictionary_loadend"},
-            "200": {"$event": "request_titles_dictionary_200"}
         }
+    },
+    "$events": {
+        "load": {"$event": "load"},
+        "loadstart": {"$event": "load_start"},
+        "progress": {"$event": "progress"},
+        "error": {"$event": "error"},
+        "abort": {"$event": "abort"},
+        "timeout": {"$event": "timeout"},
+        "loadend": {"$event": "load_end"},
+        "200": {"$event": "request_titles_dictionary_200"}
     }
 }

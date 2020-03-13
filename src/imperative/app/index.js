@@ -2,57 +2,30 @@
 import React, {Component, createElement, Fragment, isValidElement} from 'react';
 import {applyMiddleware, combineReducers, createStore} from 'redux';
 import {Provider} from 'react-redux';
-import {
-    getState,
-    getStyle,
-    getView,
-    appStateFromStore,
-    stylesFromAppState,
-    viewsFromAppState,
-    componentsFromAppState,
-    viewFromStore
-} from './selectors/index.js';
 import {reducersFromState} from './reducers/index.js';
-import {actionDispatcherFromStore, createActionsMiddleware} from './actions/index.js';
+import {eventDispatcherForStore, createActionsMiddleware} from './actions/index.js';
+import {composeValue} from './composers/index.js';
 
-export const mapCustomPropsToReactProps = (props = {},
-                                           store = {getState: () => ({'$styles': {}})},
-                                           dependencies = {
-                                               appStateFromStore,
-                                               stylesFromAppState,
-                                               getStyle,
-                                               getState,
-                                               actionDispatcherFromStore
-                                           }) => {
-    const {
-        appStateFromStore,
-        stylesFromAppState,
-        getStyle,
-        getState,
-        actionDispatcherFromStore
-    } = dependencies;
-    const $states = appStateFromStore(store) || {};
-    const $styles = stylesFromAppState($states) || {};
-    const {
-        style,
-        'data-style': $styleSelector = '',
-        'data-state': $stateSelector = '',
-        'data-action': $actionSelector = '',
-        'data-style-value': $styleValue = getStyle($styles, $styleSelector),
-        'data-state-value': $stateValue = getState($states, $stateSelector),
-        // 'data-action-value': $actionValue = getDispatcher($dispatchers, $actionSelector),
-        'data-action-value': $actionValue = $actionSelector ? actionDispatcherFromStore(store) : undefined,
-        'data-bind-style': $bindStyle = $styleValue || style ? 'style' : 'data-bind-style',
-        'data-bind-state': $bindState = $stateValue ? 'children' : 'data-state',
-        'data-bind-action': $bindAction = 'data-bind-action'
-    } = props;
+/**
+ * Dispatch event to the redux middleware.
+ * If the event has registered actions, dispatch those with ACTION, PATH, VALUE, IF, and UNLESS.
+ * VALUE, IF, and UNLESS should be compositions that return a final value or boolean.
+ * If the action's IF or UNLESS condition
+ * data-STYLE, STATE, EVENT, VIEW props should be composable.
+ *
+ */
 
-    return {
-        ...props,
-        [$bindStyle]: style || $styleValue,
-        [$bindState]: $stateValue,
-        [$bindAction]: $actionValue
-    };
+export const appStateFromStore = (store = {getState: () => ({})}) => store.getState() || {};
+
+export const composersFromAppState = ({$composers = {}} = {'$composers': {}}) => $composers;
+
+export const viewFromAppState = ({$view = []} = {'$view': []}) => $view;
+
+export const viewFromStore = (store = {getState: () => ({'$view': []})},
+                              dependencies = {viewFromAppState, appStateFromStore}) => {
+    const {viewFromAppState, appStateFromStore} = dependencies;
+
+    return viewFromAppState(appStateFromStore(store));
 };
 
 export const isDataProp = (prop = '') => /^data[-]/.test(prop);
@@ -98,35 +71,84 @@ export const getType = (components = {},
         : $components[type] || type || Fragment;
 };
 
-export const reactMethodWithCustomDataProps = (method = {createElement},
-                                               store = {getState: () => ({'$views': {}, '$components': {}})},
-                                               dependencies = {
-                                                   appStateFromStore,
-                                                   viewsFromAppState,
-                                                   componentsFromAppState,
-                                                   toReactProps,
-                                                   getType,
-                                                   getView,
-                                                   isElement
-                                               }) => {
+export const mapCustomPropsToReactProps = (props = {},
+                                           store = {getState: () => ({'$styles': {}})},
+                                           dependencies = {
+                                               appStateFromStore,
+                                               composeValue,
+                                               eventDispatcherForStore
+                                           }) => {
     const {
         appStateFromStore,
-        viewsFromAppState,
-        componentsFromAppState,
+        composeValue,
+        eventDispatcherForStore
+    } = dependencies;
+    const app = appStateFromStore(store) || {};
+    // DI?
+    const dispatcher = eventDispatcherForStore(store);
+    /**
+     * Select state using basic id selectors, and select state using complex state composers.
+     * Does the hollistic app structure need significant keys like $styles, $states, etc?
+     */
+    const {
+        'data-style': $style = '',
+        'data-state': $state = '',
+        'data-event': $event = '',
+        'data-style-value': $styleValue = composeValue(app, '$styles', $style),
+        'data-state-value': $stateValue = composeValue(app, '$states', $state),
+        // 'data-event-value': $eventValue = composeValue(app, '$events', $event),
+        'data-event-value': $eventValue = $event ? dispatcher : undefined,
+        // 'data-event-value': $eventValue = dispatcher,
+        'data-bind-style': $bindStyle = $styleValue ? 'style' : 'data-bind-style',
+        'data-bind-state': $bindState = $stateValue ? 'children' : 'data-bind-state',
+        'data-bind-event': $bindEvent = 'data-bind-event',
+    } = props;
+
+    return {
+        ...props,
+        [$bindStyle]: $styleValue,
+        [$bindState]: $stateValue,
+        [$bindEvent]: $eventValue
+    };
+};
+
+
+export const createElementWithCustomDataProps = (method = {createElement},
+                                                 store = {
+                                                     getState: () => ({
+                                                         '$views': {},
+                                                         '$components': {}
+                                                     })
+                                                 },
+                                                 dependencies = {
+                                                     appStateFromStore,
+                                                     composersFromAppState,
+                                                     composeValue,
+                                                     toReactProps,
+                                                     getType,
+                                                     isElement
+                                                 }) => {
+    const {
+        appStateFromStore,
+        composersFromAppState,
+        composeValue,
         toReactProps,
         getType,
-        getView,
         isElement
     } = dependencies;
     const {createElement} = method;
     const toChild = (child) => typeof child === 'string' ? child : toElement(child);
     const toElement = (type = '', props = {}, ...children) => {
-        const state = appStateFromStore(store);
-        const views = viewsFromAppState(state);
-        const components = componentsFromAppState(state);
-        const {'data-view': $selector = '', ...$props} = props;
-        const $view = getView(views, $selector);
-        const $element = $view || type;
+        // 'data-if': $if = '',
+        // 'data-unless': $unless = '',
+        const app = appStateFromStore(store) || {};
+        const components = composersFromAppState(app) || {};
+        const {
+            'data-view': $view = '',
+            'data-view-value': $viewValue = composeValue(app, '$views', $view),
+            ...$props
+        } = props;
+        const $element = $viewValue || type;
 
         if (isElement($element)) {
             const {type = '', props: {children = [], ...props} = {}} = $element;
@@ -148,7 +170,7 @@ export const componentDependencies = {
     createActionsMiddleware,
     applyMiddleware,
     createElement,
-    reactMethodWithCustomDataProps,
+    createElementWithCustomDataProps,
     appStateFromStore,
     viewFromStore
 };
@@ -157,7 +179,10 @@ export class App extends Component {
     constructor(props) {
         super(props);
 
-        const {app = {}, dependencies = componentDependencies} = props;
+        const {
+            app = {},
+            dependencies = componentDependencies
+        } = props;
         const {
             reducersFromState,
             combineReducers,
@@ -165,26 +190,38 @@ export class App extends Component {
             createActionsMiddleware,
             applyMiddleware,
             createElement,
-            reactMethodWithCustomDataProps,
+            createElementWithCustomDataProps,
             appStateFromStore,
             viewFromStore
         } = dependencies;
         const {
-            $states = {},
-            $styles = {},
+            // All state types should be composable.
+            // Composers are Functions of State: Components, Reducers, Comparators, Declarators, Interpolators, Selectors, ...
+            // Actions should be able to specify the type of reduction that should happen registered as a custom or core composer.
+            // Create and Update were previously the same thing when reducing, but Update still needs to be updated to allow complex data structure updates.
             $actions = {},
             $components = {},
+            $composers = {},
+            $events = {},
+            $schemas = {},
+            $states = {},
+            $styles = {},
             $views = {},
             $view = [],
             $state = {
                 ...$states,
-                $states,
-                $styles,
                 $actions,
                 $components,
+                $composers,
+                $events,
+                $schemas,
+                $states,
+                $styles,
                 $views,
                 $view
             },
+            // The reducers should be cognizant of Action, Path, Value.
+            // "action" for Composers, "path" for Composed State Selection, "value" for Composed State
             $reducers = reducersFromState($state) || {},
             $reducer = combineReducers($reducers) || (() => $state),
             $middleware = [createActionsMiddleware()],
@@ -211,7 +248,7 @@ export class App extends Component {
                 $store,
                 $unsubscribe
             }
-            // $dispatcher = actionDispatcherFromStore($store) || (() => ({}))
+            // $dispatcher = eventDispatcherForStore($store) || (() => ({}))
         } = app;
 
         this.store = $store;
@@ -219,7 +256,7 @@ export class App extends Component {
         this.unsubscribe = $unsubscribe;
 
         // app or store?
-        React.createElement = reactMethodWithCustomDataProps({createElement}, $store);
+        React.createElement = createElementWithCustomDataProps({createElement}, $store);
 
         console.group('Application State:');
         console.log($state);

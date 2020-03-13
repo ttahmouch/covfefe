@@ -1,4 +1,5 @@
-{
-    "$event": "download_click",
-    "$actions": [{"$action": "request_json_card_view"}]
-}
+[
+    {
+        "$action": "request_json_card_view"
+    }
+]

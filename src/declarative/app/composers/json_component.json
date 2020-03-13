@@ -1,31 +1,29 @@
-{
-    "$compose": [
-        {
-            "$compose": "create",
-            "$value": {
-                "type": "pre",
-                "props": {
-                    "data-style": "json_state",
-                    "children": {
-                        "$compose": "encode",
-                        "$type": "json",
-                        "$value": {
-                            "$compose": "read",
-                            "$type": "json_path",
-                            "$value": "$['app']['titles_dictionary']",
-                            "$default": {}
-                        },
-                        "$default": "{}"
-                    }
-                }
-            },
-            "$default": {
-                "type": "pre",
-                "props": {
-                    "data-style": "json_state",
-                    "children": "{}"
+[
+    {
+        "$compose": "create",
+        "$value": {
+            "type": "pre",
+            "props": {
+                "data-style": "json_state",
+                "children": {
+                    "$compose": "encode",
+                    "$type": "json",
+                    "$value": {
+                        "$compose": "read",
+                        "$type": "json_path",
+                        "$value": "$['app']['titles_dictionary']",
+                        "$default": {}
+                    },
+                    "$default": "{}"
                 }
             }
+        },
+        "$default": {
+            "type": "pre",
+            "props": {
+                "data-style": "json_state",
+                "children": "{}"
+            }
         }
-    ]
-}
+    }
+]

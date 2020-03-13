@@ -1,21 +1,19 @@
-{
-    "$compose": [
-        {
-            "$compose": "create",
-            "$value": {
-                "path": "titlesDictionary",
-                "extension": ".json"
-            },
-            "$default": {
-                "path": "",
-                "extension": ""
-            }
+[
+    {
+        "$compose": "create",
+        "$value": {
+            "path": "titlesDictionary",
+            "extension": ".json"
         },
-        {
-            "$compose": "expand",
-            "$type": "uri_template",
-            "$value": "/{path}{extension}",
-            "$default": "/"
+        "$default": {
+            "path": "",
+            "extension": ""
         }
-    ]
-}
+    },
+    {
+        "$compose": "expand",
+        "$type": "uri_template",
+        "$value": "/{path}{extension}",
+        "$default": "/"
+    }
+]

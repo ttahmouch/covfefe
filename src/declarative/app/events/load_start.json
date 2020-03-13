@@ -1,0 +1,7 @@
+[
+    {
+        "$action": "update",
+        "$path": "$['$states']['loading']",
+        "$value": true
+    }
+]
