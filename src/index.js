@@ -1,13 +1,13 @@
-import ReactDOM from 'react-dom';
-import React from 'react';
-import app from './declarative/app/index.js';
-import {App} from './imperative/app/index.js';
+import React, {createElement} from "react";
+import ReactDOM from "react-dom";
 
-const element = <App app={app}/>;
-const root = document.getElementById('root');
+import app from "./declarative/app.js";
+import {App, createElementWithCustomDataProps, storeFromInitialAppState} from "./imperative/app.js";
 
-ReactDOM.render(element, root);
+const store = storeFromInitialAppState(app);
 
-console.group('Application Element:');
-console.log(element);
-console.groupEnd();
+React.createElement = createElementWithCustomDataProps({createElement}, store);
+
+// console.time("Application Render");
+ReactDOM.render((<App store={store}/>), document.getElementById("root"));
+// console.timeEnd("Application Render");

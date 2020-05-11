@@ -1,0 +1,828 @@
+{
+    "$actions": {
+        "request_json_card_view": {
+            "$action": "request_json_card_view",
+            "$request": {
+                "$method": "GET",
+                "$uri": "/card.json"
+            },
+            "$events": {
+                "loadstart": {"$event": "load_start"},
+                "loadend": {"$event": "load_end"},
+                "200": {"$event": "request_json_card_view_200"}
+            }
+        },
+        "request_titles_dictionary": {
+            "$action": "request_titles_dictionary",
+            "$request": {
+                "$method": "GET",
+                "$uri": {
+                    "$compose": "request_titles_dictionary_uri",
+                    "$default": "/"
+                },
+                "$headers": {
+                    "header": {
+                        "$compose": "request_titles_dictionary_header",
+                        "$default": ""
+                    }
+                }
+            },
+            "$events": {
+                "load": {"$event": "load"},
+                "loadstart": {"$event": "load_start"},
+                "progress": {"$event": "progress"},
+                "error": {"$event": "error"},
+                "abort": {"$event": "abort"},
+                "timeout": {"$event": "timeout"},
+                "loadend": {"$event": "load_end"},
+                "200": {"$event": "request_titles_dictionary_200"}
+            }
+        },
+        "request_xml_card_view": {
+            "$action": "request_xml_card_view",
+            "$request": {
+                "$method": "GET",
+                "$uri": "/card.xml"
+            },
+            "$events": {
+                "loadstart": {"$event": "load_start"},
+                "loadend": {"$event": "load_end"},
+                "200": {"$event": "request_xml_card_view_200"}
+            }
+        }
+    },
+    "$composers": {
+        "Json": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "type": "pre",
+                    "props": {
+                        "data-style": "json_state",
+                        "children": {
+                            "$compose": "encode",
+                            "$type": "json",
+                            "$value": {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$['app']['titles_dictionary']",
+                                "$default": {}
+                            },
+                            "$default": "{}"
+                        }
+                    }
+                },
+                "$default": {
+                    "type": "pre",
+                    "props": {
+                        "data-style": "json_state",
+                        "children": "{}"
+                    }
+                }
+            }
+        ],
+        "Home": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "type": "Fragment",
+                    "props": {"data-view": "home"}
+                },
+                "$default": {
+                    "type": "Fragment",
+                    "props": {"data-view": "home"}
+                }
+            }
+        ],
+        "is_response_json_card_view": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$['response']",
+                "$default": {
+                    "status": 0,
+                    "headers": {},
+                    "body": {}
+                }
+            },
+            {
+                "$compose": "match",
+                "$type": "json_schema",
+                "$value": {"$schema": "response_json_card_view_schema"},
+                "$default": false
+            }
+        ],
+        "is_response_titles_dictionary": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$['response']",
+                "$default": {
+                    "status": 0,
+                    "headers": {},
+                    "body": {}
+                }
+            },
+            {
+                "$compose": "match",
+                "$type": "json_schema",
+                "$value": {"$schema": "response_titles_dictionary_schema"},
+                "$default": false
+            }
+        ],
+        "is_title": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$['view']['title']['0']",
+                "$default": ""
+            },
+            {
+                "$compose": "match",
+                "$type": "json_schema",
+                "$value": {"$schema": "title_schema"},
+                "$default": false
+            }
+        ],
+        "request_titles_dictionary_header": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "one": {
+                        "$compose": "read",
+                        "$type": "json_path",
+                        "$value": "$['view']['title']['0']",
+                        "$default": ""
+                    },
+                    "two": [
+                        {
+                            "$compose": "create",
+                            "$value": {
+                                "one": {
+                                    "$compose": "read",
+                                    "$type": "json_path",
+                                    "$value": "$['view']['title']['0']",
+                                    "$default": ""
+                                },
+                                "two": {
+                                    "$compose": "read",
+                                    "$type": "json_path",
+                                    "$value": "$['app']['$states']['title']",
+                                    "$default": ""
+                                }
+                            },
+                            "$default": {
+                                "one": "",
+                                "two": ""
+                            }
+                        },
+                        {
+                            "$compose": "expand",
+                            "$type": "template",
+                            "$value": "{one}{two}",
+                            "$default": ""
+                        }
+                    ]
+                },
+                "$default": {
+                    "one": "",
+                    "two": ""
+                }
+            },
+            {
+                "$compose": "expand",
+                "$type": "template",
+                "$value": "{one}{two}",
+                "$default": ""
+            }
+        ],
+        "request_titles_dictionary_uri": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "path": "titlesDictionary",
+                    "extension": ".json"
+                },
+                "$default": {
+                    "path": "",
+                    "extension": ""
+                }
+            },
+            {
+                "$compose": "expand",
+                "$type": "uri_template",
+                "$value": "/{path}{extension}",
+                "$default": "/"
+            }
+        ],
+        "response_titles_dictionary": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$['response']['body']",
+                "$default": {}
+            },
+            {
+                "$compose": "update",
+                "$type": "spread",
+                "$value": {
+                    "$compose": "create",
+                    "$value": {
+                        "titles": [
+                            {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$['response']['body']['titles']",
+                                "$default": []
+                            },
+                            {
+                                "$compose": "update",
+                                "$type": "spread",
+                                "$value": {
+                                    "$compose": "create",
+                                    "$value": [
+                                        {
+                                            "title": {
+                                                "$compose": "read",
+                                                "$type": "json_path",
+                                                "$value": "$['app']['$states']['title']",
+                                                "$default": ""
+                                            }
+                                        },
+                                        {
+                                            "title": {
+                                                "$compose": "read",
+                                                "$type": "json_path",
+                                                "$value": "$['view']['title']['0']",
+                                                "$default": ""
+                                            }
+                                        }
+                                    ],
+                                    "$default": [
+                                        {"title": ""},
+                                        {"title": ""}
+                                    ]
+                                },
+                                "$default": [
+                                    {"title": ""},
+                                    {"title": ""}
+                                ]
+                            }
+                        ]
+                    },
+                    "$default": {
+                        "titles": [
+                            {"title": ""},
+                            {"title": ""}
+                        ]
+                    }
+                },
+                "$default": {
+                    "titles": [
+                        {"title": ""},
+                        {"title": ""}
+                    ]
+                }
+            }
+        ]
+    },
+    "$events": {
+        "download_click": [
+            {
+                "$action": "request_json_card_view"
+            }
+        ],
+        "load_end": [
+            {
+                "$action": "update",
+                "$path": "$['$states']['loading']",
+                "$value": false
+            }
+        ],
+        "load_start": [
+            {
+                "$action": "update",
+                "$path": "$['$states']['loading']",
+                "$value": true
+            }
+        ],
+        "request_json_card_view_200": [
+            {
+                "$action": "update",
+                "$path": "views.card",
+                "$value": {
+                    "$default": {"type": "div"},
+                    "$compose": "read",
+                    "$type": "jsonpath",
+                    "$value": "$['response']['body']"
+                },
+                "$if": {
+                    "$default": false,
+                    "$compose": "is_response_json_card_view"
+                }
+            },
+            {
+                "$action": "update",
+                "$path": "states.error",
+                "$value": true,
+                "$unless": {
+                    "$default": true,
+                    "$compose": "is_response_json_card_view"
+                }
+            }
+        ],
+        "request_titles_dictionary_200": [
+            {
+                "$action": "update",
+                "$path": "$['$states']['length']",
+                "$value": [
+                    {
+                        "$compose": "read",
+                        "$type": "json_path",
+                        "$value": "$['response']['headers']['content-length']",
+                        "$default": "0"
+                    },
+                    {
+                        "$compose": "read",
+                        "$type": "regular_expression",
+                        "$value": "^([0-9]+)$",
+                        "$default": ["0"]
+                    },
+                    {
+                        "$compose": "read",
+                        "$type": "json_path",
+                        "$value": "$['composed']['0']",
+                        "$default": "0"
+                    }
+                ],
+                "$comment": [
+                    "Is the $action field necessary?",
+                    "If the value is a literal, it's likely just being 'created.'",
+                    "If the value is a composer, it can be CRUD.",
+                    "Should it be replaced with $value: {$compose: 'composer_name'}?",
+                    "Should it be shorthand for $value: {$compose: 'composer_name'}?"
+                ]
+            },
+            {
+                "$action": "update",
+                "$path": "$['$states']['titles_dictionary']",
+                "$value": {
+                    "$compose": "response_titles_dictionary",
+                    "$default": {}
+                },
+                "$if": {
+                    "$compose": "is_response_titles_dictionary",
+                    "$default": false
+                }
+            },
+            {
+                "$action": "update",
+                "$path": "$['$states']['error']",
+                "$value": true,
+                "$unless": {
+                    "$compose": "is_response_titles_dictionary",
+                    "$default": false
+                }
+            }
+        ],
+        "request_xml_card_view_200": [
+            {
+                "$action": "update",
+                "$path": "views.card",
+                "$value": {
+                    "$default": {"type": "div"},
+                    "$compose": "read",
+                    "$type": "jsonpath",
+                    "$value": "$['response']['body']"
+                },
+                "$if": {
+                    "$default": false,
+                    "$compose": "is_response_json_card_view"
+                }
+            },
+            {
+                "$action": "update",
+                "$path": "states.error",
+                "$value": true,
+                "$unless": {
+                    "$default": true,
+                    "$compose": "is_response_json_card_view"
+                }
+            }
+        ],
+        "title_submit": [
+            {
+                "$action": "request_titles_dictionary",
+                "$if": {
+                    "$compose": "is_title",
+                    "$default": false
+                }
+            },
+            {
+                "$action": "update",
+                "$path": "$['$states']['error']",
+                "$value": true,
+                "$unless": {
+                    "$compose": "is_title",
+                    "$default": false
+                }
+            }
+        ]
+    },
+    "$schemas": {
+        "response_json_card_view_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {
+                    "type": "integer",
+                    "const": 200
+                },
+                "headers": {
+                    "type": "object",
+                    "properties": {
+                        "content-type": {
+                            "type": "string",
+                            "pattern": "application[/]json"
+                        }
+                    }
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "div"
+                        }
+                    }
+                }
+            }
+        },
+        "response_titles_dictionary_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {
+                    "type": "integer",
+                    "const": 200
+                },
+                "headers": {
+                    "type": "object",
+                    "properties": {
+                        "content-type": {
+                            "type": "string",
+                            "pattern": "application[/]json"
+                        },
+                        "content-length": {
+                            "type": "string",
+                            "pattern": "^([0-9]+)$"
+                        }
+                    }
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "properties": {"titles": {"type": "array"}}
+                }
+            }
+        },
+        "title_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "string",
+            "pattern": "^([a-zA-Z]+)$"
+        }
+    },
+    "$states": {
+        "status": 0,
+        "header": "",
+        "length": "",
+        "title": "",
+        "titles_array": [],
+        "titles_dictionary": {},
+        "card_title": "Locks: 12:37 PM Succeeded",
+        "card_title_2": "Locks: 12:38 PM Succeeded",
+        "page_title": "Remote Commands",
+        "back": "⬅",
+        "forward": "◼",
+        "selected_vehicle": "2016 Sierra Double Cab ▾",
+        "title_form_label": "Title:",
+        "title_form_submit_button_label": "Read Titles Dictionary Async",
+        "loading": false
+    },
+    "$styles": {
+        "navigation_bar": {
+            "height": "3em",
+            "width": "100%",
+            "backgroundColor": "#BD261A",
+            "display": "flex",
+            "alignItems": "center",
+            "color": "white",
+            "position": "fixed",
+            "top": 0
+        },
+        "navigation_bar_button": {
+            "height": "100%",
+            "width": "3em",
+            "display": "flex",
+            "alignItems": "center",
+            "justifyContent": "center",
+            "color": "white"
+        },
+        "navigation_bar_title": {
+            "height": "100%",
+            "width": "100%",
+            "display": "flex",
+            "alignItems": "center",
+            "color": "white"
+        },
+        "main_content": {
+            "display": "flex",
+            "flexDirection": "column",
+            "overflowY": "scroll",
+            "overflowX": "hidden",
+            "marginTop": "3em"
+        },
+        "card": {
+            "display": "flex",
+            "flexDirection": "column",
+            "borderStyle": "solid",
+            "borderColor": "#c3c3c3",
+            "borderRadius": "5px",
+            "margin": "0.5em",
+            "backgroundColor": "#FFF"
+        },
+        "card_header": {
+            "margin": "1em",
+            "fontSize": ".75em"
+        },
+        "card_main_content": {
+            "display": "flex",
+            "margin": ".5em",
+            "backgroundColor": "#F00",
+            "height": "100%",
+            "overflowY": "auto"
+        },
+        "root": {
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+            "height": "100%"
+        },
+        "header": {
+            "width": "100%",
+            "height": "300px",
+            "background": "white"
+        },
+        "hero-image": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover"
+        },
+        "garage-door": {
+            "display": "flex",
+            "flexDirection": "row",
+            "width": "100%",
+            "height": "75px",
+            "background": "black",
+            "alignItems": "center",
+            "justifyContent": "center"
+        },
+        "garage-door-text": {
+            "color": "white",
+            "fontFamily": "sans-serif",
+            "fontSize": "2em"
+        },
+        "footer": {
+            "display": "flex",
+            "flexDirection": "column",
+            "width": "100%",
+            "height": "75em",
+            "overflowY": "auto"
+        },
+        "form_button_gray": {
+            "background": "gray",
+            "width": "100%",
+            "display": "block"
+        },
+        "form_button_red": {
+            "background": "red",
+            "width": "100%",
+            "display": "block"
+        },
+        "form_button_yellow": {
+            "background": "yellow",
+            "width": "100%",
+            "display": "block"
+        },
+        "json_state": {
+            "color": "white",
+            "fontSize": "2em",
+            "display": "block"
+        }
+    },
+    "$views": {
+        "button": {
+            "type": "button",
+            "props": {
+                "data-style": "form_button_gray",
+                "data-state": "title_form_submit_button_label",
+                "data-event": "download_click",
+                "data-bind-event": "onClick"
+            }
+        },
+        "card": {
+            "type": "div",
+            "props": {
+                "data-style": "card",
+                "children": [
+                    {
+                        "type": "header",
+                        "props": {
+                            "data-style": "card_header",
+                            "data-state": "card_title"
+                        }
+                    },
+                    {
+                        "type": "div",
+                        "props": {
+                            "data-style": "card_main_content",
+                            "children": {
+                                "type": "form",
+                                "props": {
+                                    "data-event": "title_submit",
+                                    "data-bind-event": "onSubmit",
+                                    "data-state-type": "dictionary",
+                                    "children": [
+                                        {
+                                            "type": "div",
+                                            "props": {
+                                                "children": [
+                                                    {
+                                                        "type": "label",
+                                                        "props": {"data-state": "title_form_label"}
+                                                    },
+                                                    {
+                                                        "type": "input",
+                                                        "props": {"name": "title"}
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "type": "button",
+                                            "props": {
+                                                "data-style": "form_button_gray",
+                                                "data-state": "title_form_submit_button_label",
+                                                "type": "submit"
+                                            }
+                                        },
+                                        {
+                                            "type": "Fragment",
+                                            "props": {
+                                                "data-view": "button",
+                                                "data-style": "form_button_red",
+                                                "data-state-value": "Download New Card View"
+                                            }
+                                        },
+                                        {
+                                            "type": "Json",
+                                            "props": {
+                                                "data-state": "titles_dictionary",
+                                                "data-bind-state": "json"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "home": {
+            "type": "div",
+            "props": {
+                "data-style": "root",
+                "children": [
+                    {
+                        "type": "nav",
+                        "props": {
+                            "data-style": "navigation_bar",
+                            "children": [
+                                {
+                                    "type": "div",
+                                    "props": {
+                                        "data-style": "navigation_bar_button",
+                                        "data-state": "back"
+                                    }
+                                },
+                                {
+                                    "type": "div",
+                                    "props": {
+                                        "data-style": "navigation_bar_button",
+                                        "data-state": "forward"
+                                    }
+                                },
+                                {
+                                    "type": "div",
+                                    "props": {
+                                        "data-style": "navigation_bar_title",
+                                        "data-state": "page_title"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "div",
+                        "props": {
+                            "data-style": "header",
+                            "children": {
+                                "type": "img",
+                                "props": {
+                                    "data-style": "hero-image",
+                                    "id": "hero-image",
+                                    "src": "dashboard_hero_image_gmc.png",
+                                    "alt": "Hero"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "type": "div",
+                        "props": {
+                            "data-style": "garage-door",
+                            "children": {
+                                "type": "p",
+                                "props": {
+                                    "data-style": "garage-door-text",
+                                    "data-state": "selected_vehicle"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "type": "div",
+                        "props": {
+                            "data-style": "footer",
+                            "children": [
+                                {
+                                    "type": "Fragment",
+                                    "props": {"data-view": "card"}
+                                },
+                                {
+                                    "type": "Fragment",
+                                    "props": {"data-view": "card"}
+                                },
+                                {
+                                    "type": "Fragment",
+                                    "props": {"data-view": "card"}
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "$view-old": {
+        "type": "Fragment",
+        "props": {"data-view": "home"}
+    },
+    "$view": {
+        "type": "form",
+        "props": {
+            "data-event": "title_submit",
+            "data-bind-event": "onSubmit",
+            "data-state-type": "dictionary",
+            "children": [
+                {
+                    "type": "input",
+                    "props": {
+                        "name": "title",
+                        "data-state": "title_form_label",
+                        "data-bind-state": "placeholder"
+                    }
+                },
+                {
+                    "type": "button",
+                    "props": {
+                        "data-style": "form_button_gray",
+                        "data-state": "title_form_submit_button_label",
+                        "type": "submit"
+                    }
+                },
+                {
+                    "type": "Json",
+                    "props": {
+                        "data-state": "titles_dictionary",
+                        "data-bind-state": "json"
+                    }
+                }
+            ]
+        }
+    }
+}

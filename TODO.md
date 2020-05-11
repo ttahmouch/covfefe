@@ -1,10 +1,9 @@
 # Philosophy
 # Tasks
 
-+ Unify all declarations into store state. This allows dynamic updating and selecting.
-+ Namespace declarations, e.g., views, states, composers, styles, etc.
-Add support for data structure reduction, e.g., {} and []. 
-
+<!--+ Unify all declarations into store state. This allows dynamic updating and selecting.-->
+<!--+ Namespace declarations, e.g., views, states, composers, styles, etc.-->
++ Add support for data structure reduction, e.g., {} and []. 
 + Document
 	+ Interpolators
 	+ Comparators
@@ -180,3 +179,88 @@ Should the nest structure of the state keys change instead?
 // and evaluated which sounds horrible, e.g., {$file_path, $json_path}
 // I may also be able to deserialize the entire request object at the proper time before dispatching an async
 // action as opposed to serializing the function or requiring it from a separate file.
+
+/**
+ * Dispatch event to the redux middleware.
+ * If the event has registered actions, dispatch those with ACTION, PATH, VALUE, IF, and UNLESS.
+ * VALUE, IF, and UNLESS should be compositions that return a final value or boolean.
+ * If the action"s IF or UNLESS condition
+ * data-STYLE, STATE, EVENT, VIEW props should be composable.
+ *
+ */
+
+// All state types should be composable.
+// Composers are Functions of State: Components, Reducers, Comparators, Declarators, Interpolators, Selectors, ...
+// Actions should be able to specify the type of reduction that should happen registered as a custom or core composer.
+// Create and Update were previously the same thing when reducing, but Update still needs to be updated to allow complex data structure updates.
+// The reducers should be cognizant of Action, Path, Value.
+// "action" for Composers, "path" for Composed State Selection, "value" for Composed State
+
+/**
+ * {$domEvent, $event, $states} = action
+ * if $domEvent exists, then use it as expected because it is likely a view or http event.
+ * else if $event exists, then
+ */
+/**
+ * A DOM Event will have a generic type for an event, e.g., click, submit, load, etc.
+ *
+ + Get the various states, i.e., app, view, and response.
+ + Get the event identifier from the generic DOM event to map to a custom event.
+ + This event identifier will be sourced two different ways:
+ 0. Dataset for the case that it us set using HTML data-event attribute.
+ 1. ??? for XHR client.
+ + Get an event from the declarative events defined in the app state using the event identifier.
+ + Dispatch an event action with all the states and the custom event.
+ */
+ 
+ // Homogenize the usages of $ prefixes across the framework.
+ // Dispatch events, dispatch synchronous actions, localized state,
+ // Conditional views, conditional compositions,
+
+// Make logging middleware.
+// console.group(`Application Response Event ${event.type.toUpperCase()}:`);
+// console.log(response);
+// console.log(event);
+// console.group('Application Response Actions:');
+// Dispatch event action corresponding to response event.
+// console.groupEnd();
+// console.groupEnd();
+
+/**
+ Think about dynamic composition of all state types, i.e., states, styles, views, schemas, actions, components.
+ */
+ 
+ // Dependency inject the imports.
+ // Finish create and spread.
+
+// TODO REMOVE
+// export const composeValue = (app = app,
+//                              type = "$states",
+//                              value = "",
+//                              dependencies = {
+//                                  composersFromAppState,
+//                                  composerFromComposers,
+//                                  composition
+//                              }) => {
+//     const {composersFromAppState, composerFromComposers, composition} = dependencies;
+//     const composers = composersFromAppState(app) || {};
+//     const read = {
+//         "$compose": "read",
+//         "$type": "json_path",
+//         "$value": `$["app"]["${type}"]["${value}"]`,
+//         "$default": undefined
+//     };
+//     const composer = composerFromComposers(composers, value) || read;
+//     const states = {
+//         app,
+//         "composed": undefined,
+//         "view": undefined,
+//         "response": undefined
+//     };
+//
+//     return composition(composer, states)
+// };
+
+// Think about dynamic composition of all state types, i.e., states, styles, views, schemas, actions, components.
+// Dependency inject jsonpath, Ajv, and URITemplate; Rename the imports for consistency.
+// Finish create? and spread.
