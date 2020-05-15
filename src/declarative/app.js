@@ -215,7 +215,10 @@ export default {
                 "$comment": "Validate User Input.",
                 "$compose": "match",
                 "$type": "json_schema",
-                "$value": {"$schema": "title_schema"},
+                "$value": {
+                    "$schema": "title_schema",
+                    "pattern": "^([a-zA-Z0-9]+)$"
+                },
                 "$default": false
             }
         ]
@@ -317,12 +320,14 @@ export default {
             {
                 "$action": "spread_$states",
                 "$value": {
-                    "title": [{
-                        "$compose": "read",
-                        "$type": "json_path",
-                        "$value": "$.view.title.0",
-                        "$default": ""
-                    }]
+                    "title": [
+                        {
+                            "$compose": "read",
+                            "$type": "json_path",
+                            "$value": "$.view.title.0",
+                            "$default": ""
+                        }
+                    ]
                 },
                 "$if": {
                     "$comment": "Dereference Composer.",

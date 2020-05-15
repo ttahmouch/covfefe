@@ -83,7 +83,10 @@ export const reducerFromState = (state = {}, dependencies = {combineReducers, re
 
 export const toDereferencedSchema = (schema, states = state, dependencies = {}) => {
     const identifier = schemaIdentifierFromSchema(schema) || "";
-    return composeFromIdentifier(identifier, states, "$schemas") || schema;
+    const reference = composeFromIdentifier(identifier, states, "$schemas") || schema;
+    const {$schema = "http://json-schema.org/draft-07/schema#"} = reference;
+
+    return {...reference, ...schema, $schema};
 };
 
 export const isComposer = (composer = functionalComposer) => {
