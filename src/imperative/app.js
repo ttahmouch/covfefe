@@ -6,6 +6,7 @@ import {Provider, useSelector} from "react-redux";
 import jsonpath from "jsonpath/jsonpath.min";
 import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
+import {compile, match} from "path-to-regexp";
 
 import {action, app, asyncAction, client, declarativeComposer, domEvent, functionalComposer, headers, state, store, syncAction} from "./types.js";
 import {
@@ -39,6 +40,44 @@ import {
 // Reducers ------------------------------------------------------------------------------------------------------------
 
 /**
+ Create element in back: push
+ Create element in front: unshift
+ Create element in middle: splice
+ Delete element in back: pop
+ Delete element in front: shift
+ Delete element in middle: splice
+ Update element anywhere: splice
+ Update all elements: map, filter, sort
+
+ [...state.slice(0, 0), "value4", ...state.slice(1)]
+ .filter((item)=>item !== undefined)
+ */
+
+export const array = ({state = [], lead = [0, 0], item = undefined, items = undefined, last = [state.length, 0]}) => {
+    return [...state.slice(...lead), ...(items || [item]), ...state.slice(...last)];
+};
+
+export const createItems = ({state = [], key = 0, items = []}, dependencies = {array}) => {
+    const {array} = dependencies;
+    return array({state, "lead": [0, key], items, "last": [key, state.length - key]});
+};
+
+export const createItem = ({state = [], key = 0, item = undefined}, dependencies = {array}) => {
+    const {array} = dependencies;
+    return array({state, "lead": [0, key], item, "last": [key, state.length - key]});
+};
+
+export const updateItem = ({state = [], key = 0, item = undefined}, dependencies = {array}) => {
+    const {array} = dependencies;
+    return array({state, "lead": [0, key], item, "last": [key + 1, state.length - (key + 1)]});
+};
+
+export const deleteItem = ({state = [], key = 0}, dependencies = {updateItem}) => {
+    const {updateItem} = dependencies;
+    return updateItem({state, key}).filter((item) => item !== undefined)
+};
+
+/**
  * Creates a reducer function for an initial state key and value pair.
  * The reducer can handle Create, Read, Update, and Delete operations.
  * The Delete operation can be called by dispatching an action without a value, e.g., `{"type":"delete_state"}`.
@@ -46,13 +85,52 @@ import {
  * The Create and Update operations currently behave identically,
  * and can be called by dispatching an action with a value, e.g., `{"type":"update_state", "value":""}`.
  */
-export const reducerFromInitialStateKeyAndValue = (key = "", initial = undefined) => {
+export const reducerFromInitialStateKeyAndValue = (key = "", initial = undefined,
+                                                   dependencies = {createItem, createItems, updateItem, deleteItem}) => {
+    const {createItem, createItems, updateItem, deleteItem} = dependencies;
     return (state = initial, action) => {
         const {type = "", value = initial} = action;
 
         switch (type) {
-            case `spread_${key}`:
-                return {...state, ...value};
+            case `create_${key}_items`: {
+                const {key = "", items = []} = value;
+                return Array.isArray(state) ? createItems({state, key, items}) : {...state, ...items};
+            }
+            case `push_${key}_items`: {
+                const {items = []} = value;
+                return createItems({state, "key": state.length, items});
+            }
+            case `unshift_${key}_items`: {
+                const {items = []} = value;
+                return createItems({state, "key": 0, items});
+            }
+            case `create_${key}_item`: {
+                const {key = "", item = undefined} = value;
+                return Array.isArray(state) ? createItem({state, key, item}) : {...state, [key]: item};
+            }
+            case `push_${key}_item`: {
+                const {item = undefined} = value;
+                return createItem({state, "key": state.length, item});
+            }
+            case `unshift_${key}_item`: {
+                const {item = undefined} = value;
+                return createItem({state, "key": 0, item});
+            }
+            case `update_${key}_item`: {
+                const {key = "", item = undefined} = value;
+                return Array.isArray(state) ? updateItem({state, key, item}) : {...state, [key]: item};
+            }
+            case `delete_${key}_item`: {
+                const {key = "", item = undefined} = value;
+                return Array.isArray(state) ? deleteItem({state, key}) : {...state, [key]: item};
+            }
+            case `pop_${key}_item`:
+                return deleteItem({state, "key": state.length - 1});
+            case `shift_${key}_item`:
+                return deleteItem({state, "key": 0});
+            // Spread is the same thing as push_items.
+            // case `spread_${key}`:
+            //     return Array.isArray(state) ? [...state, ...value] : {...state, ...value};
             case `create_${key}`:
             case `update_${key}`:
             case `delete_${key}`:
@@ -97,6 +175,7 @@ export const isComposer = (composer = functionalComposer) => {
     );
 };
 
+// Add implicit create compositions in all other composers to make nesting compositions easier?
 export const create = ({$value = undefined, $state = state},
                        dependencies = {isComposer, composeFromValue}) => {
     const {isComposer, composeFromValue} = dependencies;
@@ -123,12 +202,21 @@ export const spread = (composer, dependencies = {create}) => {
         : {...composed, ...create(composer)};
 };
 
+export const readPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
+    const {params = {}} = match($path_template, {"decode": decodeURIComponent})(composed) || {};
+    return {...params};
+};
+
 export const readRegularExpression = ({$value: $regular_expression = "", $state: {composed} = state}) => {
-    return new RegExp($regular_expression).exec(composed);
+    return new RegExp($regular_expression).exec(composed) || [];
 };
 
 export const readJsonPath = ({$value: $json_path = "", $state = state}) => {
     return jsonpath.value($state, $json_path);
+};
+
+export const matchPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
+    return !!match($path_template, {"decode": decodeURIComponent})(composed);
 };
 
 export const matchJsonSchema = ({
@@ -145,8 +233,52 @@ export const matchRegularExpression = ({$value: $regular_expression = "", $state
     return new RegExp($regular_expression).test(composed);
 };
 
-export const matchPrimitive = ({$value: $primitive = undefined, $state: {composed} = state}) => {
-    return $primitive === composed;
+export const matchObjects = (one = {}, two = {}, dependencies = {matchValues}) => {
+    const {matchValues} = dependencies;
+    const oneKeys = Object.keys(one);
+    const twoKeys = Object.keys(two);
+
+    // Support subsets in addition to exact matches?
+    return (oneKeys.length === twoKeys.length)
+        && (oneKeys.every((key) => twoKeys.includes(key)))
+        && (oneKeys.every((key) => matchValues(one[key], two[key])));
+};
+
+export const matchSameType = (one = undefined, two = undefined, type = "undefined", dependencies = {matchObjects}) => {
+    const {matchObjects} = dependencies;
+
+    switch (type) {
+        case "bigint":
+        case "boolean":
+        case "function":
+        case "null":
+        case "number":
+        case "string":
+        case "symbol":
+        case "undefined":
+            return one === two;
+        case "object":
+            return one === two || matchObjects(one, two);
+    }
+};
+
+export const matchValues = (one = undefined, two = undefined, dependencies = {matchSameType}) => {
+    const {matchSameType} = dependencies;
+    const oneType = one === null ? "null" : typeof one;
+    const twoType = two === null ? "null" : typeof two;
+
+    return (oneType === twoType) && matchSameType(one, two, oneType);
+};
+
+export const matchPrimitive = (composer, dependencies = {create}) => {
+    const {create} = dependencies;
+    const {$state: {composed} = state} = composer;
+
+    return matchValues(create(composer), composed);
+};
+
+export const expandPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
+    return compile($path_template, {"encode": encodeURIComponent})(composed);
 };
 
 export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed} = state}) => {
@@ -164,16 +296,33 @@ export const encodeJson = ({$value = undefined, $state: {composed} = state}) => 
     return JSON.stringify($value || composed);
 };
 
+export const encodeUri = ({$value, $state: {composed} = state}) => {
+    const url = new URL(typeof window !== "undefined" ? window.location : "protocol://hostname");
+    const {
+        protocol = "", username = "", password = "", hostname = "", port = "", pathname = "/", search = "", hash = ""
+    } = $value || composed;
+
+    url.protocol = protocol;
+    url.username = username;
+    url.password = password;
+    url.hostname = hostname;
+    url.port = port;
+    url.pathname = pathname;
+    url.search = search;
+    url.hash = hash;
+    return url.toString();
+};
+
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
 export const compose = ({$compose = "", $type = "", $default = undefined, ...$composer},
                         dependencies = {
-                            create, spread, readRegularExpression, readJsonPath, matchJsonSchema, matchRegularExpression,
-                            matchPrimitive, expandUriTemplate, expandTemplate, encodeJson, valueOrDefault
+                            create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
+                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, valueOrDefault
                         }) => {
     const {
-        create, spread, readRegularExpression, readJsonPath, matchJsonSchema, matchRegularExpression,
-        matchPrimitive, expandUriTemplate, expandTemplate, encodeJson, valueOrDefault
+        create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
+        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, valueOrDefault
     } = dependencies;
 
     switch ($compose) {
@@ -183,6 +332,8 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
             return valueOrDefault(spread($composer), $default);
         case "read":
             switch ($type) {
+                case "path_template":
+                    return valueOrDefault(readPathTemplate($composer), $default);
                 case "regular_expression":
                     return valueOrDefault(readRegularExpression($composer), $default);
                 case "json_path":
@@ -191,6 +342,8 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
             }
         case "match":
             switch ($type) {
+                case "path_template":
+                    return valueOrDefault(matchPathTemplate($composer), $default);
                 case "json_schema":
                     return valueOrDefault(matchJsonSchema($composer), $default);
                 case "regular_expression":
@@ -201,6 +354,8 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
             }
         case "expand":
             switch ($type) {
+                case "path_template":
+                    return valueOrDefault(expandPathTemplate($composer), $default);
                 case "uri_template":
                     return valueOrDefault(expandUriTemplate($composer), $default);
                 case "template":
@@ -209,12 +364,15 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
             }
         case "encode":
             switch ($type) {
+                case "uri":
+                    return valueOrDefault(encodeUri($composer), $default);
                 case "json":
                 default:
                     return valueOrDefault(encodeJson($composer), $default);
             }
         case "decode":
             switch ($type) {
+                case "uri":
                 case "json":
                 default:
                     return undefined;
@@ -268,11 +426,16 @@ export const toComposedState = (states = state, composer = functionalComposer) =
 export const composeFromValue = (composer = functionalComposer, states = state,
                                  dependencies = {isComposer, toFunctionalComposer, toComposedState}) => {
     const {isComposer, toFunctionalComposer, toComposedState} = dependencies;
+    // console.group("Compose:", composer);
     const value = isComposer(composer)
         ? []
             .concat(composer)
             .map((composer) => toFunctionalComposer(composer, states))
-            .reduce((states, composer) => toComposedState(states, composer), states)
+            .reduce((states, composer) => {
+                const composed = toComposedState(states, composer);
+                // console.log("From:", states.composed, "To:", composed.composed);
+                return composed;
+            }, states)
             .composed
         : toComposedState(
             states,
@@ -283,6 +446,7 @@ export const composeFromValue = (composer = functionalComposer, states = state,
             }, states)
         )
             .composed;
+    // console.groupEnd()
 
     return value;
 };
@@ -303,6 +467,55 @@ export const composeFromIdentifier = (identifier = "", states = state, type = `$
                 "$default": undefined
             }
         },
+        states
+    );
+};
+
+export const compositionForPathFromRoute = () => {
+    return [
+        {
+            "$compose": "read",
+            "$type": "json_path",
+            "$value": "$.app['$route'].pathname",
+            "$default": "/"
+        }
+    ];
+};
+
+export const composeFromPathTemplate = (template = "", states = state, type = "path_template",
+                                        dependencies = {composeFromValue, compositionForPathFromRoute}) => {
+    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+
+    // Compare Path + Query + Fragment, or just Path?
+    // Query and Fragment are Order-Dependent so comparisons with Path Template and RegExp could easily fail.
+    return composeFromValue(
+        [
+            ...compositionForPathFromRoute(),
+            {
+                "$compose": "match",
+                "$type": type,
+                "$value": template,
+                "$default": false
+            }
+        ],
+        states
+    );
+};
+
+export const composeParametersFromPathTemplate = (template = "", states = state, type = "path_template",
+                                                  dependencies = {composeFromValue, compositionForPathFromRoute}) => {
+    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+
+    return composeFromValue(
+        [
+            ...compositionForPathFromRoute(),
+            {
+                "$compose": "read",
+                "$type": type,
+                "$value": template,
+                "$default": {}
+            }
+        ],
         states
     );
 };
@@ -503,6 +716,7 @@ export const createEventMiddleware = (dependencies = {isEvent, eventFromAction, 
          * Allow cascading state object with control flow of actions in sequence or parallel
          * and passing state between asynchronous actions, e.g., cascading response state.
          */
+            // EVENT_TYPE instead of $event???
         const $event = eventFromAction(action) || {};
         const $states = statesFromAction(action) || {};
 
@@ -527,6 +741,102 @@ export const createLogMiddleware = () => {
         next(action);
         console.log("State After:", store.getState());
         console.groupEnd();
+    };
+};
+
+export const dispatchRoutePathParamsToStore = (pathParams = {}, states = state, store = store,
+                                               dependencies = {dispatchEventToStore}) => {
+    const {dispatchEventToStore} = dependencies;
+    const spreadRoutePathParams = [
+        {
+            "$compose": "read",
+            "$type": "json_path",
+            "$value": "$.app['$route'].pathParams",
+            "$default": {}
+        },
+        {
+            "$compose": "spread",
+            "$value": pathParams,
+            "default": {}
+        }
+    ];
+    const routePathParamsDidNotChange = [
+        {
+            "$compose": "read",
+            "$type": "json_path",
+            "$value": "$.app['$route'].pathParams",
+            "$default": {}
+        },
+        {
+            "$compose": "match",
+            "$type": "primitive",
+            "$value": spreadRoutePathParams,
+            "$default": false
+        }
+    ];
+
+    return dispatchEventToStore(
+        [
+            {
+                "$action": "update_$route_item",
+                "$value": {
+                    "key": "pathParams",
+                    "item": spreadRoutePathParams
+                },
+                "$unless": routePathParamsDidNotChange
+            }
+        ],
+        states,
+        store
+    );
+};
+
+export const dispatchRouteToStore = (route = {"pathname": "/", "search": "", "hash": ""},
+                                     store = store) => {
+    const {
+        pathname = "/", search = "", hash = "",
+        pathParams = {}, searchParams = Object.fromEntries(new URLSearchParams(search)),
+        fragment = (hash.match(/[#](.*)/) || ["", ""])[1]
+        // searchParams = URI.parseQuery(search)
+    } = route;
+
+    // dispatchEventToStore?
+    return store.dispatch({
+        "type": "update_$route",
+        "value": {pathname, search, hash, pathParams, searchParams, fragment}
+    });
+};
+
+export const createRouteMiddleware = (history, dependencies = {dispatchRouteToStore}) => {
+    const {dispatchRouteToStore} = dependencies;
+
+    return (store = store) => {
+        history.listen((route, action) => dispatchRouteToStore(route, store));
+
+        return (next = (action) => action) => (action = action) => {
+            const {type = "", value = {}} = action;
+
+            switch (type) {
+                case "route_push": {
+                    const {uri = {"pathname": "/", "search": "", "hash": ""}, state = undefined} = value;
+                    return history.push(uri, state);
+                }
+                case "route_replace": {
+                    const {uri = {"pathname": "/", "search": "", "hash": ""}, state = undefined} = value;
+                    return history.replace(uri, state);
+                }
+                case "route_go": {
+                    const {position = 0} = value;
+                    return history.go(position);
+                }
+                case "route_back":
+                    return history.go(-1);
+                case "route_forward":
+                    return history.go(1);
+                default:
+                    return next(action);
+            }
+        };
     };
 };
 
@@ -659,14 +969,17 @@ export const toReactProps = (props = {}, store = {}, dependencies = {areDataProp
 export const createElementWithCustomDataProps = (method = {createElement}, store = store,
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
-                                                     toReactProps, getType, isElement
+                                                     composeFromPathTemplate, composeParametersFromPathTemplate,
+                                                     dispatchRoutePathParamsToStore, toReactProps, getType, isElement
                                                  }) => {
-    const {appStateFromStore, composersFromAppState, composeFromIdentifier, toReactProps, getType, isElement} = dependencies;
+    const {
+        appStateFromStore, composersFromAppState, composeFromIdentifier, composeFromPathTemplate,
+        composeParametersFromPathTemplate, dispatchRoutePathParamsToStore, toReactProps, getType, isElement
+    } = dependencies;
     const {createElement} = method;
     const toChild = (child) => typeof child === "string" ? child : toElement(child);
     const toElement = (type = "", props = {}, ...children) => {
-        // "data-if": $if = "",
-        // "data-unless": $unless = "",
+        // Support single, exclusive routes like a Switch component, e.g., /login, /:route.
         // Would the useSelector hook work in a non-component function used in the provider?
         // Fix composeValue to use the new implementation.
         // If compositions should be used for all state types, i.e., actions (events), schemas, states, styles, views,
@@ -675,11 +988,35 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         const app = appStateFromStore(store) || {};
         const components = composersFromAppState(app) || {};
         const {
+            "data-if": $if = "",
+            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app}, "$states"),
+            "data-unless": $unless = "",
+            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app}, "$states"),
+            "data-path-type": $pathType = "path_template",
+            "data-if-path": $ifPath = "",
+            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app}, $pathType),
+            "data-unless-path": $unlessPath = "",
+            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app}, $pathType),
+            "data-should": $should = ($if === "" && $unless === "" && $ifPath === "" && $unlessPath === "")
+                || $ifValue === true
+                || $unlessValue === true
+                || $ifPathValue === true
+                || $unlessPathValue === true,
+            "data-path": $path = $ifPath || $unlessPath || "",
+            "data-path-params": $pathParams = (
+                $path && $should && composeParametersFromPathTemplate($path, {app}, $pathType)
+            ) || {},
             "data-view": $view = "",
-            "data-view-value": $viewValue = $view && composeFromIdentifier($view, {app}, "$views"),
+            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app}, "$views"),
             ...$props
         } = props;
         const $element = $viewValue || type;
+
+        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app}, store);
+
+        $view && $should && console.group("View:", $viewValue);
+        $view && !$should && console.group("Suppressing View:", $view);
+        $view && console.groupEnd();
 
         if (isElement($element)) {
             const {type = "", props: {children = [], ...props} = {}} = $element;
@@ -695,24 +1032,18 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
 };
 
 export const storeFromInitialAppState = ({
-                                             $actions = {}, $composers = {}, $events = {}, $schemas = {}, $states = {},
-                                             $styles = {}, $views = {}, $view = [],
+                                             $actions = {}, $composers = {}, $events = {}, $route = {},
+                                             $schemas = {}, $states = {}, $styles = {}, $views = {}, $view = [],
                                              $state = {
-                                                 $actions, $composers, $events, $schemas, $states, $styles, $views,
-                                                 $view
+                                                 $actions, $composers, $events, $route, $schemas, $states, $styles,
+                                                 $views, $view
                                              }
                                          },
-                                         dependencies = {
-                                             createStore, applyMiddleware, reducerFromState, createLogMiddleware,
-                                             createEventMiddleware
-                                         }) => {
-    const {createStore, applyMiddleware, reducerFromState, createLogMiddleware, createEventMiddleware} = dependencies;
+                                         middleware = [],
+                                         dependencies = {createStore, applyMiddleware, reducerFromState}) => {
+    const {createStore, applyMiddleware, reducerFromState} = dependencies;
 
-    return createStore(
-        reducerFromState($state),
-        $state,
-        applyMiddleware(createLogMiddleware(), createEventMiddleware())
-    );
+    return createStore(reducerFromState($state), $state, applyMiddleware(...middleware));
 };
 
 export const View = () => {

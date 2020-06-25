@@ -264,3 +264,90 @@ Should the nest structure of the state keys change instead?
 // Think about dynamic composition of all state types, i.e., states, styles, views, schemas, actions, components.
 // Dependency inject jsonpath, Ajv, and URITemplate; Rename the imports for consistency.
 // Finish create? and spread.
+
+// ---------------
+
+// const func = () => undefined;
+// const object = {}
+// console.log(matchValues(true, true));
+// console.log(matchValues(func, func));
+// console.log(matchValues(null, null));
+// console.log(matchValues(0, 0));
+// console.log(matchValues("", ""));
+// console.log(matchValues(Symbol.for(""), Symbol.for("")));
+// console.log(matchValues(undefined, undefined));
+// console.log(matchValues(object, object));
+// console.log(matchValues({}, {}));
+// console.log(matchValues({"1": "1"}, {"1": "1"}));
+// console.log(matchValues([0], [0]));
+// console.log(matchValues(
+//     [{"vin": "1234567890"}, {"vin": "0987654321"}],
+//     [{"vin": "1234567890"}, {"vin": "0987654321"}]
+// ));
+// console.log(matchValues(
+//     {"name": "tony", "surname": "tahmouch"},
+//     {"surname": "tahmouch", "name": "tony"}
+// ));
+// console.log(matchValues(false, true));
+// console.log(matchValues(() => undefined, () => undefined));
+// console.log(matchValues(1, 0));
+// console.log(matchValues("", "0"));
+// console.log(matchValues(Symbol.for(""), Symbol.for("0")));
+// console.log(matchValues({0: 0}, {}));
+// console.log(matchValues({}, {0: 0}));
+// console.log(matchValues({0: 0}, {0: 1}));
+// console.log(matchValues({0: 0}, {1: 1}));
+// console.log(matchValues([0], [1]));
+// console.log(matchValues(
+//     [{"vin": "1234567890"}, {"vin": "0987654321"}],
+//     [{"vin": "0987654321"}, {"vin": "1234567890"}]
+// ));
+// console.log(matchValues(
+//     [{"vin": "1234567890", "account": {"id": "0"}}, {"vin": "0987654321", "account": {"id": "1"}}],
+//     [{"vin": "1234567890", "account": {"id": "0"}}, {"vin": "0987654321", "account": {"id": "2"}}]
+// ));
+// console.log(composeFromValue([
+//     {
+//         "$compose": "create",
+//         "$value": [{"vin": "1234567890", "account": {"id": "0"}}, {"vin": "0987654321", "account": {"id": "2"}}]
+//     },
+//     {
+//         "$compose": "match",
+//         "$value": [{"vin": "1234567890", "account": {"id": "0"}}, {"vin": "0987654321", "account": {"id": "2"}}],
+//         "$default": false
+//     }
+// ], state));
+
+// console.log(composeParametersFromPathTemplate("/:number", {"app": {"$route": {"pathname": ""}}}, "path_template")["number"]);
+// console.log(composeParametersFromPathTemplate("/:number", {"app": {"$route": {"pathname": "/"}}}, "path_template")["number"]);
+// console.log(composeParametersFromPathTemplate("/:number", {"app": {"$route": {"pathname": "/0"}}}, "path_template")["number"]);
+// console.log(composeParametersFromPathTemplate(undefined, {"app": {"$route": {"pathname": "/0"}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("/:number", {"app": {"$route": {"pathname": undefined}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("/", {"app": {"$route": {"pathname": "/0"}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("/", {"app": {"$route": {"pathname": "/"}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("/", {"app": {"$route": {"pathname": ""}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": ""}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": "/"}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": "/0"}}}, "path_template"));
+// console.log(composeParametersFromPathTemplate("^/([0-9]+)$", {"app": {"$route": {"pathname": ""}}}, "regular_expression")[1]);
+// console.log(composeParametersFromPathTemplate("^/([0-9]+)$", {"app": {"$route": {"pathname": "/"}}}, "regular_expression")[1]);
+// console.log(composeParametersFromPathTemplate("^/([0-9]+)$", {"app": {"$route": {"pathname": "/0"}}}, "regular_expression")[1]);
+// console.log(composeParametersFromPathTemplate(undefined, {"app": {"$route": {"pathname": "/0"}}}, "regular_expression"));
+// console.log(composeParametersFromPathTemplate("^/([0-9]+)$", {"app": {"$route": {"pathname": undefined}}}, "regular_expression"));
+// console.log(composeParametersFromPathTemplate("^/$", {"app": {"$route": {"pathname": ""}}}, "regular_expression")[0]);
+// console.log(composeParametersFromPathTemplate("^/$", {"app": {"$route": {"pathname": "/"}}}, "regular_expression")[0]);
+// console.log(composeParametersFromPathTemplate("^/$", {"app": {"$route": {"pathname": "/0"}}}, "regular_expression")[0]);
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": ""}}}, "regular_expression")[0]);
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": "/"}}}, "regular_expression")[0]);
+// console.log(composeParametersFromPathTemplate("", {"app": {"$route": {"pathname": "/0"}}}, "regular_expression")[0]);
+
+// store.dispatch({
+//     "type": "route_push",
+//     "value": {"uri": "/sign_in?query=query#fragment"}
+// });
+// store.dispatch({"type": "route_push", "value": {uri: "/garage"}});
+// store.dispatch({"type": "route_push", "value": {uri: "/dashboard"}});
+// store.dispatch({"type": "route_replace", "value": {uri: "/sign_in"}});
+// store.dispatch({"type": "route_back"});
+// store.dispatch({"type": "route_replace", "value": {uri: "/garage"}});
+// store.dispatch({"type": "route_forward"});

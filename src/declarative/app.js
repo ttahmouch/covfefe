@@ -38,6 +38,18 @@ export default {
             "$schema": "http://json-schema.org/draft-07/schema#",
             "type": "string",
             "pattern": "^([a-zA-Z]+)$"
+        },
+        "url_object_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["pathname"],
+            "properties": {"pathname": {"type": "string", "pattern": "/route/1$"}}
+        },
+        "url_string_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "string",
+            // "pattern": "^(([^:/?#]+):)?([/][/]([^/?#]*))?([^?#]*)([?]([^#]*))?([#](.*))?"
+            "pattern": "/route/2$"
         }
     },
     "$composers": {
@@ -221,6 +233,39 @@ export default {
                 },
                 "$default": false
             }
+        ],
+        "is_url_one": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$.app['$route']",
+                "$default": {"pathname": "/", "search": "", "hash": "", "searchParams": {}}
+            },
+            {
+                "$compose": "match",
+                "$type": "json_schema",
+                "$value": {"$schema": "url_object_schema"},
+                "$default": false
+            }
+        ],
+        "is_url_two": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$.app['$route']",
+                "$default": {"pathname": "/", "search": "", "hash": "", "searchParams": {}}
+            },
+            {
+                "$compose": "encode",
+                "$type": "uri",
+                "$default": "http://localhost:3000/"
+            },
+            {
+                "$compose": "match",
+                "$type": "json_schema",
+                "$value": {"$schema": "url_string_schema"},
+                "$default": false
+            }
         ]
     },
     "$actions": {
@@ -255,49 +300,53 @@ export default {
     "$events": {
         "load_end_event": [
             {
-                "$action": "spread_$states",
-                "$value": {"loading": false}
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false}}
             }
         ],
         "load_start_event": [
             {
-                "$action": "spread_$states",
-                "$value": {"loading": true}
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": true}}
             }
         ],
         "request_titles_dictionary_200_event": [
             {
-                "$action": "spread_$states",
+                "$action": "create_$states_items",
                 "$value": {
-                    "length": [
-                        {
-                            "$compose": "read",
-                            "$type": "json_path",
-                            "$value": "$.response.headers['content-length']",
-                            "$default": "0"
-                        },
-                        {
-                            "$compose": "read",
-                            "$type": "regular_expression",
-                            "$value": "^([0-9]+)$",
-                            "$default": ["0"]
-                        },
-                        {
-                            "$compose": "read",
-                            "$type": "json_path",
-                            "$value": "$.composed.0",
-                            "$default": "0"
-                        }
-                    ]
+                    "items": {
+                        "length": [
+                            {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$.response.headers['content-length']",
+                                "$default": "0"
+                            },
+                            {
+                                "$compose": "read",
+                                "$type": "regular_expression",
+                                "$value": "^([0-9]+)$",
+                                "$default": ["0"]
+                            },
+                            {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$.composed.0",
+                                "$default": "0"
+                            }
+                        ]
+                    }
                 }
             },
             {
-                "$action": "spread_$states",
+                "$action": "create_$states_items",
                 "$value": {
-                    "titles_dictionary": {
-                        "$comment": "Dereference Composer.",
-                        "$compose": "response_titles_dictionary_composer",
-                        "$default": {}
+                    "items": {
+                        "titles_dictionary": {
+                            "$comment": "Dereference Composer.",
+                            "$compose": "response_titles_dictionary_composer",
+                            "$default": {}
+                        }
                     }
                 },
                 "$if": {
@@ -307,8 +356,8 @@ export default {
                 }
             },
             {
-                "$action": "spread_$states",
-                "$value": {"error": true},
+                "$action": "create_$states_items",
+                "$value": {"items": {"error": true}},
                 "$unless": {
                     "$comment": "Dereference Composer.",
                     "$compose": "is_response_titles_dictionary_composer",
@@ -318,16 +367,18 @@ export default {
         ],
         "title_submit_event": [
             {
-                "$action": "spread_$states",
+                "$action": "create_$states_items",
                 "$value": {
-                    "title": [
-                        {
-                            "$compose": "read",
-                            "$type": "json_path",
-                            "$value": "$.view.title.0",
-                            "$default": ""
-                        }
-                    ]
+                    "items": {
+                        "title": [
+                            {
+                                "$compose": "read",
+                                "$type": "json_path",
+                                "$value": "$.view.title.0",
+                                "$default": ""
+                            }
+                        ]
+                    }
                 },
                 "$if": {
                     "$comment": "Dereference Composer.",
@@ -344,8 +395,8 @@ export default {
                 }
             },
             {
-                "$action": "spread_$states",
-                "$value": {"error": true},
+                "$action": "create_$states_items",
+                "$value": {"items": {"error": true}},
                 "$unless": {
                     "$comment": "Dereference Composer.",
                     "$compose": "is_title_composer",
@@ -354,6 +405,7 @@ export default {
             }
         ]
     },
+    "$route": {},
     "$states": {
         "title": "title",
         "titles_dictionary": {"title": "title"},
@@ -438,11 +490,29 @@ export default {
                 ]
             }
         },
+        "route_one": {"type": "div", "props": {"children": ["Is /route/1 ."]}},
+        "route_two": (<div>Is /route/2 .</div>),
+        "route_three": (<div>Is /route/:number([0-9]+) .</div>),
+        "route_four": (<div>Is /route/[0-9]+[/]?$ .</div>),
+        "404": (<div>404</div>),
         "home_view_jsx": (
             <Fragment>
                 <Fragment data-view="input_view"/>
                 <Fragment data-view="output_view"/>
                 <Fragment data-view="json_view"/>
+                <Fragment data-view="route_one"
+                          data-if="is_url_one"/>
+                <Fragment data-view="route_two"
+                          data-if="is_url_two"/>
+                <Fragment data-view="route_three"
+                          data-if-path="/route/:number([0-9]+)"
+                          data-path-type="path_template"
+                          data-comment="`data-path-type` defaults to `path_template`."/>
+                <Fragment data-view="route_four"
+                          data-if-path="/route/([0-9]+)[/]?$"
+                          data-path-type="regular_expression"/>
+                <Fragment data-view="404"
+                          data-unless-path="/route/:number([0-9]+)"/>
             </Fragment>
         )
     },
