@@ -1,9 +1,33 @@
-import React, {Fragment} from "react";
+import React from "react";
 
-const Home = () => (<Fragment data-view="home_view_jsx"/>);
+const Home = () => (<div data-view="home_view_jsx"/>);
 const Json = ({json = {}}) => (<pre>{JSON.stringify(json)}</pre>);
 
+/**
+ * + Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
+ * + Conditional Compositions, i.e., AND, OR, XOR, ...
+ * + Aborting HTTP Requests.
+ * + Implement HTTP Response Mocking.
+ * + Animations
+ * + Action Sequences
+ * + Routing
+ * + Check the order of the composition when recursively composing is `json_component` composition.
+ * + Return app JSON from a server and reduce it in the client.
+ * + Netflux Clone.
+ * + Debug using Redux Dev Tools.
+ * + Blog, Vlog, Pinterest, Etsy, 3d Print,
+ */
 export default {
+    "$settings": {
+        // Event and Action Mocking
+        // Return Declaration from Server
+
+        // If these flags are enabled, then console logs and mocks will be on
+        // for the whole application. If you'd like to disable individual logs
+        // or mocks, you can set flags on each individual item.
+        "debug": true,
+        "mock": true
+    },
     "$schemas": {
         "response_titles_dictionary_composer_schema": {
             "$schema": "http://json-schema.org/draft-07/schema#",
@@ -266,13 +290,70 @@ export default {
                 "$value": {"$schema": "url_string_schema"},
                 "$default": false
             }
+        ],
+        "is_loading": [
+            {
+                "$compose": "read",
+                "$type": "json_path",
+                "$value": "$.app['$states'].loading",
+                "$default": false
+            }
         ]
+    },
+    "$requests": {
+        "read_titles": {
+            "$method": "GET",
+            "$uri": "/titles",
+            "$timeout": 30000
+        },
+        "create_title": {
+            "$method": "POST",
+            "$uri": "/titles",
+            "$headers": {
+                "content-type": "application/json"
+            },
+            "$body": {
+                "title": "Fourth Title"
+            },
+            "$timeout": 30000
+        }
+    },
+    "$responses": {
+        "read_titles_success": {
+            "$status": 200,
+            "$headers": {
+                "content-type": "application/json"
+            },
+            "$body": {
+                "titles": [
+                    {
+                        "title": "Mock Title"
+                    }
+                ]
+            }
+        },
+        "create_title_success": {
+            "$status": 201,
+            "$headers": {
+                "content-type": "application/json",
+                "location": "https://localhost:3000/titles/0"
+            },
+            "$body": {
+                "title": "Mock Title"
+            }
+        },
+        "unauthorized": {
+            "$status": 401,
+            "$headers": {
+                "www-authenticate": "Basic charset='UTF-8'"
+            }
+        }
     },
     "$actions": {
         "request_titles_dictionary_action": {
             "$action": "request_titles_dictionary_action",
             "$request": {
-                "$method": "GET",
+                "$request": "read_titles",
                 "$uri": {
                     "$compose": "request_titles_dictionary_uri_composer",
                     "$default": "/"
@@ -284,33 +365,92 @@ export default {
                     }
                 }
             },
+            "$responses": [
+                {
+                    "$mock": true,
+                    "$response": "read_titles_success",
+                    "$headers": {
+                        "content-type": "application/json",
+                        "content-language": [
+                            {
+                                "$compose": "create",
+                                "$default": "en-US"
+                            }
+                        ]
+                    }
+                },
+                {
+                    // "$mock": true,
+                    "$response": "unauthorized"
+                }
+            ],
             "$events": {
-                // "load": {"$event": "load"},
-                // "load": {"$event": "request_titles_dictionary_200_event"},
                 "loadstart": {"$event": "load_start_event"},
-                // "progress": {"$event": "progress"},
-                // "error": {"$event": "error"},
-                // "abort": {"$event": "abort"},
-                // "timeout": {"$event": "timeout"},
-                "loadend": {"$event": "load_end_event"},
-                "200": {"$event": "request_titles_dictionary_200_event"}
+                "progress": {"$event": "progress_event"},
+                "error": {"$event": "error_event"},
+                "timeout": {"$event": "timeout_event"},
+                "abort": {"$event": "abort_event"},
+                "load": {"$event": "load_event"},
+                "200": {"$event": "request_titles_dictionary_200_event"},
+                "401": {"$event": "request_titles_dictionary_401_event"},
+                "loadend": {"$event": "load_end_event"}
             }
         }
     },
     "$events": {
-        "load_end_event": [
-            {
-                "$action": "create_$states_items",
-                "$value": {"items": {"loading": false}}
-            }
-        ],
         "load_start_event": [
             {
                 "$action": "create_$states_items",
-                "$value": {"items": {"loading": true}}
+                "$value": {"items": {"loading": true, "event": "load_start"}}
+            }
+        ],
+        "progress_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": true, "event": "progress"}}
+            }
+        ],
+        "error_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "error"}}
+            }
+        ],
+        "timeout_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "timeout"}}
+            }
+        ],
+        "abort_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "abort"}}
+            }
+        ],
+        "load_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "load"}}
+            }
+        ],
+        "request_titles_dictionary_401_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "401"}}
+            }
+        ],
+        "load_end_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "load_end"}}
             }
         ],
         "request_titles_dictionary_200_event": [
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"loading": false, "event": "200"}}
+            },
             {
                 "$action": "create_$states_items",
                 "$value": {
@@ -413,7 +553,8 @@ export default {
         "title_form_submit_button_label": "Read Titles Dictionary Async",
         "length": 0,
         "loading": false,
-        "error": false
+        "error": false,
+        "event": ""
     },
     "$styles": {
         "form_input_style": {
@@ -478,15 +619,15 @@ export default {
             <Json data-state="titles_dictionary"
                   data-bind-state="json"/>
         ),
-        "output_view": {"type": "Fragment", "props": {"data-view": "json_component"}},
-        "output_view_jsx": (<Fragment data-view="json_component"/>),
+        "output_view": {"type": "div", "props": {"data-view": "json_component"}},
+        "output_view_jsx": (<div data-view="json_component"/>),
         "home_view": {
-            "type": "Fragment",
+            "type": "div",
             "props": {
                 "children": [
-                    {"type": "Fragment", "props": {"data-view": "input_view"}},
-                    {"type": "Fragment", "props": {"data-view": "output_view"}},
-                    {"type": "Fragment", "props": {"data-view": "json_view"}}
+                    {"type": "div", "props": {"data-view": "input_view"}},
+                    {"type": "div", "props": {"data-view": "output_view"}},
+                    {"type": "div", "props": {"data-view": "json_view"}}
                 ]
             }
         },
@@ -495,25 +636,32 @@ export default {
         "route_three": (<div>Is /route/:number([0-9]+) .</div>),
         "route_four": (<div>Is /route/[0-9]+[/]?$ .</div>),
         "404": (<div>404</div>),
+        "route_loading": (
+            <div className="loading-spinner center">
+                <div/>
+            </div>
+        ),
         "home_view_jsx": (
-            <Fragment>
-                <Fragment data-view="input_view"/>
-                <Fragment data-view="output_view"/>
-                <Fragment data-view="json_view"/>
-                <Fragment data-view="route_one"
-                          data-if="is_url_one"/>
-                <Fragment data-view="route_two"
-                          data-if="is_url_two"/>
-                <Fragment data-view="route_three"
-                          data-if-path="/route/:number([0-9]+)"
-                          data-path-type="path_template"
-                          data-comment="`data-path-type` defaults to `path_template`."/>
-                <Fragment data-view="route_four"
-                          data-if-path="/route/([0-9]+)[/]?$"
-                          data-path-type="regular_expression"/>
-                <Fragment data-view="404"
-                          data-unless-path="/route/:number([0-9]+)"/>
-            </Fragment>
+            <div>
+                <div data-view="input_view"/>
+                <div data-view="output_view"/>
+                <div data-view="json_view"/>
+                <div data-view="route_one"
+                     data-if="is_url_one"/>
+                <div data-view="route_two"
+                     data-if="is_url_two"/>
+                <div data-view="route_three"
+                     data-if-path="/route/:number([0-9]+)"
+                     data-path-type="path_template"
+                     data-comment="`data-path-type` defaults to `path_template`."/>
+                <div data-view="route_four"
+                     data-if-path="/route/([0-9]+)[/]?$"
+                     data-path-type="regular_expression"/>
+                <div data-view="404"
+                     data-unless-path="/route/:number([0-9]+)"/>
+                <div data-view="route_loading"
+                     data-if="is_loading"/>
+            </div>
         )
     },
     "$view": (<Home/>)

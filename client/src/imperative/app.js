@@ -8,7 +8,22 @@ import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
 
-import {action, app, asyncAction, client, declarativeComposer, domEvent, functionalComposer, headers, state, store, syncAction} from "./types.js";
+import {
+    action,
+    app,
+    asyncAction,
+    client,
+    declarativeComposer,
+    domEvent,
+    functionalComposer,
+    headers,
+    request,
+    response,
+    settings,
+    state,
+    store,
+    syncAction
+} from "./types.js";
 import {
     actionFromActions,
     actionIdentifierFromAction,
@@ -31,6 +46,10 @@ import {
     getType,
     isElement,
     requestFromAsyncAction,
+    requestIdentifierFromRequest,
+    responseFromAsyncAction,
+    responseIdentifierFromResponse,
+    responsesFromAsyncAction,
     schemaIdentifierFromSchema,
     statesFromAction,
     valueFromAction,
@@ -159,7 +178,9 @@ export const reducerFromState = (state = {}, dependencies = {combineReducers, re
 
 // Composers -----------------------------------------------------------------------------------------------------------
 
-export const toDereferencedSchema = (schema, states = state, dependencies = {}) => {
+export const toDereferencedSchema = (schema, states = state,
+                                     dependencies = {schemaIdentifierFromSchema, composeFromIdentifier}) => {
+    const {schemaIdentifierFromSchema, composeFromIdentifier} = dependencies;
     const identifier = schemaIdentifierFromSchema(schema) || "";
     const reference = composeFromIdentifier(identifier, states, "$schemas") || schema;
     const {$schema = "http://json-schema.org/draft-07/schema#"} = reference;
@@ -270,6 +291,7 @@ export const matchValues = (one = undefined, two = undefined, dependencies = {ma
     return (oneType === twoType) && matchSameType(one, two, oneType);
 };
 
+// Support matching subsets.
 export const matchPrimitive = (composer, dependencies = {create}) => {
     const {create} = dependencies;
     const {$state: {composed} = state} = composer;
@@ -522,6 +544,34 @@ export const composeParametersFromPathTemplate = (template = "", states = state,
 
 // Actions -------------------------------------------------------------------------------------------------------------
 
+export const toDereferencedRequest = (request = request, states = state,
+                                      dependencies = {
+                                          requestIdentifierFromRequest, composeFromIdentifier, composeFromValue
+                                      }) => {
+    const {requestIdentifierFromRequest, composeFromIdentifier, composeFromValue} = dependencies;
+    const identifier = requestIdentifierFromRequest(request) || "";
+    const reference = composeFromIdentifier(identifier, states, "$requests") || request;
+
+    // console.log("Reference:", reference);
+
+    // Is this necessary to dereferencing schemas, actions, events?
+    return composeFromValue({...reference, ...request}, states) || {};
+};
+
+export const toDereferencedResponse = (response = response, states = state,
+                                       dependencies = {
+                                           responseIdentifierFromResponse, composeFromIdentifier, composeFromValue
+                                       }) => {
+    const {responseIdentifierFromResponse, composeFromIdentifier, composeFromValue} = dependencies;
+    const identifier = responseIdentifierFromResponse(response) || "";
+    const reference = composeFromIdentifier(identifier, states, "$responses") || response;
+
+    // console.log("Reference:", reference);
+
+    // Is this necessary to dereferencing schemas, actions, events?
+    return composeFromValue({...reference, ...response}, states) || {};
+};
+
 export const getResponseBody = (headers = headers, body = "") => {
     const {"content-type": type = ""} = headers;
 
@@ -552,16 +602,92 @@ export const getRequestBody = (headers = headers, body = "") => {
     return type.includes("application/json") ? JSON.stringify(body) : body;
 };
 
+export const settingsFromAppState = ({$settings = {}} = app) => $settings;
+
+export const mockSettingFromSettings = ({mock = false} = settings) => mock;
+
+export const mockResponseFromResponses = (responses = []) => responses.find(({$mock = false}) => $mock === true) || {};
+
+export const mockEventFromEvents = (events = {}) => (
+    Object
+        .keys(events)
+        .filter((event) => !["loadstart", "progress", "loadend"].includes(event))
+        .map((event) => ({...events[event], "$event": event}))
+        .find(({$mock = false}) => $mock === true)
+    || {"$event": ""}
+);
+
+export const mockResponse = (client = client, response) => {
+    const {
+        $status = 0,
+        $headers = {},
+        $body = ""
+    } = response;
+    const {"content-type": type = ""} = $headers;
+    const getAllResponseHeaders = () => (
+        Object
+            .keys($headers)
+            .reduce((string, header) => `${string}${header}: ${$headers[header]}\r\n`, "")
+    );
+    const responseText = type.includes("application/json") ? JSON.stringify($body) : $body;
+
+    return Object.defineProperties(client, {
+        "status": {"value": $status},
+        "getAllResponseHeaders": {"value": getAllResponseHeaders},
+        "responseText": {"value": responseText}
+    });
+};
+
+export const toDomProgressEvent = (event = {}, dependencies = {isNaN}) => {
+    const {isNaN} = dependencies;
+    const identifier = eventIdentifierFromEvent(event) || "";
+    const $event = isNaN(identifier) ? identifier : "load";
+
+    return {...event, $event};
+};
+
+export const dispatchMockEventAndResponseFromClient = (client, event, response,
+                                                       dependencies = {
+                                                           eventIdentifierFromEvent, mockResponse, toDomProgressEvent
+                                                       }) => {
+    const {eventIdentifierFromEvent, mockResponse, toDomProgressEvent} = dependencies;
+    const {$status = 0} = response;
+    const $event = eventIdentifierFromEvent(event) || ($status > 0 ? "load" : "timeout");
+    const identifier = eventIdentifierFromEvent(toDomProgressEvent({...event, $event}));
+
+    setTimeout(() => client.dispatchEvent(new ProgressEvent("loadstart")), 0);
+    setTimeout(() => client.dispatchEvent(new ProgressEvent("progress")), 0);
+    setTimeout(() => {
+        if (identifier === "load") {
+            mockResponse(client, response);
+        }
+
+        return client.dispatchEvent(new ProgressEvent(identifier));
+    }, 0);
+    return setTimeout(() => client.dispatchEvent(new ProgressEvent("loadend")), 0);
+};
+
 export const dispatchAsyncActionToStore = (action = asyncAction, states, store = store, client = new XMLHttpRequest(),
                                            dependencies = {
-                                               getRequestBody, requestFromAsyncAction, eventsFromAsyncAction,
-                                               eventDispatcherForStore, composeFromValue
+                                               getRequestBody, requestFromAsyncAction, responsesFromAsyncAction,
+                                               responseFromAsyncAction, eventsFromAsyncAction, eventDispatcherForStore,
+                                               settingsFromAppState, toDereferencedRequest, toDereferencedResponse,
+                                               appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
+                                               dispatchMockEventAndResponseFromClient, mockEventFromEvents
                                            }) => {
     const {
-        getRequestBody, requestFromAsyncAction, eventsFromAsyncAction, eventDispatcherForStore, composeFromValue
+        getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
+        eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
+        mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents
     } = dependencies;
-    const request = composeFromValue(requestFromAsyncAction(action), states) || {};
+    const app = appStateFromStates(states) || app;
+    const settings = settingsFromAppState(app) || {};
+    const mock = mockSettingFromSettings(settings) || false;
+    const request = toDereferencedRequest(requestFromAsyncAction(action), states) || {};
+    const responses = responsesFromAsyncAction(action) || [];
+    const response = toDereferencedResponse(mockResponseFromResponses(responses), states) || {};
     const events = eventsFromAsyncAction(action) || {};
+    const event = mockEventFromEvents(events) || {};
     const dispatch = eventDispatcherForStore(store) || ((event = domEvent) => undefined);
     const {
         $method = "GET",
@@ -572,13 +698,9 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
         $password = "",
         $withCredentials = false,
         $async = true,
-        $responseType = "text"
+        $responseType = "text",
+        $timeout = 0
     } = request;
-
-    console.group("Async Action:", action);
-    console.log("Request:", request);
-    console.log("Events:", events);
-    console.groupEnd();
 
     client.open($method, $uri, $async, $username, $password);
 
@@ -588,6 +710,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
 
     client.withCredentials = $withCredentials;
     client.responseType = $responseType;
+    client.timeout = $timeout;
 
     Object
         .keys(events)
@@ -610,7 +733,17 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
         return $toEvent && dispatch(event, states);
     });
 
-    return client.send(getRequestBody($headers, $body));
+    console.group("Async Action:", action);
+    console.log("Mock:", mock);
+    console.log("Request:", request);
+    console.log("Response:", response);
+    console.log("Events:", events);
+    console.log("Event:", event);
+    console.groupEnd();
+
+    return mock
+        ? dispatchMockEventAndResponseFromClient(client, event, response)
+        : client.send(getRequestBody($headers, $body));
 };
 
 export const dispatchSyncActionToStore = (action = syncAction, states, store = store) => {
@@ -1032,11 +1165,11 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
 };
 
 export const storeFromInitialAppState = ({
-                                             $actions = {}, $composers = {}, $events = {}, $route = {},
-                                             $schemas = {}, $states = {}, $styles = {}, $views = {}, $view = [],
-                                             $state = {
-                                                 $actions, $composers, $events, $route, $schemas, $states, $styles,
-                                                 $views, $view
+                                             $actions = {}, $composers = {}, $settings = {"debug": false, "mock": false},
+                                             $events = {}, $requests = {}, $responses = {}, $route = {}, $schemas = {},
+                                             $states = {}, $styles = {}, $views = {}, $view = [], $state = {
+                                                 $actions, $composers, $settings, $events, $requests, $responses, $route,
+                                                 $schemas, $states, $styles, $views, $view
                                              }
                                          },
                                          middleware = [],

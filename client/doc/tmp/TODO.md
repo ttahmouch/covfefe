@@ -351,3 +351,29 @@ Should the nest structure of the state keys change instead?
 // store.dispatch({"type": "route_back"});
 // store.dispatch({"type": "route_replace", "value": {uri: "/garage"}});
 // store.dispatch({"type": "route_forward"});
+
+/**
+ * If `mock-client` is enabled, then dispatch all the events that
+ * would have been dispatched if a server was actually reached
+ * and returned an HTTP response.
+ *
+ * Pretend to be a server in mock mode, and dispatch the events
+ * in sequential order, i.e., loadstart, progress, load, etc.
+ * When the load event is dispatched, enumerate the response
+ * possibilities and return the first possibility that is mocked.
+ * If none are mocked, then simulate a timeout scenario.
+ *
+ * How much time should be in between events?
+ * Is the only event that includes data the load/status code event?
+ * Maybe add the DOMEvent to the states object to be selected from?
+ *
+ * Type         Times                               When
+ * loadstart    Once.                               First.
+ * progress     Once or more.                       After loadstart has been dispatched.
+ * error        Zero or once (mutually exclusive).  After the last progress has been dispatched.
+ * abort
+ * timeout
+ * load
+ * loadend      Once.                               After one of error, abort, timeout or load has been dispatched.
+ * The error, abort, timeout, and load event types are mutually exclusive.
+ */

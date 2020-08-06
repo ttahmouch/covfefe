@@ -3,6 +3,7 @@ export const headers = {
 };
 
 export const request = {
+    "$request": "",
     "$method": "GET",
     "$uri": "/",
     "$headers": headers,
@@ -10,20 +11,21 @@ export const request = {
     "$username": "",
     "$password": "",
     "$withCredentials": "false",
-    "$events": {},
+    // "$events": {},
 };
 
 export const response = {
-    "status": 200,
-    "headers": headers,
-    "body": {},
+    "$response": "",
+    "$status": 0,
+    "$headers": headers,
+    "$body": ""
 };
 
 export const getAllResponseHeaders = () => "";
 
 export const client = {
     getAllResponseHeaders,
-    "status": 200,
+    "status": 0,
     "responseText": "",
     "dataset": {
         "event": ""
@@ -73,17 +75,27 @@ export const asyncAction = {
     "$request": {
         "$uri": ""
     },
+    "$responses": [],
+    "$response": {
+        "$status": 0
+    },
     "$events": {}
 };
 
 // export const declarativeEvent = [syncAction, asyncAction];
 export const declarativeEvent = [];
 
+export const settings = {
+    "mock": false,
+    "debug": false
+};
+
 export const app = {
     "$actions": {},
     "$composers": {},
     "$events": {},
     "$schemas": {},
+    "$settings": settings,
     "$states": {},
     "$styles": {},
     "$views": {},
@@ -92,7 +104,11 @@ export const app = {
 
 export const state = {
     "app": app,
-    "response": response,
+    "response": {
+        "status": 0,
+        "headers": headers,
+        "body": "",
+    },
     "composed": undefined,
     "view": {},
 };

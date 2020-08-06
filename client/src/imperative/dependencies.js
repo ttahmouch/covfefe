@@ -1,5 +1,5 @@
 import {Component, Fragment, isValidElement} from "react";
-import {action, app, asyncAction, client, declarativeComposer, domEvent, element, schema, state, store, syncAction} from "./types.js";
+import {action, app, asyncAction, client, declarativeComposer, domEvent, element, request, response, schema, state, store, syncAction} from "./types.js";
 
 export const appStateFromStore = (store = store) => store.getState() || {};
 
@@ -78,6 +78,10 @@ export const clientFromDomEvent = ({target = client} = domEvent) => target;
 
 export const requestFromAsyncAction = ({$request = {}} = asyncAction) => $request;
 
+export const responsesFromAsyncAction = ({$responses = []} = asyncAction) => $responses;
+
+export const responseFromAsyncAction = ({$response = {}} = asyncAction) => $response;
+
 export const eventsFromAsyncAction = ({$events = {}} = asyncAction) => $events;
 
 export const eventFromAction = ({$event} = action) => $event;
@@ -85,6 +89,10 @@ export const eventFromAction = ({$event} = action) => $event;
 export const statesFromAction = ({$states = state} = action) => $states;
 
 export const valueFromAction = ({value} = syncAction) => value;
+
+export const requestIdentifierFromRequest = ({"$request": id = ""} = request) => id;
+
+export const responseIdentifierFromResponse = ({"$response": id = ""} = response) => id;
 
 export const actionIdentifierFromAction = ({"$action": id = ""} = syncAction) => id;
 
