@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define,no-unused-vars,no-fallthrough */
 import React, {createElement} from "react";
-import {applyMiddleware, combineReducers, createStore} from "redux";
+import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
 import jsonpath from "jsonpath/jsonpath.min";
@@ -307,11 +307,13 @@ export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed
     return new URITemplate($uri_template).expand(composed);
 };
 
-export const expandTemplate = ({$value: $template = "", $state: {composed} = state}) => {
+export const expandTemplate = (composer, dependencies = {create}) => {
+    const {create} = dependencies;
+    const {$state: {composed} = state} = composer;
     const expression = /{([^{}]*)}/g;
-    const withValue = (match, param) => typeof composed[param] === "string" ? composed[param] : match;
+    const withValue = (match, param) => typeof composed[param] !== "undefined" ? String(composed[param]) : match;
 
-    return $template.replace(expression, withValue);
+    return create(composer).replace(expression, withValue);
 };
 
 export const encodeJson = ({$value = undefined, $state: {composed} = state}) => {
@@ -335,16 +337,20 @@ export const encodeUri = ({$value, $state: {composed} = state}) => {
     return url.toString();
 };
 
+export const decodeJson = ({$value = undefined, $state: {composed} = state}) => {
+    return JSON.parse($value || composed);
+};
+
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
 export const compose = ({$compose = "", $type = "", $default = undefined, ...$composer},
                         dependencies = {
                             create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, valueOrDefault
+                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
                         }) => {
     const {
         create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, valueOrDefault
+        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
     } = dependencies;
 
     switch ($compose) {
@@ -397,7 +403,7 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
                 case "uri":
                 case "json":
                 default:
-                    return undefined;
+                    return valueOrDefault(decodeJson($composer), $default);
             }
         case "assert":
             switch ($type) {
@@ -606,7 +612,11 @@ export const settingsFromAppState = ({$settings = {}} = app) => $settings;
 
 export const mockSettingFromSettings = ({mock = false} = settings) => mock;
 
-export const mockResponseFromResponses = (responses = []) => responses.find(({$mock = false}) => $mock === true) || {};
+export const mockResponseFromResponses = (responses = []) => {
+    const [response = {}] = responses;
+
+    return responses.find(({$mock = false}) => $mock === true) || response;
+};
 
 export const mockEventFromEvents = (events = {}) => (
     Object
@@ -673,12 +683,14 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
                                                responseFromAsyncAction, eventsFromAsyncAction, eventDispatcherForStore,
                                                settingsFromAppState, toDereferencedRequest, toDereferencedResponse,
                                                appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
-                                               dispatchMockEventAndResponseFromClient, mockEventFromEvents
+                                               dispatchMockEventAndResponseFromClient, mockEventFromEvents,
+                                               dispatchSyncActionToStore
                                            }) => {
     const {
         getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
         eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
-        mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents
+        mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents,
+        dispatchSyncActionToStore
     } = dependencies;
     const app = appStateFromStates(states) || app;
     const settings = settingsFromAppState(app) || {};
@@ -733,14 +745,15 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
         return $toEvent && dispatch(event, states);
     });
 
-    console.group("Async Action:", action);
-    console.log("Mock:", mock);
-    console.log("Request:", request);
-    console.log("Response:", response);
-    console.log("Events:", events);
-    console.log("Event:", event);
-    console.groupEnd();
+    // console.group("Async Action:", action);
+    // console.log("Mock:", mock);
+    // console.log("Request:", request);
+    // console.log("Response:", response);
+    // console.log("Events:", events);
+    // console.log("Event:", event);
+    // console.groupEnd();
 
+    dispatchSyncActionToStore(action, states, store);
     return mock
         ? dispatchMockEventAndResponseFromClient(client, event, response)
         : client.send(getRequestBody($headers, $body));
@@ -827,14 +840,15 @@ export const dispatchEventToStore = (event, states, store = store, dependencies 
                     || $unlessValue === true
             } = item;
 
-            !$should && console.group("Suppressing Action:", item)
-            !$should && console.groupEnd();
+            // !$should && console.group("Suppressing Action:", item)
+            // !$should && console.groupEnd();
 
             if ($should) {
                 return isEvent(item)
                     ? dispatchEventToStore(item, states, store)
                     : isEventReference(item)
                         ? dispatchEventToStore(toDereferencedEvent(item, states), states, store)
+                        // store.getState between actions in case they changed the store state synchronously.
                         : dispatchActionToStore(toDereferencedAction(item, states), states, store)
             }
         });
@@ -853,9 +867,8 @@ export const createEventMiddleware = (dependencies = {isEvent, eventFromAction, 
         const $event = eventFromAction(action) || {};
         const $states = statesFromAction(action) || {};
 
-        return isEvent($event)
-            ? dispatchEventToStore($event, $states, store)
-            : next(action);
+        next(action);
+        return isEvent($event) && dispatchEventToStore($event, $states, store);
     };
 };
 
@@ -867,13 +880,13 @@ export const createLogMiddleware = () => {
         const $event = eventFromAction(action);
         const $value = valueFromAction(action);
 
-        $event && console.group("Event:", action, $event);
-        !$event && console.group("Sync Action:", action, $value);
+        // $event && console.group("Event:", action, $event);
+        // !$event && console.group("Sync Action:", action, $value);
 
-        console.log("State Before:", store.getState());
+        // console.log("State Before:", store.getState());
         next(action);
-        console.log("State After:", store.getState());
-        console.groupEnd();
+        // console.log("State After:", store.getState());
+        // console.groupEnd();
     };
 };
 
@@ -949,6 +962,8 @@ export const createRouteMiddleware = (history, dependencies = {dispatchRouteToSt
         return (next = (action) => action) => (action = action) => {
             const {type = "", value = {}} = action;
 
+            next(action);
+
             switch (type) {
                 case "route_push": {
                     const {uri = {"pathname": "/", "search": "", "hash": ""}, state = undefined} = value;
@@ -967,7 +982,7 @@ export const createRouteMiddleware = (history, dependencies = {dispatchRouteToSt
                 case "route_forward":
                     return history.go(1);
                 default:
-                    return next(action);
+                    return;
             }
         };
     };
@@ -1042,11 +1057,13 @@ export const eventDispatcherForStore = (store = store,
                                         dependencies = {
                                             appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent,
                                             eventIdentifierFromDomEvent, eventsFromAppState, eventFromEvents,
-                                            isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent
+                                            isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
+                                            eventTypeFromDomEvent
                                         }) => {
     const {
         appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
-        eventsFromAppState, eventFromEvents, isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent
+        eventsFromAppState, eventFromEvents, isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
+        eventTypeFromDomEvent
     } = dependencies;
 
     return (event, states = {}) => {
@@ -1058,7 +1075,7 @@ export const eventDispatcherForStore = (store = store,
         const $event = toDereferencedEvent(event, $states);
 
         event.preventDefault();
-        return store.dispatch({event, $event, $states});
+        return store.dispatch({$event, $states, type: eventTypeFromDomEvent(event)});
     };
 };
 
@@ -1147,9 +1164,9 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
 
         $path && $should && dispatchRoutePathParamsToStore($pathParams, {app}, store);
 
-        $view && $should && console.group("View:", $viewValue);
-        $view && !$should && console.group("Suppressing View:", $view);
-        $view && console.groupEnd();
+        // $view && $should && console.group("View:", $viewValue);
+        // $view && !$should && console.group("Suppressing View:", $view);
+        // $view && console.groupEnd();
 
         if (isElement($element)) {
             const {type = "", props: {children = [], ...props} = {}} = $element;
@@ -1173,10 +1190,14 @@ export const storeFromInitialAppState = ({
                                              }
                                          },
                                          middleware = [],
-                                         dependencies = {createStore, applyMiddleware, reducerFromState}) => {
+                                         enhancers = [],
+                                         composer = composeEnhancers,
+                                         dependencies = {
+                                             createStore, applyMiddleware, reducerFromState
+                                         }) => {
     const {createStore, applyMiddleware, reducerFromState} = dependencies;
 
-    return createStore(reducerFromState($state), $state, applyMiddleware(...middleware));
+    return createStore(reducerFromState($state), $state, composer(applyMiddleware(...middleware), ...enhancers));
 };
 
 export const View = () => {
