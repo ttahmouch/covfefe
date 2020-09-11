@@ -1,7 +1,9 @@
 import React, {createElement} from "react";
 import ReactDOM from "react-dom";
+import {composeWithDevTools} from 'redux-devtools-extension';
 import {createBrowserHistory} from "history";
-import app from "./declarative/app.js";
+// import app from "./declarative/app.js";
+import app from "./declarative/netflux/app.js";
 import {
     App,
     createElementWithCustomDataProps,
@@ -15,13 +17,18 @@ import {
 const history = createBrowserHistory();
 // const history = createMemoryHistory();
 const {location = {}} = history;
-const store = storeFromInitialAppState(app, [
-    createLogMiddleware(),
-    createEventMiddleware(),
-    createRouteMiddleware(history)
-]);
+const store = storeFromInitialAppState(
+    app,
+    [
+        createLogMiddleware(),
+        createEventMiddleware(),
+        createRouteMiddleware(history)
+    ],
+    [],
+    composeWithDevTools({"trace": false})
+);
 
 dispatchRouteToStore(location, store);
 
 React.createElement = createElementWithCustomDataProps({createElement}, store);
-ReactDOM.render((<App store={store}/>), document.getElementById("root"));
+ReactDOM.render(<App store={store}/>, document.getElementById("root"));
