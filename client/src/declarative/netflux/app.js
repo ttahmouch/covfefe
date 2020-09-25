@@ -271,11 +271,11 @@ export default {
             }
         ],
         "is_title": [
-            {"$compose": "read", "$value": "$.view", "$default": ""},
+            {"$compose": "read", "$value": "$.input", "$default": ""},
             {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "title_schema"}, "$default": false}
         ],
         "is_movie": [
-            {"$compose": "read", "$value": "$.view.media_type.0", "$default": ""},
+            {"$compose": "read", "$value": "$.input.media_type.0", "$default": ""},
             {"$compose": "match", "$type": "regular_expression", "$value": "(?:movie)", "$default": false}
         ],
         "search_no_results_body": [
@@ -1631,11 +1631,11 @@ export default {
                     "key": "movie",
                     "item": {
                         "id": [
-                            {"$compose": "read", "$value": "$.view.id.0", "$default": "0"},
+                            {"$compose": "read", "$value": "$.input.id.0", "$default": "0"},
                             {"$compose": "decode", "$type": "json", "$default": 0}
                         ],
                         "media_type": [
-                            {"$compose": "read", "$value": "$.view.media_type.0", "$default": "\"tv\""},
+                            {"$compose": "read", "$value": "$.input.media_type.0", "$default": "\"tv\""},
                             {"$compose": "decode", "$type": "json", "$default": "tv"}
                         ]
                     }
@@ -1747,7 +1747,7 @@ export default {
         "on_change_title": [
             {
                 "$action": "create_$states_items",
-                "$value": {"items": {"title": {"$compose": "read", "$value": "$.view", "$default": ""}}}
+                "$value": {"items": {"title": {"$compose": "read", "$value": "$.input", "$default": ""}}}
             },
             {
                 "$action": "route_replace",
@@ -2623,6 +2623,19 @@ export default {
                         <input className="navigation__container--left__input" name="title" type="text"
                                data-bind-state="value" data-state="title" data-bind-event="onChange"
                                data-event="on_change_title" placeholder="Title, Genres, People"/>
+                        {/*// Use a JSON Path selector composition to select application state.*/}
+                        {/*// If application state is found, bind it to a prop.*/}
+                        {/*// If application state is not found, bind default to a prop.*/}
+                        {/*// Default state may be composed or a direct identifier to state.*/}
+                        {/*data-state-path-type="json_path"*/}
+                        {/*data-state-path="$.app['$states'].placeholder"*/}
+                        {/*data-state-default="placeholder"*/}
+                        {/*data-bind-state="placeholder"*/}
+                        {/*data-state="placeholder"*/}
+                        {/*data-bind-state="value"*/}
+                        {/*data-state="title"*/}
+                        {/*data-bind-event="onChange"*/}
+                        {/*data-event="on_change_title"/>*/}
                     </div>
                     <div className="navigation_bar_link pseudo-link" data-state="kids_title"/>
                     <div className="navigation_bar_link pseudo-link" data-state="dvd_title"/>
@@ -2635,6 +2648,28 @@ export default {
     },
     "$view": (
         <>
+            {/*<div data-state="movie" data-bind-state="data-bind-state" data-state-path="$.input.movie.name"/>*/}
+            {/*<div data-state="netflix_originals" data-repeat="true">*/}
+            {/*    <div data-state="original_name" data-compose="expand" data-state-default="composition">*/}
+            {/*        Original Name: (original_name)*/}
+            {/*    </div>*/}
+            {/*    <div data-state="name" data-compose="expand"*/}
+            {/*         data-state-path-type="json_path"*/}
+            {/*         data-state-path="$.input.netflix_originals[n].name">*/}
+            {/*        Name: [name]*/}
+            {/*    </div>*/}
+            {/*    <div data-state="first_air_date" data-compose="expand">First Air Date: [first_air_date]</div>*/}
+            {/*    <div data-state="backdrop_path" data-compose="expand">Backdrop Path: [backdrop_path]</div>*/}
+            {/*    <div data-state="original_language" data-compose="expand">Original Language: [original_language]</div>*/}
+            {/*    <div data-state="overview" data-compose="expand">Overview: [overview]</div>*/}
+            {/*    <div data-state="poster_path" data-compose="expand">Poster Path: [poster_path]</div>*/}
+            {/*    <div data-state="genre_ids" data-compose="expand">Genre IDs: [0], [1]</div>*/}
+            {/*    <div data-state="popularity" data-compose="expand">Popularity: [popularity]</div>*/}
+            {/*    <div data-state="origin_country" data-compose="expand">Origin Country: [0]</div>*/}
+            {/*    <div data-state="vote_count" data-compose="expand">Vote Count: [vote_count]</div>*/}
+            {/*    <div data-state="id" data-compose="expand">ID: [id]</div>*/}
+            {/*    <div data-state="vote_average" data-compose="expand">Vote Average: [vote_average]</div>*/}
+            {/*</div>*/}
             <div data-view="navigation_bar"/>
             <div data-if-path="/" data-view="home"/>
             <div data-if-path="/search" data-view="search"/>

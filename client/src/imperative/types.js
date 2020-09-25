@@ -110,6 +110,7 @@ export const state = {
         "body": "",
     },
     "composed": undefined,
+    "input": {},
     "view": {},
 };
 

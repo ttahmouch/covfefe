@@ -53,7 +53,8 @@ import {
     schemaIdentifierFromSchema,
     statesFromAction,
     valueFromAction,
-    viewFromAppState
+    viewFromAppState,
+    viewStateFromStates
 } from "./dependencies.js";
 
 // Reducers ------------------------------------------------------------------------------------------------------------
@@ -310,7 +311,7 @@ export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed
 export const expandTemplate = (composer, dependencies = {create}) => {
     const {create} = dependencies;
     const {$state: {composed} = state} = composer;
-    const expression = /{([^{}]*)}/g;
+    const expression = /[{(]([^{}()]*)[)}]/g;
     const withValue = (match, param) => typeof composed[param] !== "undefined" ? String(composed[param]) : match;
 
     return create(composer).replace(expression, withValue);
@@ -684,15 +685,16 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
                                                settingsFromAppState, toDereferencedRequest, toDereferencedResponse,
                                                appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
                                                dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-                                               dispatchSyncActionToStore
+                                               dispatchSyncActionToStore, viewStateFromStates
                                            }) => {
     const {
         getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
         eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
         mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-        dispatchSyncActionToStore
+        dispatchSyncActionToStore, viewStateFromStates
     } = dependencies;
     const app = appStateFromStates(states) || app;
+    const view = viewStateFromStates(states) || {};
     const settings = settingsFromAppState(app) || {};
     const mock = mockSettingFromSettings(settings) || false;
     const request = toDereferencedRequest(requestFromAsyncAction(action), states) || {};
@@ -700,7 +702,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
     const response = toDereferencedResponse(mockResponseFromResponses(responses), states) || {};
     const events = eventsFromAsyncAction(action) || {};
     const event = mockEventFromEvents(events) || {};
-    const dispatch = eventDispatcherForStore(store) || ((event = domEvent) => undefined);
+    const dispatch = eventDispatcherForStore(store, view) || ((event = domEvent) => undefined);
     const {
         $method = "GET",
         $uri = "/",
@@ -767,8 +769,9 @@ export const dispatchSyncActionToStore = (action = syncAction, states, store = s
 
     return store.dispatch({
         ...action,
-        type: $action !== undefined && composeFromValue($action, states),
-        value: $value !== undefined && composeFromValue($value, states),
+        "$states": states,
+        "type": $action !== undefined && composeFromValue($action, states),
+        "value": $value !== undefined && composeFromValue($value, states),
     });
 }
 
@@ -1013,7 +1016,7 @@ export const responseStateFromDomEvent = (event = domEvent, dependencies = {clie
     return getResponse(client);
 };
 
-export const viewStateFromDomEvent = (event = domEvent, dependencies = {mapChildrenToState}) => {
+export const inputStateFromDomEvent = (event = domEvent, dependencies = {mapChildrenToState}) => {
     const {mapChildrenToState} = dependencies;
     const {target} = event;
     const {value = "", "dataset": {"stateType": type = "string"}} = target;
@@ -1053,25 +1056,25 @@ export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) =>
     return ["change", "input", "submit"].includes(type)
 };
 
-export const eventDispatcherForStore = (store = store,
+export const eventDispatcherForStore = (store = store, view = {},
                                         dependencies = {
-                                            appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent,
+                                            appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent,
                                             eventIdentifierFromDomEvent, eventsFromAppState, eventFromEvents,
                                             isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
                                             eventTypeFromDomEvent
                                         }) => {
     const {
-        appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
+        appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
         eventsFromAppState, eventFromEvents, isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
         eventTypeFromDomEvent
     } = dependencies;
 
     return (event, states = {}) => {
-        const {view: previousView = {}, response: previousResponse = {}} = states;
+        const {input: previousInput = {}, response: previousResponse = {}} = states;
         const app = appStateFromStore(store) || {};
-        const view = isDomFormEvent(event) ? viewStateFromDomEvent(event) : previousView;
+        const input = isDomFormEvent(event) ? inputStateFromDomEvent(event) : previousInput;
         const response = isDomProgressEvent(event) ? responseStateFromDomEvent(event) : previousResponse;
-        const $states = {app, view, response};
+        const $states = {app, input, response, view};
         const $event = toDereferencedEvent(event, $states);
 
         event.preventDefault();
@@ -1081,42 +1084,56 @@ export const eventDispatcherForStore = (store = store,
 
 // App -----------------------------------------------------------------------------------------------------------------
 
-export const mapCustomPropsToReactProps = (props = {}, store = {getState: () => ({"$styles": {}})},
+// export const toNormalizedJson = (value) => {
+//     return (typeof value === "undefined" || typeof value === "function")
+//         ? null
+//         : typeof value === "symbol"
+//             ? `${Symbol.keyFor(value)}`
+//             : typeof value === "bigint"
+//                 ? Number(value)
+//                 : value;
+// };
+
+export const mapCustomPropsToReactProps = (props = {}, store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {appStateFromStore, composeFromIdentifier, eventDispatcherForStore}) => {
     const {appStateFromStore, composeFromIdentifier, eventDispatcherForStore} = dependencies;
     const app = appStateFromStore(store) || {};
-    const dispatch = eventDispatcherForStore(store);
+    const dispatch = eventDispatcherForStore(store, view);
     /**
      * Select state using basic id selectors, and select state using complex state composers.
      * Does the hollistic app structure need significant keys like $styles, $states, etc?
      */
     const {
-        "data-style": $style = "",
         "data-state": $state = "",
+        "data-style": $style = "",
         "data-event": $event = "",
-        "data-style-value": $styleValue = $style && composeFromIdentifier($style, {app}, "$styles"),
-        "data-state-value": $stateValue = $state && composeFromIdentifier($state, {app}, "$states"),
+        "data-state-value": $stateValue = $state && composeFromIdentifier($state, {app, view}, "$states"),
+        "data-style-value": $styleValue = $style && composeFromIdentifier($style, {app, view}, "$styles"),
         "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
-        "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
         "data-bind-state": $bindState = $stateValue ? "children" : "data-bind-state",
+        "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
         "data-bind-event": $bindEvent = "data-bind-event",
     } = props;
+
+    view[$state] = $stateValue;
+    // console.log(Object.keys(view).length);
 
     return {
         ...props,
         [$bindStyle]: $styleValue,
         [$bindState]: $stateValue,
-        [$bindEvent]: $eventValue
+        [$bindEvent]: $eventValue,
+        // "data-state-value": JSON.stringify($stateValue, (key, value) => toNormalizedJson(value))
     };
 };
 
-export const toReactProps = (props = {}, store = {}, dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
+export const toReactProps = (props = {}, store = {}, view = {}, dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
     const {areDataProps, mapCustomPropsToReactProps} = dependencies;
 
-    return areDataProps(props) ? mapCustomPropsToReactProps(props, store) : props;
+    return areDataProps(props) ? mapCustomPropsToReactProps(props, store, view) : props;
 };
 
-export const createElementWithCustomDataProps = (method = {createElement}, store = store,
+export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {},
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
@@ -1139,30 +1156,28 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         const components = composersFromAppState(app) || {};
         const {
             "data-if": $if = "",
-            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app}, "$states"),
+            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app, view}, "$states"),
             "data-unless": $unless = "",
-            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app}, "$states"),
+            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app, view}, "$states"),
             "data-path-type": $pathType = "path_template",
             "data-if-path": $ifPath = "",
-            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app}, $pathType),
+            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app, view}, $pathType),
             "data-unless-path": $unlessPath = "",
-            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app}, $pathType),
+            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app, view}, $pathType),
             "data-should": $should = ($if === "" && $unless === "" && $ifPath === "" && $unlessPath === "")
                 || $ifValue === true
                 || $unlessValue === true
                 || $ifPathValue === true
                 || $unlessPathValue === true,
             "data-path": $path = $ifPath || $unlessPath || "",
-            "data-path-params": $pathParams = (
-                $path && $should && composeParametersFromPathTemplate($path, {app}, $pathType)
-            ) || {},
+            "data-path-params": $pathParams = ($path && $should && composeParametersFromPathTemplate($path, {app, view}, $pathType)) || {},
             "data-view": $view = "",
-            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app}, "$views"),
+            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app, view}, "$views"),
             ...$props
         } = props;
         const $element = $viewValue || type;
 
-        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app}, store);
+        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app, view}, store);
 
         // $view && $should && console.group("View:", $viewValue);
         // $view && !$should && console.group("Suppressing View:", $view);
@@ -1175,7 +1190,7 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
             return toElement($type, {...props, ...$props}, ...$children);
         }
 
-        return createElement(type, toReactProps(props, store), ...children);
+        return createElement(type, toReactProps(props, store, view), ...children);
     };
 
     return toElement;

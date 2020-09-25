@@ -62,6 +62,8 @@ export const getType = (components = {},
 
 export const appStateFromStates = ({app = app} = state) => app;
 
+export const viewStateFromStates = ({view = {}} = state) => view;
+
 export const composersFromAppState = ({$composers = {}} = app) => $composers;
 
 export const composerIdentifierFromComposer = ({"$compose": id = ""} = declarativeComposer) => id;

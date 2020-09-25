@@ -4,17 +4,18 @@ const Home = () => (<div data-view="home_view_jsx"/>);
 const Json = ({json = {}}) => (<pre>{JSON.stringify(json)}</pre>);
 
 /**
+ * + ✅ Implement HTTP Response Mocking.
+ * + ✅ Routing
+ * + ✅ Debug using Redux Dev Tools.
+ * + ✅ Should redux-devtools-extension be a dependency of the app or lib?
+ * + ✅ Netflux Clone.
  * + Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
  * + Conditional Compositions, i.e., AND, OR, XOR, ...
  * + Aborting HTTP Requests.
- * + Implement HTTP Response Mocking.
  * + Animations
  * + Action Sequences
- * + Routing
  * + Check the order of the composition when recursively composing is `json_component` composition.
  * + Return app JSON from a server and reduce it in the client.
- * + Netflux Clone.
- * + Debug using Redux Dev Tools.
  * + Blog, Vlog, Pinterest, Etsy, 3d Print,
  * + Improve JSON JSX format, or allow XML to be used instead.
  * + Add map, reduce, filter, etc. to composers and reducers.
@@ -23,7 +24,6 @@ const Json = ({json = {}}) => (<pre>{JSON.stringify(json)}</pre>);
  * + Start trying to add event handlers for things like the Modal Dialog.
  * + Support JSON Path in data-state like data-if-path.
  * + Support data-event="onLayout".
- * + Should redux-devtools-extension be a dependency of the app or lib?
  * + Create convenience for managing query parameter expansion for a request composer?
  * + Support embedding composers inside types like styles instead of generating styles from composers.
  * + Support data-style with className+CSS.
@@ -38,6 +38,11 @@ const Json = ({json = {}}) => (<pre>{JSON.stringify(json)}</pre>);
  * + Organize the categories into the same model in the store state, and map them with a "FlatList."
  * + Detect onScroll and hide/show the navigation bar background.
  * + Store state as value attributes in any element that can be read from during an event.
+ * + Call view state that the user enters, e.g., form submit, scroll coordinate, etc, `user` state.
+ * + Call view state that the user does not enter, e.g., state selected from the app state, `view` state.
+ * + Allow subviews to select from the view state of the super view; Allow array state to bind to repeatable views.
+ * + Allow `data-multi-state` to bind `{"value": "User Input", "plaecholder": "Move Title, Genre, etc."}` without a single
+ *   `data-bind="value"`?
  */
 export default {
     "$settings": {

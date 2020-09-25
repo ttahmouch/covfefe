@@ -377,3 +377,104 @@ Should the nest structure of the state keys change instead?
  * loadend      Once.                               After one of error, abort, timeout or load has been dispatched.
  * The error, abort, timeout, and load event types are mutually exclusive.
  */
+ 
+ /**
+      Undefined    "undefined"   --> null ("undefined"?)
+      Function     "function"    --> null ("function"?)
+      Null         "object"      --> null
+      NaN          "number"      --> null ("number:nan"?)
+      Infinity     "number"      --> null ("number:infinity"?)
+      Boolean      "boolean"     --> self
+      Number       "number"      --> self
+      String       "string"      --> self
+      Object       "object"      --> self
+      Array        "object"      --> self
+      BigInt       "bigint"      --> Number(self)
+      Symbol       "symbol"      --> Symbol.keyFor(self) ("symbol:key"?)
+*/
+
+// console.log(JSON.parse(JSON.stringify(undefined, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(() => undefined, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(null, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(NaN, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(Infinity, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(false, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(0, (key, value) => toValidJson(value))));
+// // console.log(JSON.parse(JSON.stringify(0n, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify("", (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify(Symbol.for("symbol"), (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify({
+//     "boolean": false,
+//     "function": () => undefined,
+//     "infinity": Infinity,
+//     "nan": NaN,
+//     "null": null,
+//     "number": 0,
+//     "string": "",
+//     "symbol": Symbol.for("symbol"),
+//     "undefined": undefined,
+//     // "bigint": 0n,
+// }, (key, value) => toValidJson(value))));
+// console.log(JSON.parse(JSON.stringify([
+//     false, () => undefined, Infinity, NaN, null, 0, "", Symbol.for("symbol"), undefined
+// ], (key, value) => toValidJson(value))));
+
+console.log(expandTemplate({
+    "$value": `
+        Your search for {title} did not have any matches.
+
+        Suggestions:
+
+        ⦿ Try different keywords.
+        ⦿ Looking for a movie or TV show?
+        ⦿ Try using a movie, TV show title, an actor or director.
+        ⦿ Try a genre, like comedy, romance, sports, or drama.
+        ⦿ {something} (something)
+    `,
+    "$state": {"composed": {"something": "fuck"}}
+}));
+
+{/*<div children={0n}/>*/}
+{/*<div children={false}/>*/}
+{/*<div children={null}/>*/}
+{/*<div children={0}/>*/}
+{/*<div children={""}/>*/}
+{/*<div children={Symbol.for("")}/>*/}
+{/*<div children={undefined}/>*/}
+{/*<div children={{}}/>*/}
+{/*<div children={[]}/>*/}
+{/*<div data-state="title"/>*/}
+{/*<div data-state="movie" data-bind-state="data-state">*/}
+{/*    <div data-state="movie" data-bind-state="data-state"/>*/}
+{/*</div>*/}
+{
+    /**
+     * The store state can be selected or composed and passed to an element via the normal `data-state` prop.
+     * As the view renders, the selected/composed state is aggregated in the states object to be selectable
+     * by composers. Text Nodes should be interpolatable with expand composers template syntax.
+     * If the node selecting state selects a primitive, it should map to a string through expand (?) composition, e.g.,
+     * <div data-state="title" data-compose="expand">Movie: {title}</div>
+     * If primitive, then map the key to key.
+     * If structure, then map keys to keys.
+     * State maps to children by default. This just enhances the mapping to a composition.
+     * State --> Text or Element Mapping
+     * <div data-state="string,boolean,number,null,undefined,object,array"/>
+     *     <div data-state-path="$.view..."/>
+     * In order to render anything it must map to a TextNode.
+     */
+    // {
+    //     "original_name": "Lucifer",
+    //     "name": "Lucifer",
+    //     "first_air_date": "2016-01-25",
+    //     "backdrop_path": "/ta5oblpMlEcIPIS2YGcq9XEkWK2.jpg",
+    //     "original_language": "en",
+    //     "overview": "Bored and unhappy as the Lord of Hell, Lucifer Morningstar abandoned his throne and retired to Los Angeles, where he has teamed up with LAPD detective Chloe Decker to take down criminals. But the longer he's away from the underworld, the greater the threat that the worst of humanity could escape.",
+    //     "poster_path": "/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg"
+    //     "genre_ids": [80, 10765],
+    //     "popularity": 286.139,
+    //     "origin_country": ["US"],
+    //     "vote_count": 4150,
+    //     "id": 63174,
+    //     "vote_average": 8.5,
+    // }
+}
