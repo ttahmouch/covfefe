@@ -295,6 +295,20 @@ export default {
                 "$compose": "match", "$type": "json_schema", "$value": {"$schema": "search_no_results_schema"},
                 "$default": false
             }
+        ],
+        "show_poster_image": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "poster_path": {
+                        "$compose": "read", "$value": "$.view.show.poster_path", "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+                    }
+                }
+            },
+            {
+                "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{poster_path}",
+                "$default": "https://image.tmdb.org/t/p/w500{poster_path}"
+            }
         ]
     },
     "$requests": {
@@ -2646,34 +2660,96 @@ export default {
             </nav>
         ),
     },
+    // <pre data-composer="read" data-composer-type="json_path" data-composer-value="$.view.primitive" data-composer-default="0"/>
+    // data-compose="expand" data-state-default="composition"
+    // data-state-path-type="json_path" data-state-path="$.input.netflix_originals[n].name"
+
+    // How to compose state with `data-state` or `data-state-path`?
+    // Since children nodes MUST BE elements or text, then interpolate all text nodes interspersed between elements.
+    // Interpolate the state into strings.
+    // 1. If `data-bind-state` is still the default `children` prop, then ...
+    // a. If `children` is `undefined`, create a text node that has a placeholder to interpolate and interpolate any value,
+    // simple or complex, e.g., "(data-state)".
+    // If children is defined as a string, interpolate the string with any value, simple or complex, e.g., "Start (data-state) Finish"
+    // If the value is a primitive, interpolate it in (data-state).
+    // If the value is an object, interpolate its keys to (data-state.key) (data-state.0) ...
+    // If children is other JSX elements, ...
     "$view": (
         <>
-            {/*<div data-state="movie" data-bind-state="data-bind-state" data-state-path="$.input.movie.name"/>*/}
-            {/*<div data-state="netflix_originals" data-repeat="true">*/}
-            {/*    <div data-state="original_name" data-compose="expand" data-state-default="composition">*/}
-            {/*        Original Name: (original_name)*/}
-            {/*    </div>*/}
-            {/*    <div data-state="name" data-compose="expand"*/}
-            {/*         data-state-path-type="json_path"*/}
-            {/*         data-state-path="$.input.netflix_originals[n].name">*/}
-            {/*        Name: [name]*/}
-            {/*    </div>*/}
-            {/*    <div data-state="first_air_date" data-compose="expand">First Air Date: [first_air_date]</div>*/}
-            {/*    <div data-state="backdrop_path" data-compose="expand">Backdrop Path: [backdrop_path]</div>*/}
-            {/*    <div data-state="original_language" data-compose="expand">Original Language: [original_language]</div>*/}
-            {/*    <div data-state="overview" data-compose="expand">Overview: [overview]</div>*/}
-            {/*    <div data-state="poster_path" data-compose="expand">Poster Path: [poster_path]</div>*/}
-            {/*    <div data-state="genre_ids" data-compose="expand">Genre IDs: [0], [1]</div>*/}
-            {/*    <div data-state="popularity" data-compose="expand">Popularity: [popularity]</div>*/}
-            {/*    <div data-state="origin_country" data-compose="expand">Origin Country: [0]</div>*/}
-            {/*    <div data-state="vote_count" data-compose="expand">Vote Count: [vote_count]</div>*/}
-            {/*    <div data-state="id" data-compose="expand">ID: [id]</div>*/}
-            {/*    <div data-state="vote_average" data-compose="expand">Vote Average: [vote_average]</div>*/}
-            {/*</div>*/}
             <div data-view="navigation_bar"/>
             <div data-if-path="/" data-view="home"/>
             <div data-if-path="/search" data-view="search"/>
             <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
+            <div style={{color: "red", fontSize: 14}}>
+                <pre data-state="boolean" data-state-value={false}/>
+                <pre data-state="null" data-state-value={null}/>
+                <pre data-state="number" data-state-value={9000}/>
+                <pre data-state="string" data-state-value={"string"}/>
+                {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}/>*/}
+                <pre data-state="undefined" data-state-value={undefined}/>
+                <pre data-state="object" data-state-value={{"0": 0, "1": 1}}/>
+                <pre data-state="array" data-state-value={[0, 1]}/>
+
+                <pre data-state="boolean" data-state-value={false}>(boolean)</pre>
+                <pre data-state="null" data-state-value={null}>(null)</pre>
+                <pre data-state="number" data-state-value={9000}>(number)</pre>
+                <pre data-state="string" data-state-value={"string"}>(string)</pre>
+                {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}>(symbol)</pre>*/}
+                <pre data-state="undefined" data-state-value={undefined}>(undefined)</pre>
+                <pre data-state="primitive" data-state-value={true}>(primitive) <span/> (primitive)</pre>
+                <pre data-state="object" data-state-value={{"0": 0, "1": 1}}>(0) <span/> (1)</pre>
+                <pre data-state="array" data-state-value={[0, 1]}>(0) <span/> (1)</pre>
+
+                <pre data-state="noop"/>
+                <pre data-state="noop" data-state-default="noop"/>
+                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default="noop"/>
+                <pre data-state="noop" data-state-default-value="default"/>
+                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default-value="default"/>
+                <pre data-state="title"/>
+                <pre data-state="noop" data-state-default="title"/>
+                <pre data-state="title" data-state-path="$.app['$states'].title"/>
+                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default="title"/>
+
+                <div data-state-repeat="true" data-state-repeat-key="9000" data-state="nested_primitive" data-state-value={9000}>
+                    <pre data-state="9000" data-state-path="$.view.9000"/>
+                </div>
+                <div data-state-repeat="true" data-state-repeat-key="integer" data-state="nested_array_of_integers" data-state-value={[0, 1, 2, 3]}>
+                    <pre data-state="integer" data-state-path="$.view.integer"/>
+                </div>
+            </div>
+            {
+                /*
+                    + Support Binding Multiple Props From State, e.g., children and value.
+                    + Support Expanding Templates For Props Other Than Children, e.g., .
+                    + Support Encoding JSON Values From State.
+                    + Memoize Views?
+                */
+            }
+            <div className="showcase" data-state="netflix_originals" data-state-repeat="true" data-state-repeat-key="show">
+                <div className="showcase_movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                    <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                        <input type="hidden" data-bind-state="defaultValue" data-state="original_name" data-state-path="$.view.show.original_name"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="name" data-state-path="$.view.show.name"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="original_language" data-state-path="$.view.show.original_language"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="overview" data-state-path="$.view.show.overview"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="poster_path" data-state-path="$.view.show.poster_path"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="popularity" data-state-path="$.view.show.popularity"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="origin_country" data-state-path="$.view.show.origin_country"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="vote_count" data-state-path="$.view.show.vote_count"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="vote_average" data-state-path="$.view.show.vote_average"/>
+                        <input type="hidden" data-bind-state="defaultValue" data-state="media_type" data-state-path="$.view.show.media_type"/>
+                        <input className="showcase_movie_image" type="image" data-bind-state="src" data-state="show_poster_image" alt=""/>
+                        <div data-state-repeat="true" data-state-repeat-key="country" data-state="origin_country"
+                             data-state-path="$.view.show.origin_country">
+                            <input type="text" data-state="country" data-state-path="$.view.country" data-bind-state="defaultValue"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </>
     )
 };
