@@ -1,45 +1,5 @@
 import React from "react";
 
-export const MovieRow = ({movies = []}) => {
-    return (
-        <div className="showcase">
-            {
-                movies.map((movie) => {
-                    return (
-                        <div className="showcase_movie" key={movie}>
-                            <img className="showcase_movie_image" data-bind-event="onClick" data-event="on_click_movie"
-                                 src={movie} alt=""/>
-                        </div>
-                    );
-                })
-            }
-        </div>
-    );
-};
-
-export const ShowRow = ({shows = [], poster = true}) => {
-    return (
-        <div className="showcase">
-            {
-                shows
-                    .map(({id = 0, media_type = "tv", poster_path = "", backdrop_path = ""}) => {
-                        return (
-                            <div className="showcase_movie" key={id}>
-                                <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit"
-                                      data-state-type="dictionary">
-                                    <input name="id" type="hidden" value={JSON.stringify(id)}/>
-                                    <input name="media_type" type="hidden" value={JSON.stringify(media_type)}/>
-                                    <input className="showcase_movie_image" type="image"
-                                           src={`https://image.tmdb.org/t/p/w500${poster ? poster_path : backdrop_path}`} alt=""/>
-                                </form>
-                            </div>
-                        );
-                    })
-            }
-        </div>
-    );
-};
-
 export const SearchRow = ({query = []}) => {
     return (
         <div className="search-container">
@@ -191,51 +151,23 @@ export default {
         }
     },
     "$composers": {
-        MovieRow,
-        ShowRow,
         SearchRow,
-        "movie_title": {"$compose": "read", "$value": "$.app['$states'].movie.title", "$default": "movie_title"},
-        "movie_overview": {"$compose": "read", "$value": "$.app['$states'].movie.overview", "$default": "movie_overview"},
-        "movie_runtime": [
-            {
-                "$compose": "create",
-                "$value": {"runtime": {"$compose": "read", "$value": "$.app['$states'].movie.runtime", "$default": 0}}
-            },
-            {
-                "$compose": "expand", "$type": "template", "$value": "Runtime: {runtime} minutes ",
-                "$default": "Runtime: {runtime} minutes "
-            }
-        ],
-        "movie_rating": [
-            {
-                "$compose": "create",
-                "$value": {"rating": {"$compose": "read", "$value": "$.app['$states'].movie.rating", "$default": 0}}
-            },
-            {"$compose": "expand", "$type": "template", "$value": "Rating: {rating} ", "$default": "Rating: {rating} "}
-        ],
-        "movie_release": [
-            {
-                "$compose": "create",
-                "$value": {"release": {"$compose": "read", "$value": "$.app['$states'].movie.release", "$default": ""}}
-            },
-            {"$compose": "expand", "$type": "template", "$value": "Release: {release} ", "$default": "Release: {release} "}
-        ],
         "movie_background_image": [
             {
                 "$compose": "create",
                 "$value": {
                     "background_image": {
-                        "$compose": "read", "$value": "$.app['$states'].movie.background_image",
+                        "$compose": "read", "$value": "$.app.$states.movie.background_image",
                         "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
                     }
                 }
             },
             {
                 "$compose": "expand", "$value": "https://image.tmdb.org/t/p/original{background_image}",
-                "$default": "https://image.tmdb.org/t/p/original{background_image}"
+                "$default": "https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
             }
         ],
-        "modal_style": [
+        "movie_background_image_style": [
             {
                 "$compose": "create",
                 "$value": {
@@ -247,24 +179,7 @@ export default {
                         },
                         {
                             "$compose": "expand", "$value": "url({movie_background_image})",
-                            "$default": "url({movie_background_image})"
-                        }
-                    ]
-                }
-            }
-        ],
-        "header_style": [
-            {
-                "$compose": "create",
-                "$value": {
-                    "backgroundImage": [
-                        {
-                            "$compose": "create",
-                            "$value": {"movie_background_image": {"$compose": "movie_background_image"}}
-                        },
-                        {
-                            "$compose": "expand", "$value": "url({movie_background_image})",
-                            "$default": "url({movie_background_image})"
+                            "$default": "url(https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg)"
                         }
                     ]
                 }
@@ -278,23 +193,9 @@ export default {
             {"$compose": "read", "$value": "$.input.media_type.0", "$default": ""},
             {"$compose": "match", "$type": "regular_expression", "$value": "(?:movie)", "$default": false}
         ],
-        "search_no_results_body": [
-            {
-                "$compose": "create",
-                "$value": {"title": {"$compose": "read", "$value": "$.app['$states'].title", "$default": ""}}
-            },
-            {
-                "$compose": "expand",
-                "$value": {"$compose": "read", "$value": "$.app['$states'].search_no_results_body", "$default": ""},
-                "$default": ""
-            }
-        ],
         "search_no_results": [
-            {"$compose": "read", "$value": "$.app['$states'].query", "$default": []},
-            {
-                "$compose": "match", "$type": "json_schema", "$value": {"$schema": "search_no_results_schema"},
-                "$default": false
-            }
+            {"$compose": "read", "$value": "$.app.$states.query", "$default": []},
+            {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "search_no_results_schema"}, "$default": false}
         ],
         "show_poster_image": [
             {
@@ -309,6 +210,20 @@ export default {
                 "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{poster_path}",
                 "$default": "https://image.tmdb.org/t/p/w500{poster_path}"
             }
+        ],
+        "show_backdrop_image": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "backdrop_path": {
+                        "$compose": "read", "$value": "$.view.show.backdrop_path", "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+                    }
+                }
+            },
+            {
+                "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{backdrop_path}",
+                "$default": "https://image.tmdb.org/t/p/w500/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+            }
         ]
     },
     "$requests": {
@@ -320,11 +235,6 @@ export default {
         "request_tv": {
             "$method": "GET",
             "$uri": "https://api.themoviedb.org/3/tv/{id}?api_key={api_key}",
-            "$timeout": 30000
-        },
-        "request_movie_background_image": {
-            "$method": "GET",
-            "$uri": "https://image.tmdb.org/t/p/original{background_image}",
             "$timeout": 30000
         },
         "request_netflix_originals": {
@@ -1532,8 +1442,8 @@ export default {
                     {
                         "$compose": "create",
                         "$value": {
-                            "id": {"$compose": "read", "$value": "$.app['$states'].movie.id", "$default": 0},
-                            "api_key": {"$compose": "read", "$value": "$.app['$states'].api_key", "$default": ""}
+                            "id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0},
+                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}
                         }
                     },
                     {
@@ -1554,8 +1464,8 @@ export default {
                     {
                         "$compose": "create",
                         "$value": {
-                            "id": {"$compose": "read", "$value": "$.app['$states'].movie.id", "$default": 0},
-                            "api_key": {"$compose": "read", "$value": "$.app['$states'].api_key", "$default": ""}
+                            "id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0},
+                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}
                         }
                     },
                     {
@@ -1575,7 +1485,7 @@ export default {
                 "$uri": [
                     {
                         "$compose": "create",
-                        "$value": {"api_key": {"$compose": "read", "$value": "$.app['$states'].api_key", "$default": ""}}
+                        "$value": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
                     },
                     {
                         "$compose": "expand", "$type": "uri_template",
@@ -1594,7 +1504,7 @@ export default {
                 "$uri": [
                     {
                         "$compose": "create",
-                        "$value": {"api_key": {"$compose": "read", "$value": "$.app['$states'].api_key", "$default": ""}}
+                        "$value": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
                     },
                     {
                         "$compose": "expand", "$type": "uri_template",
@@ -1614,8 +1524,8 @@ export default {
                     {
                         "$compose": "create",
                         "$value": {
-                            "api_key": {"$compose": "read", "$value": "$.app['$states'].api_key", "$default": ""},
-                            "query": {"$compose": "read", "$value": "$.app['$states'].title", "$default": ""}
+                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""},
+                            "query": {"$compose": "read", "$value": "$.app.$states.title", "$default": ""}
                         }
                     },
                     {
@@ -1627,13 +1537,6 @@ export default {
             },
             "$responses": [{"$mock": false, "$response": "request_search_success"}],
             "$events": {"200": {"$event": "on_request_search_success"}}
-        },
-        "request_movie_background_image": {
-            "$action": "request_movie_background_image",
-            "$request": {
-                "$request": "request_movie_background_image",
-                "$uri": {"$compose": "movie_background_image"}
-            }
         }
     },
     "$events": {
@@ -1644,14 +1547,8 @@ export default {
                 "$value": {
                     "key": "movie",
                     "item": {
-                        "id": [
-                            {"$compose": "read", "$value": "$.input.id.0", "$default": "0"},
-                            {"$compose": "decode", "$type": "json", "$default": 0}
-                        ],
-                        "media_type": [
-                            {"$compose": "read", "$value": "$.input.media_type.0", "$default": "\"tv\""},
-                            {"$compose": "decode", "$type": "json", "$default": "tv"}
-                        ]
+                        "id": [{"$compose": "read", "$value": "$.input.id.0", "$default": "0"}],
+                        "media_type": [{"$compose": "read", "$value": "$.input.media_type.0", "$default": "tv"}]
                     }
                 }
             },
@@ -1800,23 +1697,6 @@ export default {
         "account_title": "Account",
         "help_title": "Help Center",
         "sign_out_title": "Sign Out",
-        "search_no_results_body": `
-        Your search for {title} did not have any matches.
-
-        Suggestions:
-
-        ⦿ Try different keywords.
-        ⦿ Looking for a movie or TV show?
-        ⦿ Try using a movie, TV show title, an actor or director.
-        ⦿ Try a genre, like comedy, romance, sports, or drama.
-        `,
-        "404_body": `
-        Lost your way?
-
-        Sorry, we can't find that page. You'll find lots to explore on the home page.
-
-        Error Code NSES-404
-        `,
         "netflix_logo": "https://github.com/AndresXI/Netflix-Clone/blob/057d454087bce94762bfae7a45dc1b0c4cfe62f2/src/static/images/Netflix_Logo_RGB.png?raw=true",
         "should_show_modal": false,
         "netflix_originals": [
@@ -2481,25 +2361,37 @@ export default {
                     d="M36.068,20.176l-29-20C6.761-0.035,6.363-0.057,6.035,0.114C5.706,0.287,5.5,0.627,5.5,0.999v40 c0,0.372,0.206,0.713,0.535,0.886c0.146,0.076,0.306,0.114,0.465,0.114c0.199,0,0.397-0.06,0.568-0.177l29-20 c0.271-0.187,0.432-0.494,0.432-0.823S36.338,20.363,36.068,20.176z"/>
             </svg>
         ),
-        "": (
-            <div data-state="movies">
-                <span data-state="title"/>
+        "netflix_originals": (
+            <div className="showcase" data-state="netflix_originals" data-state-repeat="true" data-state-repeat-key="show">
+                <div className="showcase_movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                    {/*<div data-state="fuck">*/}
+                    {/*    <div data-state="fuck2"/>*/}
+                    {/*</div>*/}
+                    <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                        <input type="hidden" name="id" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
+                        <input type="hidden" name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                               data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                        <input className="showcase_movie_image" type="image" data-bind-state="src" data-state="show_poster_image" alt=""/>
+                    </form>
+                </div>
             </div>
         ),
-        "netflix_originals": (
-            <ShowRow data-state="netflix_originals" data-bind-state="shows"/>
-        ),
         "trending": (
-            // <ShowRow poster="false" data-state="trending" data-bind-state="shows"/>
-            {"type": "ShowRow", "props": {"poster": false, "data-state": "trending", "data-bind-state": "shows"}}
+            <div className="showcase" data-state="trending" data-state-repeat="true" data-state-repeat-key="show">
+                <div className="showcase_movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                    <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                        <input type="hidden" name="id" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
+                        <input type="hidden" name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                               data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                        <input className="showcase_movie_image" type="image" data-bind-state="src" data-state="show_backdrop_image" alt=""/>
+                    </form>
+                </div>
+            </div>
         ),
-        "movies": {"type": "MovieRow", "props": {"data-state": "movies", "data-bind-state": "movies"}},
         "netflix_originals_row": (
             <>
                 <h1 className="movieShowcase__heading" data-state="netflix_originals_title"/>
                 <div className="movieShowcase__container" draggable="true">
-                    {/*<MovieRow data-state="movies" data-bind-state="movies"/>*/}
-                    {/*<div data-view="movies"/>*/}
                     <div data-view="netflix_originals"/>
                 </div>
             </>
@@ -2508,16 +2400,15 @@ export default {
             <>
                 <h1 className="movieShowcase__heading" data-state="trending_title"/>
                 <div className="movieShowcase__container" draggable="true">
-                    {/*<MovieRow data-state="movies" data-bind-state="movies"/>*/}
-                    {/*<div data-view="movies"/>*/}
                     <div data-view="trending"/>
                 </div>
             </>
         ),
         "header": (
-            <header data-style="header_style" className="header">
+            <header data-style="movie_background_image_style" className="header">
                 <div className="header__container">
-                    <h1 className="header_title" data-state="movie_title"/>
+                    <h1 className="header_title" data-state="movie_title" data-state-path="$.app.$states.movie.title"
+                        data-state-default-value="Title"/>
                     <button className="header__container-btnPlay" data-bind-event="onClick"
                             data-event="on_click_play">
                         <div data-view="play_icon" className="header_container_button_play"/>
@@ -2528,7 +2419,8 @@ export default {
                         <div data-view="add_icon" className="header__container-btnMyList-add"/>
                         <span data-state="my_list_title"/>
                     </button>
-                    <p className="header__container-overview" data-state="movie_overview"/>
+                    <p className="header__container-overview" data-state="movie_overview"
+                       data-state-path="$.app.$states.movie.overview" data-state-default-value="Movie Overview"/>
                 </div>
                 <div className="header--fadeBottom"/>
             </header>
@@ -2536,17 +2428,25 @@ export default {
         "modal": (
             <>
                 <div className="backdrop" data-bind-event="onClick" data-event="on_click_modal_background"/>
-                <div className="modal show" data-style="modal_style">
+                <div className="modal show" data-style="movie_background_image_style">
                     <div className="modal__container">
-                        <h1 className="modal__title" data-state="movie_title"/>
+                        <h1 className="modal__title" data-state="movie_title" data-state-path="$.app.$states.movie.title"
+                            data-state-default-value="Title"/>
                         <p className="modal__info">
-                            <span className="modal__rating" data-state="movie_rating"/>
-                            <span data-state="movie_release"/>
-                            <span data-state="movie_runtime"/>
+                            <span className="modal__rating" data-state="movie_rating" data-state-path="$.app.$states.movie.rating"
+                                  data-state-default-value="0">
+                                Rating: (movie_rating)&nbsp;
+                            </span>
+                            <span data-state="movie_release" data-state-path="$.app.$states.movie.release" data-state-default-value="">
+                                Release: (movie_release)&nbsp;
+                            </span>
+                            <span data-state="movie_runtime" data-state-path="$.app.$states.movie.runtime" data-state-default-value="0">
+                                Runtime: (movie_runtime) minutes
+                            </span>
                         </p>
-                        <p className="modal__overview" data-state="movie_overview"/>
-                        <button className="modal__btn modal__btn--red" data-bind-event="onClick"
-                                data-event="on_click_play">
+                        <p className="modal__overview" data-state="movie_overview"
+                           data-state-path="$.app.$states.movie.overview" data-state-default-value="Movie Overview"/>
+                        <button className="modal__btn modal__btn--red" data-bind-event="onClick" data-event="on_click_play">
                             <div data-view="play_icon" className="header_container_button_play"/>
                             <span data-state="play_title"/>
                         </button>
@@ -2564,6 +2464,10 @@ export default {
                 <div className="movieShowcase">
                     <div data-view="netflix_originals_row"/>
                     <div data-view="trending_row"/>
+                    <div data-view="trending_row"/>
+                    <div data-view="trending_row"/>
+                    <div data-view="trending_row"/>
+                    <div data-view="trending_row"/>
                 </div>
             </div>
         ),
@@ -2576,7 +2480,14 @@ export default {
         "no_results": (
             <div className="no-results">
                 <div className="no-results__text">
-                    <p data-state="search_no_results_body"/>
+                    <p data-state="title" data-state-path="$.app.$states.title" data-state-default-value="">
+                        Your search for (title) did not have any matches.<br/><br/>
+                        Suggestions:<br/><br/>
+                        ⦿ Try different keywords.<br/>
+                        ⦿ Looking for a movie or TV show?<br/>
+                        ⦿ Try using a movie, TV show title, an actor or director.<br/>
+                        ⦿ Try a genre, like comedy, romance, sports, or drama.
+                    </p>
                 </div>
             </div>
         ),
@@ -2593,7 +2504,11 @@ export default {
         "404": (
             <div className="no-results">
                 <div className="no-results__text">
-                    <p data-state="404_body"/>
+                    <p>
+                        Lost your way?<br/><br/>
+                        Sorry, we can't find that page. You'll find lots to explore on the home page.<br/><br/>
+                        Error Code NSES-404
+                    </p>
                 </div>
             </div>
         ),
@@ -2637,19 +2552,6 @@ export default {
                         <input className="navigation__container--left__input" name="title" type="text"
                                data-bind-state="value" data-state="title" data-bind-event="onChange"
                                data-event="on_change_title" placeholder="Title, Genres, People"/>
-                        {/*// Use a JSON Path selector composition to select application state.*/}
-                        {/*// If application state is found, bind it to a prop.*/}
-                        {/*// If application state is not found, bind default to a prop.*/}
-                        {/*// Default state may be composed or a direct identifier to state.*/}
-                        {/*data-state-path-type="json_path"*/}
-                        {/*data-state-path="$.app['$states'].placeholder"*/}
-                        {/*data-state-default="placeholder"*/}
-                        {/*data-bind-state="placeholder"*/}
-                        {/*data-state="placeholder"*/}
-                        {/*data-bind-state="value"*/}
-                        {/*data-state="title"*/}
-                        {/*data-bind-event="onChange"*/}
-                        {/*data-event="on_change_title"/>*/}
                     </div>
                     <div className="navigation_bar_link pseudo-link" data-state="kids_title"/>
                     <div className="navigation_bar_link pseudo-link" data-state="dvd_title"/>
@@ -2680,6 +2582,7 @@ export default {
             <div data-if-path="/" data-view="home"/>
             <div data-if-path="/search" data-view="search"/>
             <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
+
             <div style={{color: "red", fontSize: 14}}>
                 <pre data-state="boolean" data-state-value={false}/>
                 <pre data-state="null" data-state-value={null}/>
@@ -2702,13 +2605,13 @@ export default {
 
                 <pre data-state="noop"/>
                 <pre data-state="noop" data-state-default="noop"/>
-                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default="noop"/>
+                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="noop"/>
                 <pre data-state="noop" data-state-default-value="default"/>
-                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default-value="default"/>
+                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default-value="default"/>
                 <pre data-state="title"/>
                 <pre data-state="noop" data-state-default="title"/>
-                <pre data-state="title" data-state-path="$.app['$states'].title"/>
-                <pre data-state="title" data-state-path="$.app['$states'].noop" data-state-default="title"/>
+                <pre data-state="title" data-state-path="$.app.$states.title"/>
+                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="title"/>
 
                 <div data-state-repeat="true" data-state-repeat-key="9000" data-state="nested_primitive" data-state-value={9000}>
                     <pre data-state="9000" data-state-path="$.view.9000"/>
@@ -2716,36 +2619,89 @@ export default {
                 <div data-state-repeat="true" data-state-repeat-key="integer" data-state="nested_array_of_integers" data-state-value={[0, 1, 2, 3]}>
                     <pre data-state="integer" data-state-path="$.view.integer"/>
                 </div>
-            </div>
-            {
-                /*
-                    + Support Binding Multiple Props From State, e.g., children and value.
-                    + Support Expanding Templates For Props Other Than Children, e.g., .
-                    + Support Encoding JSON Values From State.
-                    + Memoize Views?
-                */
-            }
-            <div className="showcase" data-state="netflix_originals" data-state-repeat="true" data-state-repeat-key="show">
-                <div className="showcase_movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
-                    <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
-                        <input type="hidden" data-bind-state="defaultValue" data-state="original_name" data-state-path="$.view.show.original_name"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="name" data-state-path="$.view.show.name"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="original_language" data-state-path="$.view.show.original_language"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="overview" data-state-path="$.view.show.overview"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="poster_path" data-state-path="$.view.show.poster_path"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="popularity" data-state-path="$.view.show.popularity"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="origin_country" data-state-path="$.view.show.origin_country"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="vote_count" data-state-path="$.view.show.vote_count"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="vote_average" data-state-path="$.view.show.vote_average"/>
-                        <input type="hidden" data-bind-state="defaultValue" data-state="media_type" data-state-path="$.view.show.media_type"/>
-                        <input className="showcase_movie_image" type="image" data-bind-state="src" data-state="show_poster_image" alt=""/>
-                        <div data-state-repeat="true" data-state-repeat-key="country" data-state="origin_country"
-                             data-state-path="$.view.show.origin_country">
-                            <input type="text" data-state="country" data-state-path="$.view.country" data-bind-state="defaultValue"/>
+                <div data-state-repeat="true" data-state-repeat-key="person" data-state="people"
+                     data-state-value={[
+                         {"children": [{"pets": [{"name": "marshmallow"}, {"name": "chocolate"}]}, {"pets": [{"name": "graham"}, {"name": "peanut butter"}]}]},
+                         {"children": [{"pets": [{"name": "red"}, {"name": "orange"}]}, {"pets": [{"name": "yellow"}, {"name": "green"}]}]}
+                     ]}>
+                    <div data-state-repeat="true" data-state-repeat-key="child"
+                         data-state="children" data-state-path="$.view.person.children">
+                        <div data-state-repeat="true" data-state-repeat-key="pet"
+                             data-state="pets" data-state-path="$.view.child.pets">
+                            <pre data-state="name" data-state-path="$.view.pet.name"/>
+                        </div>
+                    </div>
+                </div>
+                <div data-state="netflix_originals"
+                     data-state-repeat="true" data-state-repeat-key="show">
+                    <div className="showcase_movie"
+                         data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                        <form className="showcase_movie_image"
+                              data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                            <input className="showcase_movie_image" type="image"
+                                   data-bind-state="src" data-state="show_poster_image" alt=""/>
+                            <input name="original_name" data-bind-state="defaultValue"
+                                   data-state="original_name" data-state-path="$.view.show.original_name"/>
+                            <input name="name" data-bind-state="defaultValue"
+                                   data-state="name" data-state-path="$.view.show.name"/>
+                            <input name="first_air_date" data-bind-state="defaultValue"
+                                   data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
+                            <input name="backdrop_path" data-bind-state="defaultValue"
+                                   data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
+                            <input name="original_language" data-bind-state="defaultValue"
+                                   data-state="original_language" data-state-path="$.view.show.original_language"/>
+                            <input name="overview" data-bind-state="defaultValue"
+                                   data-state="overview" data-state-path="$.view.show.overview"/>
+                            <input name="poster_path" data-bind-state="defaultValue"
+                                   data-state="poster_path" data-state-path="$.view.show.poster_path"/>
+                            <input name="genre_ids" data-bind-state="defaultValue"
+                                   data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
+                            <input name="popularity" data-bind-state="defaultValue"
+                                   data-state="popularity" data-state-path="$.view.show.popularity"/>
+                            <input name="origin_country" data-bind-state="defaultValue"
+                                   data-state="origin_country" data-state-path="$.view.show.origin_country"/>
+                            <input name="vote_count" data-bind-state="defaultValue"
+                                   data-state="vote_count" data-state-path="$.view.show.vote_count"/>
+                            <input name="vote_average" data-bind-state="defaultValue"
+                                   data-state="vote_average" data-state-path="$.view.show.vote_average"/>
+                            <input name="id" data-bind-state="defaultValue"
+                                   data-state="id" data-state-path="$.view.show.id"/>
+                            <input name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                                   data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                            <div data-state-repeat="true" data-state-repeat-key="nation"
+                                 data-state="country" data-state-path="$.view.show.origin_country">
+                                <input type="text" data-bind-state="defaultValue"
+                                       data-state="nation" data-state-path="$.view.nation"/>
+                                <div data-state-repeat="true" data-state-repeat-key="genre"
+                                     data-state="genres" data-state-path="$.view.show.genre_ids">
+                                    <input type="text" data-bind-state="defaultValue"
+                                           data-state="genre" data-state-path="$.view.genre"/>
+                                </div>
+                            </div>
+                            <div data-state-repeat="true" data-state-repeat-key="genre_id"
+                                 data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                                <input type="text" data-bind-state="defaultValue"
+                                       data-state="genre_id" data-state-path="$.view.genre_id"/>
+                            </div>
+                        </form>
+                    </div>
+                    <br/>
+                </div>
+
+                <div data-state="netflix_originals"
+                     data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
+                     data-state-repeat="true" data-state-repeat-key="show">
+                    <form className="showcase_movie_image"
+                          data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                        <div data-state-repeat="true" data-state-repeat-key="genre_id"
+                             data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                            <input type="text" data-bind-state="defaultValue"
+                                   data-state="genre_id" data-state-path="$.view.genre_id"/>
+                            <div data-state-repeat="true" data-state-repeat-key="country"
+                                 data-state="countries" data-state-path="$.view.show.origin_country">
+                                <input type="text" data-bind-state="defaultValue"
+                                       data-state="country" data-state-path="$.view.country"/>
+                            </div>
                         </div>
                     </form>
                 </div>

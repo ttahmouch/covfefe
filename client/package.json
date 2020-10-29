@@ -5,7 +5,7 @@
   "dependencies": {
     "ajv": "^6.10.0",
     "history": "^4.10.1",
-    "jsonpath": "^1.0.1",
+    "jsonpath-plus": "^4.0.0",
     "path-to-regexp": "^6.1.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",

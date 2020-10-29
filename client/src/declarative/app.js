@@ -3,47 +3,6 @@ import React from "react";
 const Home = () => (<div data-view="home_view_jsx"/>);
 const Json = ({json = {}}) => (<pre>{JSON.stringify(json)}</pre>);
 
-/**
- * + ✅ Implement HTTP Response Mocking.
- * + ✅ Routing
- * + ✅ Debug using Redux Dev Tools.
- * + ✅ Should redux-devtools-extension be a dependency of the app or lib?
- * + ✅ Netflux Clone.
- * + Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
- * + Conditional Compositions, i.e., AND, OR, XOR, ...
- * + Aborting HTTP Requests.
- * + Animations
- * + Action Sequences
- * + Check the order of the composition when recursively composing is `json_component` composition.
- * + Return app JSON from a server and reduce it in the client.
- * + Blog, Vlog, Pinterest, Etsy, 3d Print,
- * + Improve JSON JSX format, or allow XML to be used instead.
- * + Add map, reduce, filter, etc. to composers and reducers.
- * + Add FlatList equivalent for dynamic list elements.
- * + Add support for data-id to allow click events on items in a list to uniquely identify the item.
- * + Start trying to add event handlers for things like the Modal Dialog.
- * + Support JSON Path in data-state like data-if-path.
- * + Support data-event="onLayout".
- * + Create convenience for managing query parameter expansion for a request composer?
- * + Support embedding composers inside types like styles instead of generating styles from composers.
- * + Support data-style with className+CSS.
- * + Support state cascading from ancestor to child view elements, e.g., "FlatList-like."
- * + Support onScroll, onLayout, onRender, etc.
- * + Support data-state-* for multiple state bindings on one element.
- * + Support data-event-* for multiple event bindings on one element.
- * + getState doesn't appear to be getting the latest state between actions in an event.
- * + Support create composer in all the other composers for the value property to make them more useful.
- * + Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
- * + Support Action Sequences because order matters for being able to display a modal dialog after data is fetched.
- * + Organize the categories into the same model in the store state, and map them with a "FlatList."
- * + Detect onScroll and hide/show the navigation bar background.
- * + Store state as value attributes in any element that can be read from during an event.
- * + Call view state that the user enters, e.g., form submit, scroll coordinate, etc, `user` state.
- * + Call view state that the user does not enter, e.g., state selected from the app state, `view` state.
- * + Allow subviews to select from the view state of the super view; Allow array state to bind to repeatable views.
- * + Allow `data-multi-state` to bind `{"value": "User Input", "plaecholder": "Move Title, Genre, etc."}` without a single
- *   `data-bind="value"`?
- */
 export default {
     "$settings": {
         // Event and Action Mocking
