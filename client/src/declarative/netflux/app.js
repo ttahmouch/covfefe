@@ -1982,324 +1982,326 @@ export default {
                 "poster_path": "/3NTAbAiao4JLzFQw6YxP1YZppM8.jpg"
             }
         ],
-        "trending": [{
-            "id": 605116,
-            "video": false,
-            "vote_count": 869,
-            "vote_average": 6.7,
-            "title": "Project Power",
-            "release_date": "2020-08-14",
-            "original_language": "en",
-            "original_title": "Project Power",
-            "genre_ids": [28, 80, 878],
-            "backdrop_path": "/qVygtf2vU15L2yKS4Ke44U4oMdD.jpg",
-            "adult": false,
-            "overview": "An ex-soldier, a teen and a cop collide in New Orleans as they hunt for the source behind a dangerous new pill that grants users temporary superpowers.",
-            "poster_path": "/TnOeov4w0sTtV2gqICqIxVi74V.jpg",
-            "popularity": 614.082,
-            "media_type": "movie"
-        }, {
-            "id": 539885,
-            "video": false,
-            "vote_count": 118,
-            "vote_average": 6.5,
-            "title": "Ava",
-            "release_date": "2020-08-06",
-            "original_language": "en",
-            "original_title": "Ava",
-            "genre_ids": [28, 80, 18, 53],
-            "backdrop_path": "/ekkuqt9Q2ad1F7xq2ZONP0oq36P.jpg",
-            "adult": false,
-            "overview": "A black ops assassin is forced to fight for her own survival after a job goes dangerously wrong.",
-            "poster_path": "/A3z0KMLIEGL22mVrgaV7KDxKRmT.jpg",
-            "popularity": 375.928,
-            "media_type": "movie"
-        }, {
-            "id": 581392,
-            "video": false,
-            "vote_count": 165,
-            "vote_average": 7.4,
-            "title": "Peninsula",
-            "release_date": "2020-07-15",
-            "original_language": "ko",
-            "original_title": "반도",
-            "genre_ids": [28, 27, 53],
-            "backdrop_path": "/gEjNlhZhyHeto6Fy5wWy5Uk3A9D.jpg",
-            "adult": false,
-            "overview": "A soldier and his team battle hordes of post-apocalyptic zombies in the wastelands of the Korean Peninsula.",
-            "poster_path": "/sy6DvAu72kjoseZEjocnm2ZZ09i.jpg",
-            "popularity": 172.911,
-            "media_type": "movie"
-        }, {
-            "original_name": "Lucifer",
-            "id": 63174,
-            "name": "Lucifer",
-            "vote_count": 4389,
-            "vote_average": 8.5,
-            "first_air_date": "2016-01-25",
-            "poster_path": "/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg",
-            "genre_ids": [80, 10765],
-            "original_language": "en",
-            "backdrop_path": "/ta5oblpMlEcIPIS2YGcq9XEkWK2.jpg",
-            "overview": "Bored and unhappy as the Lord of Hell, Lucifer Morningstar abandoned his throne and retired to Los Angeles, where he has teamed up with LAPD detective Chloe Decker to take down criminals. But the longer he's away from the underworld, the greater the threat that the worst of humanity could escape.",
-            "origin_country": ["US"],
-            "popularity": 963.864,
-            "media_type": "tv"
-        }, {
-            "id": 508570,
-            "video": false,
-            "vote_count": 71,
-            "vote_average": 7.2,
-            "title": "The One and Only Ivan",
-            "release_date": "2020-08-21",
-            "original_language": "en",
-            "original_title": "The One and Only Ivan",
-            "genre_ids": [35, 18, 10751],
-            "backdrop_path": "/fFdOJxmG2U7IYYlkFKtDk1nGPhF.jpg",
-            "adult": false,
-            "overview": "Ivan is a 400-pound silverback gorilla who shares a communal habitat in a suburban shopping mall with Stella the elephant, Bob the dog, and various other animals. He has few memories of the jungle where he was captured, but when a baby elephant named Ruby arrives, it touches something deep within him. Ruby is recently separated from her family in the wild, which causes him to question his life, where he comes from and where he ultimately wants to be.",
-            "poster_path": "/e7ZsW5EbLbQwoGx0548KCmCAXA9.jpg",
-            "popularity": 81.278,
-            "media_type": "movie"
-        }, {
-            "id": 577922,
-            "video": false,
-            "vote_count": 401,
-            "vote_average": 7.6,
-            "title": "Tenet",
-            "release_date": "2020-08-22",
-            "original_language": "en",
-            "original_title": "Tenet",
-            "genre_ids": [28, 53],
-            "backdrop_path": "/wzJRB4MKi3yK138bJyuL9nx47y6.jpg",
-            "adult": false,
-            "overview": "Armed with only one word - Tenet - and fighting for the survival of the entire world, the Protagonist journeys through a twilight world of international espionage on a mission that will unfold in something beyond real time.",
-            "poster_path": "/k68nPLbIST6NP96JmTxmZijEvCA.jpg",
-            "popularity": 353.67,
-            "media_type": "movie"
-        }, {
-            "id": 626393,
-            "video": false,
-            "vote_count": 82,
-            "vote_average": 6.7,
-            "title": "The Sleepover",
-            "release_date": "2020-08-21",
-            "original_language": "en",
-            "original_title": "The Sleepover",
-            "genre_ids": [28, 10751],
-            "backdrop_path": "/mQngZ4DtXqdkX9fOQRsm9iym5OW.jpg",
-            "adult": false,
-            "overview": "Two siblings who discover their seemingly normal mom is a former thief in witness protection. Mom is forced to pull one last job, and the kids team up to rescue her over the course of an action-packed night.",
-            "poster_path": "/9iEc34Qje2V3FZnrSXKfZsbiHjW.jpg",
-            "popularity": 178.485,
-            "media_type": "movie"
-        }, {
-            "id": 718444,
-            "video": false,
-            "vote_count": 82,
-            "vote_average": 6.0,
-            "title": "Rogue",
-            "release_date": "2020-08-20",
-            "original_language": "en",
-            "original_title": "Rogue",
-            "genre_ids": [28],
-            "backdrop_path": "/jvKIBaMssk3D7ZH4VF4rLz6A3OK.jpg",
-            "adult": false,
-            "overview": "Battle-hardened O’Hara leads a lively mercenary team of soldiers on a daring mission: rescue hostages from their captors in remote Africa. But as the mission goes awry and the team is stranded, O’Hara’s squad must face a bloody, brutal encounter with a gang of rebels.",
-            "poster_path": "/uOw5JD8IlD546feZ6oxbIjvN66P.jpg",
-            "popularity": 435.961,
-            "media_type": "movie"
-        }, {
-            "id": 501979,
-            "video": false,
-            "vote_count": 18,
-            "vote_average": 6.4,
-            "title": "Bill \u0026 Ted Face the Music",
-            "release_date": "2020-08-27",
-            "original_language": "en",
-            "original_title": "Bill \u0026 Ted Face the Music",
-            "genre_ids": [12, 35, 878],
-            "backdrop_path": "/zeVs5f9zY5W4Lf0CUlFpsHDusnj.jpg",
-            "adult": false,
-            "overview": "Yet to fulfill their rock and roll destiny, the now middle aged best friends Bill and Ted set out on a new adventure when a visitor from the future warns them that only their song can save life as we know it. Along the way, they will be helped by their daughters, a new batch of historical figures, and a few music legends — to seek the song that will set their world right and bring harmony in the universe.",
-            "poster_path": "/y9YLNfUOrqFbYl8q1FpQuuo5MLx.jpg",
-            "popularity": 83.405,
-            "media_type": "movie"
-        }, {
-            "original_name": "Lovecraft Country",
-            "id": 82816,
-            "name": "Lovecraft Country",
-            "vote_count": 89,
-            "vote_average": 7.4,
-            "first_air_date": "2020-08-16",
-            "poster_path": "/fz7bdjxPColvEWCGr5Kiclzc86d.jpg",
-            "genre_ids": [18, 9648, 10765],
-            "original_language": "en",
-            "backdrop_path": "/qx7qy2GJOc7yGY6WENyBU3OVv7A.jpg",
-            "overview": "The anthology horror series follows 25-year-old Atticus Black, who joins up with his friend Letitia and his Uncle George to embark on a road trip across 1950s Jim Crow America to find his missing father. They must survive and overcome both the racist terrors of white America and the malevolent spirits that could be ripped from a Lovecraft paperback.",
-            "origin_country": ["US"],
-            "popularity": 310.264,
-            "media_type": "tv"
-        }, {
-            "id": 621013,
-            "video": false,
-            "vote_count": 214,
-            "vote_average": 8.1,
-            "title": "Chemical Hearts",
-            "release_date": "2020-08-21",
-            "original_language": "en",
-            "original_title": "Chemical Hearts",
-            "genre_ids": [18, 10749],
-            "backdrop_path": "/1eq896TCOEeN9Q8iTJL0n9u31Qf.jpg",
-            "adult": false,
-            "overview": "A high school transfer student finds a new passion when she begins to work on the school's newspaper.",
-            "poster_path": "/q1MNlZYqhoD4U7sd7pjxD6SUf4z.jpg",
-            "popularity": 223.007,
-            "media_type": "movie"
-        }, {
-            "id": 726664,
-            "video": false,
-            "vote_count": 46,
-            "vote_average": 6.7,
-            "title": "Fearless",
-            "release_date": "2020-08-14",
-            "original_language": "en",
-            "original_title": "Fearless",
-            "genre_ids": [16, 35],
-            "backdrop_path": "/s7NC2kntiPB3WltWj9bnNTkoqUp.jpg",
-            "adult": false,
-            "overview": "A teen gamer is forced to level up to full-time babysitter when his favorite video game drops three superpowered infants from space into his backyard.",
-            "poster_path": "/5oQJ6HeNGWnEtP9Qyt5IZjuKI7j.jpg",
-            "popularity": 109.451,
-            "media_type": "movie"
-        }, {
-            "id": 703771,
-            "video": false,
-            "vote_count": 116,
-            "vote_average": 6.9,
-            "title": "Deathstroke: Knights \u0026 Dragons - The Movie",
-            "release_date": "2020-08-04",
-            "original_language": "en",
-            "original_title": "Deathstroke: Knights \u0026 Dragons - The Movie",
-            "genre_ids": [28, 16],
-            "backdrop_path": "/owraiceOKtSOa3t8sp3wA9K2Ox6.jpg",
-            "adult": false,
-            "overview": "Ten years ago, Slade Wilson-aka the super-assassin called Deathstroke-made a tragic mistake and his wife and son paid a terrible price. Now, a decade later, Wilson's family is threatened once again by the murderous Jackal and the terrorists of H.IV.E. Can Deathstroke atone for the sins of the past-or will his family pay the ultimate price?",
-            "poster_path": "/vFIHbiy55smzi50RmF8LQjmpGcx.jpg",
-            "popularity": 144.507,
-            "media_type": "movie"
-        }, {
-            "adult": false,
-            "backdrop_path": "/86L8wqGMDbwURPni2t7FQ0nDjsH.jpg",
-            "genre_ids": [28, 53],
-            "id": 724989,
-            "original_language": "en",
-            "original_title": "Hard Kill",
-            "overview": "The work of billionaire tech CEO Donovan Chalmers is so valuable that he hires mercenaries to protect it, and a terrorist group kidnaps his daughter just to get it.",
-            "poster_path": "/ugZW8ocsrfgI95pnQ7wrmKDxIe.jpg",
-            "release_date": "2020-08-25",
-            "title": "Hard Kill",
-            "video": false,
-            "vote_average": 5.9,
-            "vote_count": 12,
-            "popularity": 68.428,
-            "media_type": "movie"
-        }, {
-            "id": 618354,
-            "video": false,
-            "vote_count": 75,
-            "vote_average": 7.5,
-            "title": "Superman: Man of Tomorrow",
-            "release_date": "2020-08-23",
-            "original_language": "en",
-            "original_title": "Superman: Man of Tomorrow",
-            "genre_ids": [28, 16, 878],
-            "backdrop_path": "/bazlsLkNuhy3IuhviepqvlMm2hV.jpg",
-            "adult": false,
-            "overview": "It’s the dawn of a new age of heroes, and Metropolis has just met its first. But as Daily Planet intern Clark Kent – working alongside reporter Lois Lane – secretly wields his alien powers of flight, super-strength and x-ray vision in the battle for good, there’s even greater trouble on the horizon.",
-            "poster_path": "/6Bbq8qQWpoApLZYWFFAuZ1r2gFw.jpg",
-            "popularity": 305.2,
-            "media_type": "movie"
-        }, {
-            "id": 721452,
-            "video": false,
-            "vote_count": 41,
-            "vote_average": 7.5,
-            "title": "One Night in Bangkok",
-            "release_date": "2020-08-25",
-            "original_language": "en",
-            "original_title": "One Night in Bangkok",
-            "genre_ids": [28, 53],
-            "backdrop_path": "/riDrpqQtZpXGeiJdlmfcwwPH7nN.jpg",
-            "adult": false,
-            "overview": "A hit man named Kai flies into Bangkok, gets a gun, and orders a cab. He offers a professional female driver big money to be his all-night driver. But when she realizes Kai is committing brutal murders at each stop, it's too late to walk away. Meanwhile, an offbeat police detective races to decode the string of slayings before more blood is spilled.",
-            "poster_path": "/i4kPwXPlM1iy8Jf3S1uuLuwqQAV.jpg",
-            "popularity": 189.465,
-            "media_type": "movie"
-        }, {
-            "id": 299534,
-            "video": false,
-            "vote_count": 14758,
-            "vote_average": 8.3,
-            "title": "Avengers: Endgame",
-            "release_date": "2019-04-24",
-            "original_language": "en",
-            "original_title": "Avengers: Endgame",
-            "genre_ids": [28, 12, 878],
-            "backdrop_path": "/orjiB3oUIsyz60hoEqkiGpy5CeO.jpg",
-            "adult": false,
-            "overview": "After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.",
-            "poster_path": "/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
-            "popularity": 92.306,
-            "media_type": "movie"
-        }, {
-            "id": 521034,
-            "video": false,
-            "vote_count": 118,
-            "vote_average": 7.2,
-            "title": "The Secret Garden",
-            "release_date": "2020-07-08",
-            "original_language": "en",
-            "original_title": "The Secret Garden",
-            "genre_ids": [18, 14, 10751],
-            "backdrop_path": "/8PK4X8U3C79ilzIjNTkTgjmc4js.jpg",
-            "adult": false,
-            "overview": "Mary Lennox is born in India to wealthy British parents who never wanted her. When her parents suddenly die, she is sent back to England to live with her uncle. She meets her sickly cousin, and the two children find a wondrous secret garden lost in the grounds of Misselthwaite Manor.",
-            "poster_path": "/5MSDwUcqnGodFTvtlLiLKK0XKS.jpg",
-            "popularity": 42.577,
-            "media_type": "movie"
-        }, {
-            "id": 516486,
-            "video": false,
-            "vote_count": 1014,
-            "vote_average": 7.5,
-            "title": "Greyhound",
-            "release_date": "2020-06-19",
-            "original_language": "en",
-            "original_title": "Greyhound",
-            "genre_ids": [28, 18, 10752],
-            "backdrop_path": "/xXBnM6uSTk6qqCf0SRZKXcga9Ba.jpg",
-            "adult": false,
-            "overview": "A first-time captain leads a convoy of allied ships carrying thousands of soldiers across the treacherous waters of the “Black Pit” to the front lines of WW2. With no air cover protection for 5 days, the captain and his convoy must battle the surrounding enemy Nazi U-boats in order to give the allies a chance to win the war.",
-            "poster_path": "/kjMbDciooTbJPofVXgAoFjfX8Of.jpg",
-            "popularity": 176.302,
-            "media_type": "movie"
-        }, {
-            "original_name": "Game of Thrones",
-            "id": 1399,
-            "name": "Game of Thrones",
-            "vote_count": 10018,
-            "vote_average": 8.3,
-            "first_air_date": "2011-04-17",
-            "poster_path": "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
-            "genre_ids": [18, 10765],
-            "original_language": "en",
-            "backdrop_path": "/suopoADq0k8YZr4dQXcU6pToj6s.jpg",
-            "overview": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
-            "origin_country": ["US"],
-            "popularity": 201.652,
-            "media_type": "tv"
-        }],
+        "trending": [
+            {
+                "id": 605116,
+                "video": false,
+                "vote_count": 869,
+                "vote_average": 6.7,
+                "title": "Project Power",
+                "release_date": "2020-08-14",
+                "original_language": "en",
+                "original_title": "Project Power",
+                "genre_ids": [28, 80, 878],
+                "backdrop_path": "/qVygtf2vU15L2yKS4Ke44U4oMdD.jpg",
+                "adult": false,
+                "overview": "An ex-soldier, a teen and a cop collide in New Orleans as they hunt for the source behind a dangerous new pill that grants users temporary superpowers.",
+                "poster_path": "/TnOeov4w0sTtV2gqICqIxVi74V.jpg",
+                "popularity": 614.082,
+                "media_type": "movie"
+            }, {
+                "id": 539885,
+                "video": false,
+                "vote_count": 118,
+                "vote_average": 6.5,
+                "title": "Ava",
+                "release_date": "2020-08-06",
+                "original_language": "en",
+                "original_title": "Ava",
+                "genre_ids": [28, 80, 18, 53],
+                "backdrop_path": "/ekkuqt9Q2ad1F7xq2ZONP0oq36P.jpg",
+                "adult": false,
+                "overview": "A black ops assassin is forced to fight for her own survival after a job goes dangerously wrong.",
+                "poster_path": "/A3z0KMLIEGL22mVrgaV7KDxKRmT.jpg",
+                "popularity": 375.928,
+                "media_type": "movie"
+            }, {
+                "id": 581392,
+                "video": false,
+                "vote_count": 165,
+                "vote_average": 7.4,
+                "title": "Peninsula",
+                "release_date": "2020-07-15",
+                "original_language": "ko",
+                "original_title": "반도",
+                "genre_ids": [28, 27, 53],
+                "backdrop_path": "/gEjNlhZhyHeto6Fy5wWy5Uk3A9D.jpg",
+                "adult": false,
+                "overview": "A soldier and his team battle hordes of post-apocalyptic zombies in the wastelands of the Korean Peninsula.",
+                "poster_path": "/sy6DvAu72kjoseZEjocnm2ZZ09i.jpg",
+                "popularity": 172.911,
+                "media_type": "movie"
+            }, {
+                "original_name": "Lucifer",
+                "id": 63174,
+                "name": "Lucifer",
+                "vote_count": 4389,
+                "vote_average": 8.5,
+                "first_air_date": "2016-01-25",
+                "poster_path": "/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg",
+                "genre_ids": [80, 10765],
+                "original_language": "en",
+                "backdrop_path": "/ta5oblpMlEcIPIS2YGcq9XEkWK2.jpg",
+                "overview": "Bored and unhappy as the Lord of Hell, Lucifer Morningstar abandoned his throne and retired to Los Angeles, where he has teamed up with LAPD detective Chloe Decker to take down criminals. But the longer he's away from the underworld, the greater the threat that the worst of humanity could escape.",
+                "origin_country": ["US"],
+                "popularity": 963.864,
+                "media_type": "tv"
+            }, {
+                "id": 508570,
+                "video": false,
+                "vote_count": 71,
+                "vote_average": 7.2,
+                "title": "The One and Only Ivan",
+                "release_date": "2020-08-21",
+                "original_language": "en",
+                "original_title": "The One and Only Ivan",
+                "genre_ids": [35, 18, 10751],
+                "backdrop_path": "/fFdOJxmG2U7IYYlkFKtDk1nGPhF.jpg",
+                "adult": false,
+                "overview": "Ivan is a 400-pound silverback gorilla who shares a communal habitat in a suburban shopping mall with Stella the elephant, Bob the dog, and various other animals. He has few memories of the jungle where he was captured, but when a baby elephant named Ruby arrives, it touches something deep within him. Ruby is recently separated from her family in the wild, which causes him to question his life, where he comes from and where he ultimately wants to be.",
+                "poster_path": "/e7ZsW5EbLbQwoGx0548KCmCAXA9.jpg",
+                "popularity": 81.278,
+                "media_type": "movie"
+            }, {
+                "id": 577922,
+                "video": false,
+                "vote_count": 401,
+                "vote_average": 7.6,
+                "title": "Tenet",
+                "release_date": "2020-08-22",
+                "original_language": "en",
+                "original_title": "Tenet",
+                "genre_ids": [28, 53],
+                "backdrop_path": "/wzJRB4MKi3yK138bJyuL9nx47y6.jpg",
+                "adult": false,
+                "overview": "Armed with only one word - Tenet - and fighting for the survival of the entire world, the Protagonist journeys through a twilight world of international espionage on a mission that will unfold in something beyond real time.",
+                "poster_path": "/k68nPLbIST6NP96JmTxmZijEvCA.jpg",
+                "popularity": 353.67,
+                "media_type": "movie"
+            }, {
+                "id": 626393,
+                "video": false,
+                "vote_count": 82,
+                "vote_average": 6.7,
+                "title": "The Sleepover",
+                "release_date": "2020-08-21",
+                "original_language": "en",
+                "original_title": "The Sleepover",
+                "genre_ids": [28, 10751],
+                "backdrop_path": "/mQngZ4DtXqdkX9fOQRsm9iym5OW.jpg",
+                "adult": false,
+                "overview": "Two siblings who discover their seemingly normal mom is a former thief in witness protection. Mom is forced to pull one last job, and the kids team up to rescue her over the course of an action-packed night.",
+                "poster_path": "/9iEc34Qje2V3FZnrSXKfZsbiHjW.jpg",
+                "popularity": 178.485,
+                "media_type": "movie"
+            }, {
+                "id": 718444,
+                "video": false,
+                "vote_count": 82,
+                "vote_average": 6.0,
+                "title": "Rogue",
+                "release_date": "2020-08-20",
+                "original_language": "en",
+                "original_title": "Rogue",
+                "genre_ids": [28],
+                "backdrop_path": "/jvKIBaMssk3D7ZH4VF4rLz6A3OK.jpg",
+                "adult": false,
+                "overview": "Battle-hardened O’Hara leads a lively mercenary team of soldiers on a daring mission: rescue hostages from their captors in remote Africa. But as the mission goes awry and the team is stranded, O’Hara’s squad must face a bloody, brutal encounter with a gang of rebels.",
+                "poster_path": "/uOw5JD8IlD546feZ6oxbIjvN66P.jpg",
+                "popularity": 435.961,
+                "media_type": "movie"
+            }, {
+                "id": 501979,
+                "video": false,
+                "vote_count": 18,
+                "vote_average": 6.4,
+                "title": "Bill \u0026 Ted Face the Music",
+                "release_date": "2020-08-27",
+                "original_language": "en",
+                "original_title": "Bill \u0026 Ted Face the Music",
+                "genre_ids": [12, 35, 878],
+                "backdrop_path": "/zeVs5f9zY5W4Lf0CUlFpsHDusnj.jpg",
+                "adult": false,
+                "overview": "Yet to fulfill their rock and roll destiny, the now middle aged best friends Bill and Ted set out on a new adventure when a visitor from the future warns them that only their song can save life as we know it. Along the way, they will be helped by their daughters, a new batch of historical figures, and a few music legends — to seek the song that will set their world right and bring harmony in the universe.",
+                "poster_path": "/y9YLNfUOrqFbYl8q1FpQuuo5MLx.jpg",
+                "popularity": 83.405,
+                "media_type": "movie"
+            }, {
+                "original_name": "Lovecraft Country",
+                "id": 82816,
+                "name": "Lovecraft Country",
+                "vote_count": 89,
+                "vote_average": 7.4,
+                "first_air_date": "2020-08-16",
+                "poster_path": "/fz7bdjxPColvEWCGr5Kiclzc86d.jpg",
+                "genre_ids": [18, 9648, 10765],
+                "original_language": "en",
+                "backdrop_path": "/qx7qy2GJOc7yGY6WENyBU3OVv7A.jpg",
+                "overview": "The anthology horror series follows 25-year-old Atticus Black, who joins up with his friend Letitia and his Uncle George to embark on a road trip across 1950s Jim Crow America to find his missing father. They must survive and overcome both the racist terrors of white America and the malevolent spirits that could be ripped from a Lovecraft paperback.",
+                "origin_country": ["US"],
+                "popularity": 310.264,
+                "media_type": "tv"
+            }, {
+                "id": 621013,
+                "video": false,
+                "vote_count": 214,
+                "vote_average": 8.1,
+                "title": "Chemical Hearts",
+                "release_date": "2020-08-21",
+                "original_language": "en",
+                "original_title": "Chemical Hearts",
+                "genre_ids": [18, 10749],
+                "backdrop_path": "/1eq896TCOEeN9Q8iTJL0n9u31Qf.jpg",
+                "adult": false,
+                "overview": "A high school transfer student finds a new passion when she begins to work on the school's newspaper.",
+                "poster_path": "/q1MNlZYqhoD4U7sd7pjxD6SUf4z.jpg",
+                "popularity": 223.007,
+                "media_type": "movie"
+            }, {
+                "id": 726664,
+                "video": false,
+                "vote_count": 46,
+                "vote_average": 6.7,
+                "title": "Fearless",
+                "release_date": "2020-08-14",
+                "original_language": "en",
+                "original_title": "Fearless",
+                "genre_ids": [16, 35],
+                "backdrop_path": "/s7NC2kntiPB3WltWj9bnNTkoqUp.jpg",
+                "adult": false,
+                "overview": "A teen gamer is forced to level up to full-time babysitter when his favorite video game drops three superpowered infants from space into his backyard.",
+                "poster_path": "/5oQJ6HeNGWnEtP9Qyt5IZjuKI7j.jpg",
+                "popularity": 109.451,
+                "media_type": "movie"
+            }, {
+                "id": 703771,
+                "video": false,
+                "vote_count": 116,
+                "vote_average": 6.9,
+                "title": "Deathstroke: Knights \u0026 Dragons - The Movie",
+                "release_date": "2020-08-04",
+                "original_language": "en",
+                "original_title": "Deathstroke: Knights \u0026 Dragons - The Movie",
+                "genre_ids": [28, 16],
+                "backdrop_path": "/owraiceOKtSOa3t8sp3wA9K2Ox6.jpg",
+                "adult": false,
+                "overview": "Ten years ago, Slade Wilson-aka the super-assassin called Deathstroke-made a tragic mistake and his wife and son paid a terrible price. Now, a decade later, Wilson's family is threatened once again by the murderous Jackal and the terrorists of H.IV.E. Can Deathstroke atone for the sins of the past-or will his family pay the ultimate price?",
+                "poster_path": "/vFIHbiy55smzi50RmF8LQjmpGcx.jpg",
+                "popularity": 144.507,
+                "media_type": "movie"
+            }, {
+                "adult": false,
+                "backdrop_path": "/86L8wqGMDbwURPni2t7FQ0nDjsH.jpg",
+                "genre_ids": [28, 53],
+                "id": 724989,
+                "original_language": "en",
+                "original_title": "Hard Kill",
+                "overview": "The work of billionaire tech CEO Donovan Chalmers is so valuable that he hires mercenaries to protect it, and a terrorist group kidnaps his daughter just to get it.",
+                "poster_path": "/ugZW8ocsrfgI95pnQ7wrmKDxIe.jpg",
+                "release_date": "2020-08-25",
+                "title": "Hard Kill",
+                "video": false,
+                "vote_average": 5.9,
+                "vote_count": 12,
+                "popularity": 68.428,
+                "media_type": "movie"
+            }, {
+                "id": 618354,
+                "video": false,
+                "vote_count": 75,
+                "vote_average": 7.5,
+                "title": "Superman: Man of Tomorrow",
+                "release_date": "2020-08-23",
+                "original_language": "en",
+                "original_title": "Superman: Man of Tomorrow",
+                "genre_ids": [28, 16, 878],
+                "backdrop_path": "/bazlsLkNuhy3IuhviepqvlMm2hV.jpg",
+                "adult": false,
+                "overview": "It’s the dawn of a new age of heroes, and Metropolis has just met its first. But as Daily Planet intern Clark Kent – working alongside reporter Lois Lane – secretly wields his alien powers of flight, super-strength and x-ray vision in the battle for good, there’s even greater trouble on the horizon.",
+                "poster_path": "/6Bbq8qQWpoApLZYWFFAuZ1r2gFw.jpg",
+                "popularity": 305.2,
+                "media_type": "movie"
+            }, {
+                "id": 721452,
+                "video": false,
+                "vote_count": 41,
+                "vote_average": 7.5,
+                "title": "One Night in Bangkok",
+                "release_date": "2020-08-25",
+                "original_language": "en",
+                "original_title": "One Night in Bangkok",
+                "genre_ids": [28, 53],
+                "backdrop_path": "/riDrpqQtZpXGeiJdlmfcwwPH7nN.jpg",
+                "adult": false,
+                "overview": "A hit man named Kai flies into Bangkok, gets a gun, and orders a cab. He offers a professional female driver big money to be his all-night driver. But when she realizes Kai is committing brutal murders at each stop, it's too late to walk away. Meanwhile, an offbeat police detective races to decode the string of slayings before more blood is spilled.",
+                "poster_path": "/i4kPwXPlM1iy8Jf3S1uuLuwqQAV.jpg",
+                "popularity": 189.465,
+                "media_type": "movie"
+            }, {
+                "id": 299534,
+                "video": false,
+                "vote_count": 14758,
+                "vote_average": 8.3,
+                "title": "Avengers: Endgame",
+                "release_date": "2019-04-24",
+                "original_language": "en",
+                "original_title": "Avengers: Endgame",
+                "genre_ids": [28, 12, 878],
+                "backdrop_path": "/orjiB3oUIsyz60hoEqkiGpy5CeO.jpg",
+                "adult": false,
+                "overview": "After the devastating events of Avengers: Infinity War, the universe is in ruins due to the efforts of the Mad Titan, Thanos. With the help of remaining allies, the Avengers must assemble once more in order to undo Thanos' actions and restore order to the universe once and for all, no matter what consequences may be in store.",
+                "poster_path": "/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+                "popularity": 92.306,
+                "media_type": "movie"
+            }, {
+                "id": 521034,
+                "video": false,
+                "vote_count": 118,
+                "vote_average": 7.2,
+                "title": "The Secret Garden",
+                "release_date": "2020-07-08",
+                "original_language": "en",
+                "original_title": "The Secret Garden",
+                "genre_ids": [18, 14, 10751],
+                "backdrop_path": "/8PK4X8U3C79ilzIjNTkTgjmc4js.jpg",
+                "adult": false,
+                "overview": "Mary Lennox is born in India to wealthy British parents who never wanted her. When her parents suddenly die, she is sent back to England to live with her uncle. She meets her sickly cousin, and the two children find a wondrous secret garden lost in the grounds of Misselthwaite Manor.",
+                "poster_path": "/5MSDwUcqnGodFTvtlLiLKK0XKS.jpg",
+                "popularity": 42.577,
+                "media_type": "movie"
+            }, {
+                "id": 516486,
+                "video": false,
+                "vote_count": 1014,
+                "vote_average": 7.5,
+                "title": "Greyhound",
+                "release_date": "2020-06-19",
+                "original_language": "en",
+                "original_title": "Greyhound",
+                "genre_ids": [28, 18, 10752],
+                "backdrop_path": "/xXBnM6uSTk6qqCf0SRZKXcga9Ba.jpg",
+                "adult": false,
+                "overview": "A first-time captain leads a convoy of allied ships carrying thousands of soldiers across the treacherous waters of the “Black Pit” to the front lines of WW2. With no air cover protection for 5 days, the captain and his convoy must battle the surrounding enemy Nazi U-boats in order to give the allies a chance to win the war.",
+                "poster_path": "/kjMbDciooTbJPofVXgAoFjfX8Of.jpg",
+                "popularity": 176.302,
+                "media_type": "movie"
+            }, {
+                "original_name": "Game of Thrones",
+                "id": 1399,
+                "name": "Game of Thrones",
+                "vote_count": 10018,
+                "vote_average": 8.3,
+                "first_air_date": "2011-04-17",
+                "poster_path": "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
+                "genre_ids": [18, 10765],
+                "original_language": "en",
+                "backdrop_path": "/suopoADq0k8YZr4dQXcU6pToj6s.jpg",
+                "overview": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
+                "origin_country": ["US"],
+                "popularity": 201.652,
+                "media_type": "tv"
+            }
+        ],
         "title": "",
         "query": [],
         "movie": {
@@ -2364,9 +2366,6 @@ export default {
         "netflix_originals": (
             <div className="showcase" data-state="netflix_originals" data-state-repeat="true" data-state-repeat-key="show">
                 <div className="showcase_movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
-                    {/*<div data-state="fuck">*/}
-                    {/*    <div data-state="fuck2"/>*/}
-                    {/*</div>*/}
                     <form className="showcase_movie_image" data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
                         <input type="hidden" name="id" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
                         <input type="hidden" name="media_type" data-bind-state="defaultValue" data-state="media_type"
@@ -2582,130 +2581,6 @@ export default {
             <div data-if-path="/" data-view="home"/>
             <div data-if-path="/search" data-view="search"/>
             <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
-
-            <div style={{color: "red", fontSize: 14}}>
-                <pre data-state="boolean" data-state-value={false}/>
-                <pre data-state="null" data-state-value={null}/>
-                <pre data-state="number" data-state-value={9000}/>
-                <pre data-state="string" data-state-value={"string"}/>
-                {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}/>*/}
-                <pre data-state="undefined" data-state-value={undefined}/>
-                <pre data-state="object" data-state-value={{"0": 0, "1": 1}}/>
-                <pre data-state="array" data-state-value={[0, 1]}/>
-
-                <pre data-state="boolean" data-state-value={false}>(boolean)</pre>
-                <pre data-state="null" data-state-value={null}>(null)</pre>
-                <pre data-state="number" data-state-value={9000}>(number)</pre>
-                <pre data-state="string" data-state-value={"string"}>(string)</pre>
-                {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}>(symbol)</pre>*/}
-                <pre data-state="undefined" data-state-value={undefined}>(undefined)</pre>
-                <pre data-state="primitive" data-state-value={true}>(primitive) <span/> (primitive)</pre>
-                <pre data-state="object" data-state-value={{"0": 0, "1": 1}}>(0) <span/> (1)</pre>
-                <pre data-state="array" data-state-value={[0, 1]}>(0) <span/> (1)</pre>
-
-                <pre data-state="noop"/>
-                <pre data-state="noop" data-state-default="noop"/>
-                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="noop"/>
-                <pre data-state="noop" data-state-default-value="default"/>
-                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default-value="default"/>
-                <pre data-state="title"/>
-                <pre data-state="noop" data-state-default="title"/>
-                <pre data-state="title" data-state-path="$.app.$states.title"/>
-                <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="title"/>
-
-                <div data-state-repeat="true" data-state-repeat-key="9000" data-state="nested_primitive" data-state-value={9000}>
-                    <pre data-state="9000" data-state-path="$.view.9000"/>
-                </div>
-                <div data-state-repeat="true" data-state-repeat-key="integer" data-state="nested_array_of_integers" data-state-value={[0, 1, 2, 3]}>
-                    <pre data-state="integer" data-state-path="$.view.integer"/>
-                </div>
-                <div data-state-repeat="true" data-state-repeat-key="person" data-state="people"
-                     data-state-value={[
-                         {"children": [{"pets": [{"name": "marshmallow"}, {"name": "chocolate"}]}, {"pets": [{"name": "graham"}, {"name": "peanut butter"}]}]},
-                         {"children": [{"pets": [{"name": "red"}, {"name": "orange"}]}, {"pets": [{"name": "yellow"}, {"name": "green"}]}]}
-                     ]}>
-                    <div data-state-repeat="true" data-state-repeat-key="child"
-                         data-state="children" data-state-path="$.view.person.children">
-                        <div data-state-repeat="true" data-state-repeat-key="pet"
-                             data-state="pets" data-state-path="$.view.child.pets">
-                            <pre data-state="name" data-state-path="$.view.pet.name"/>
-                        </div>
-                    </div>
-                </div>
-                <div data-state="netflix_originals"
-                     data-state-repeat="true" data-state-repeat-key="show">
-                    <div className="showcase_movie"
-                         data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
-                        <form className="showcase_movie_image"
-                              data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
-                            <input className="showcase_movie_image" type="image"
-                                   data-bind-state="src" data-state="show_poster_image" alt=""/>
-                            <input name="original_name" data-bind-state="defaultValue"
-                                   data-state="original_name" data-state-path="$.view.show.original_name"/>
-                            <input name="name" data-bind-state="defaultValue"
-                                   data-state="name" data-state-path="$.view.show.name"/>
-                            <input name="first_air_date" data-bind-state="defaultValue"
-                                   data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
-                            <input name="backdrop_path" data-bind-state="defaultValue"
-                                   data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
-                            <input name="original_language" data-bind-state="defaultValue"
-                                   data-state="original_language" data-state-path="$.view.show.original_language"/>
-                            <input name="overview" data-bind-state="defaultValue"
-                                   data-state="overview" data-state-path="$.view.show.overview"/>
-                            <input name="poster_path" data-bind-state="defaultValue"
-                                   data-state="poster_path" data-state-path="$.view.show.poster_path"/>
-                            <input name="genre_ids" data-bind-state="defaultValue"
-                                   data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
-                            <input name="popularity" data-bind-state="defaultValue"
-                                   data-state="popularity" data-state-path="$.view.show.popularity"/>
-                            <input name="origin_country" data-bind-state="defaultValue"
-                                   data-state="origin_country" data-state-path="$.view.show.origin_country"/>
-                            <input name="vote_count" data-bind-state="defaultValue"
-                                   data-state="vote_count" data-state-path="$.view.show.vote_count"/>
-                            <input name="vote_average" data-bind-state="defaultValue"
-                                   data-state="vote_average" data-state-path="$.view.show.vote_average"/>
-                            <input name="id" data-bind-state="defaultValue"
-                                   data-state="id" data-state-path="$.view.show.id"/>
-                            <input name="media_type" data-bind-state="defaultValue" data-state="media_type"
-                                   data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
-                            <div data-state-repeat="true" data-state-repeat-key="nation"
-                                 data-state="country" data-state-path="$.view.show.origin_country">
-                                <input type="text" data-bind-state="defaultValue"
-                                       data-state="nation" data-state-path="$.view.nation"/>
-                                <div data-state-repeat="true" data-state-repeat-key="genre"
-                                     data-state="genres" data-state-path="$.view.show.genre_ids">
-                                    <input type="text" data-bind-state="defaultValue"
-                                           data-state="genre" data-state-path="$.view.genre"/>
-                                </div>
-                            </div>
-                            <div data-state-repeat="true" data-state-repeat-key="genre_id"
-                                 data-state="genre_ids" data-state-path="$.view.show.genre_ids">
-                                <input type="text" data-bind-state="defaultValue"
-                                       data-state="genre_id" data-state-path="$.view.genre_id"/>
-                            </div>
-                        </form>
-                    </div>
-                    <br/>
-                </div>
-
-                <div data-state="netflix_originals"
-                     data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
-                     data-state-repeat="true" data-state-repeat-key="show">
-                    <form className="showcase_movie_image"
-                          data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
-                        <div data-state-repeat="true" data-state-repeat-key="genre_id"
-                             data-state="genre_ids" data-state-path="$.view.show.genre_ids">
-                            <input type="text" data-bind-state="defaultValue"
-                                   data-state="genre_id" data-state-path="$.view.genre_id"/>
-                            <div data-state-repeat="true" data-state-repeat-key="country"
-                                 data-state="countries" data-state-path="$.view.show.origin_country">
-                                <input type="text" data-bind-state="defaultValue"
-                                       data-state="country" data-state-path="$.view.country"/>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </>
     )
 };

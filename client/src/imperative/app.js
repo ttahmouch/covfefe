@@ -1139,13 +1139,16 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
     } = dependencies;
     const app = appStateFromStore(store) || {};
     const dispatch = eventDispatcherForStore(store, view);
+    const {"data-current-depth": $currentDepth = 0} = view;
     const {
         // Did switching from "" to undefined impact rendering speed?
         "data-state": $state = undefined,
         "data-style": $style = undefined,
         "data-event": $event = undefined,
         "data-state-repeat": $stateRepeat = undefined,
-        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true",
+        "data-state-repeat-depth": $stateRepeatDepth = "0",
+        "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
+        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $currentDepth,
         "data-state-repeat-key": $stateRepeatKey = "item",
         "data-state-default": $stateDefault = undefined,
         "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, {app, view}, "$states"),
@@ -1170,16 +1173,14 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         // "data-children": $children = children
     } = props;
 
-    view[$state] = $stateValue;
+    $state && (view[$state] = $stateValue);
 
-    return {
+    const reactProps = {
         "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
             .flatMap((item) => {
-                // debugger;
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
-
-                // $shouldStateRepeat && console.log($state, item);
+                $shouldStateRepeat && (view["data-current-depth"]++);
 
                 const elements = ($shouldBindTemplate ? [$bindTemplate] : children)
                     .map((child) => {
@@ -1190,11 +1191,16 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
                                 : child;
                     });
 
+                $shouldStateRepeat && (view["data-current-depth"]--);
                 $shouldStateRepeat && (view[$stateRepeatKey] = undefined);
 
                 return elements;
             })
     };
+
+    $state && (view[$state] = undefined);
+
+    return reactProps;
 };
 
 export const toReactProps = (props = {}, children = [], store = {}, view = {},
@@ -1205,7 +1211,7 @@ export const toReactProps = (props = {}, children = [], store = {}, view = {},
     return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view) : {props, children};
 };
 
-export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {},
+export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {"data-current-depth": 0},
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
@@ -1218,11 +1224,6 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
     const {createElement} = method;
     // If Child is a `data-view` don't traverse it twice.
     const toChild = (child) => {
-        // const element = typeof child === "string" ? child : toElement(child);
-        // const isElement = typeof element !== "string";
-        // console.log(isElement ? element.props['data-state'] : '', isElement ? element.type : 'string', isElement ? element.props : {});
-        // debugger;
-        // return typeof child === "string" || child.props['data-state-repeat'] === "true" ? child : toElement(child)
         return typeof child === "string" ? child : toElement(child);
     };
     const toElement = (type = "", props = {}, ...children) => {
@@ -1263,10 +1264,6 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // $view && !$should && console.group("Suppressing View:", $view);
         // $view && console.groupEnd();
 
-        // ($viewValue || $state) && console.log(type, $state, props, children);
-        // props['data-state'] === 'fuck' && console.log(type, props, children);
-        // props['data-state'] === 'fuck2' && console.log(type, props, children);
-
         if (isElement($element)) {
             const {type = "", props: {children = [], ...props} = {}} = $element;
             const $type = getType(components, type);
@@ -1279,13 +1276,6 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
             "children": reactChildren
         } = toReactProps(props, children, store, view);
 
-        // const element = (typeof type === "string" || typeof type === "function")
-        //     && `<${type.name || type} ${Object.keys(reactProps).map((key) => `${key}=${props[key]}`).join(" ")}>`;
-
-        // reactProps['data-state-repeat'] === 'true' && console.log(reactChildren);
-
-        // console.log(element);
-        // debugger;
         return createElement(type, reactProps, ...reactChildren);
     };
 

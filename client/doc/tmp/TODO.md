@@ -478,3 +478,173 @@ console.log(expandTemplate({
     //     "vote_average": 8.5,
     // }
 }
+
+```
+<>
+    <div data-view="navigation_bar"/>
+    <div data-if-path="/" data-view="home"/>
+    <div data-if-path="/search" data-view="search"/>
+    <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
+
+    <div style={{color: "red", fontSize: 14}}>
+        <pre data-state="boolean" data-state-value={false}/>
+        <pre data-state="null" data-state-value={null}/>
+        <pre data-state="number" data-state-value={9000}/>
+        <pre data-state="string" data-state-value={"string"}/>
+        {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}/>*/}
+        <pre data-state="undefined" data-state-value={undefined}/>
+        <pre data-state="object" data-state-value={{"0": 0, "1": 1}}/>
+        <pre data-state="array" data-state-value={[0, 1]}/>
+
+        <pre data-state="boolean" data-state-value={false}>(boolean)</pre>
+        <pre data-state="null" data-state-value={null}>(null)</pre>
+        <pre data-state="number" data-state-value={9000}>(number)</pre>
+        <pre data-state="string" data-state-value={"string"}>(string)</pre>
+        {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}>(symbol)</pre>*/}
+        <pre data-state="undefined" data-state-value={undefined}>(undefined)</pre>
+        <pre data-state="primitive" data-state-value={true}>(primitive) <span/> (primitive)</pre>
+        <pre data-state="object" data-state-value={{"0": 0, "1": 1}}>(0) <span/> (1)</pre>
+        <pre data-state="array" data-state-value={[0, 1]}>(0) <span/> (1)</pre>
+
+        <pre data-state="noop"/>
+        <pre data-state="noop" data-state-default="noop"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="noop"/>
+        <pre data-state="noop" data-state-default-value="default"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default-value="default"/>
+        <pre data-state="title"/>
+        <pre data-state="noop" data-state-default="title"/>
+        <pre data-state="title" data-state-path="$.app.$states.title"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="title"/>
+
+        <div data-state-repeat="true" data-state-repeat-key="9000"
+             data-state="nested_primitive" data-state-value={9000}>
+            <pre data-state="9000" data-state-path="$.view.9000"/>
+        </div>
+        <div data-state-repeat="true" data-state-repeat-key="integer"
+             data-state="nested_array_of_integers" data-state-value={[0, 1, 2, 3]}>
+            <pre data-state="integer" data-state-path="$.view.integer"/>
+        </div>
+        <div data-state-repeat="true" data-state-repeat-key="person" data-state="people"
+             data-state-value={[
+                 {
+                     "children": [
+                         {"pets": [{"name": "marshmallow"}, {"name": "chocolate"}]},
+                         {"pets": [{"name": "graham"}, {"name": "peanut butter"}]}
+                     ]
+                 },
+                 {
+                     "children": [
+                         {"pets": [{"name": "red"}, {"name": "orange"}]},
+                         {"pets": [{"name": "yellow"}, {"name": "green"}]}
+                     ]
+                 }
+             ]}>
+            <div data-state-repeat="true" data-state-repeat-key="child" data-state-repeat-depth="1"
+                 data-state="children" data-state-path="$.view.person.children">
+                <div data-state-repeat="true" data-state-repeat-key="pet" data-state-repeat-depth="2"
+                     data-state="pets" data-state-path="$.view.child.pets">
+                    <pre data-state="name" data-state-path="$.view.pet.name"/>
+                </div>
+            </div>
+        </div>
+        <div data-state="netflix_originals"
+             data-state-repeat="true" data-state-repeat-key="show">
+            <div className="showcase_movie"
+                 data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                <form className="showcase_movie_image"
+                      data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                    <input className="showcase_movie_image" type="image"
+                           data-bind-state="src" data-state="show_poster_image" alt=""/>
+                    <input name="original_name" data-bind-state="defaultValue"
+                           data-state="original_name" data-state-path="$.view.show.original_name"/>
+                    <input name="name" data-bind-state="defaultValue"
+                           data-state="name" data-state-path="$.view.show.name"/>
+                    <input name="first_air_date" data-bind-state="defaultValue"
+                           data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
+                    <input name="backdrop_path" data-bind-state="defaultValue"
+                           data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
+                    <input name="original_language" data-bind-state="defaultValue"
+                           data-state="original_language" data-state-path="$.view.show.original_language"/>
+                    <input name="overview" data-bind-state="defaultValue"
+                           data-state="overview" data-state-path="$.view.show.overview"/>
+                    <input name="poster_path" data-bind-state="defaultValue"
+                           data-state="poster_path" data-state-path="$.view.show.poster_path"/>
+                    <input name="genre_ids" data-bind-state="defaultValue"
+                           data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
+                    <input name="popularity" data-bind-state="defaultValue"
+                           data-state="popularity" data-state-path="$.view.show.popularity"/>
+                    <input name="origin_country" data-bind-state="defaultValue"
+                           data-state="origin_country" data-state-path="$.view.show.origin_country"/>
+                    <input name="vote_count" data-bind-state="defaultValue"
+                           data-state="vote_count" data-state-path="$.view.show.vote_count"/>
+                    <input name="vote_average" data-bind-state="defaultValue"
+                           data-state="vote_average" data-state-path="$.view.show.vote_average"/>
+                    <input name="id" data-bind-state="defaultValue"
+                           data-state="id" data-state-path="$.view.show.id"/>
+                    <input name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                           data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                    <div data-state-repeat="true" data-state-repeat-key="nation" data-state-repeat-depth="1"
+                         data-state="country" data-state-path="$.view.show.origin_country">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="nation" data-state-path="$.view.nation"/>
+                        <div data-state-repeat="true" data-state-repeat-key="genre" data-state-repeat-depth="2"
+                             data-state="genres" data-state-path="$.view.show.genre_ids">
+                            <input type="text" data-bind-state="defaultValue"
+                                   data-state="genre" data-state-path="$.view.genre"/>
+                        </div>
+                    </div>
+                    <div data-state-repeat="true" data-state-repeat-key="genre_id"
+                         data-state-repeat-depth="0"
+                         data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="genre_id" data-state-path="$.view.genre_id"/>
+                    </div>
+                </form>
+            </div>
+            <br/>
+        </div>
+
+        <div data-state="netflix_originals"
+             data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
+             data-state-repeat="true" data-state-repeat-key="show">
+            <form className="showcase_movie_image"
+                  data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                <div data-state-repeat="true" data-state-repeat-key="genre_id" data-state-repeat-depth="1"
+                     data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                    <input type="text" data-bind-state="defaultValue"
+                           data-state="genre_id" data-state-path="$.view.genre_id"/>
+                    <div data-state-repeat="true" data-state-repeat-key="country" data-state-repeat-depth="2"
+                         data-state="countries" data-state-path="$.view.show.origin_country">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="country" data-state-path="$.view.country"/>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div data-state="netflix_originals"
+             data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
+             data-state-repeat="true"
+             data-state-repeat-key="show">
+            <div data-state="countries"
+                 data-state-path="$.view.show.origin_country"
+                 data-state-repeat="true"
+                 data-state-repeat-key="country"
+                 data-state-repeat-depth="1">
+                <p>Country</p>
+                <p data-state="country"
+                   data-state-path="$.view.country"/>
+                <div data-state="genre_ids"
+                     data-state-path="$.view.show.genre_ids"
+                     data-state-repeat="true"
+                     data-state-repeat-key="genre_id"
+                     data-state-repeat-depth="2">
+                    <p>Genre ID</p>
+                    <p data-state="genre_id"
+                       data-state-path="$.view.genre_id"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</>
+```
