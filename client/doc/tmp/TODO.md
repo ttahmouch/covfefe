@@ -648,3 +648,57 @@ console.log(expandTemplate({
     </div>
 </>
 ```
+
++ I need a list of all JavaScript Array Fold Functions.
++ I need them to not mutate the input Array, i.e., pure Higher-Order Functions, e.g., `[0,1].reverse()`.
++ I need them to rely on VALUE over REFERENCE comparisons, e.g., `[{}].indexOf({})`, `[{}].includes({})`.
+
+**Input State:** 
+> Array
+
+**Output State:** 
+> Array (Filter, Flat, FlatMap, Map, Sort (Copy -> Sort))
+> 
+> Boolean (Every, Some)
+> 
+> String (Join (i.e., Reduce -> String))
+> 
+> Any (Find, Reduce, ReduceRight)
+
+**Predicate:** 
+> `callback(element[, index[, array]])` (Not Reduce or ReduceRight)
+> 
+> `callback(accumulator, element[, index[, array]])` (Reduce, ReduceRight)
+> 
+> `callback(a, b)` (Sort)
+
+```
+✅ Array.prototype.filter()
+✅ Array.prototype.flat()
+✅ Array.prototype.map()
+✅ Array.prototype.flatMap()
+✅ Array.prototype.every()
+✅ Array.prototype.find()
+✅ Array.prototype.some()
+✅ Array.prototype.reduce()
+✅ Array.prototype.reduceRight()
+🤔 Array.prototype.sort()
+```
+
+// [
+//     {"expression": "", "scope": {"a": 0, "b": 1}},
+//     {"expression": ["a > b", "a < b"], "scope": {"a": 0, "b": 1}},
+//     {"expression": "a > b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a < b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a != b", "scope": {"a": true, "b": false}},
+//     {"expression": "a == b", "scope": {"a": true, "b": true}},
+//     {"expression": "a / b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a / b", "scope": {"a": 0, "b": 0}},
+//     {"expression": "a / b", "scope": {"a": 1, "b": 0}},
+//     {"expression": "a * b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a > b", "scope": {"a": "3.14159", "b": "0"}},
+// ].forEach(({expression, scope}) => {
+//     console.time();
+//     console.log(mathjs.evaluate(expression, scope));
+//     console.timeEnd();
+// })

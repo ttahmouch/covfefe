@@ -3,10 +3,11 @@ import React, {createElement} from "react";
 import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
-import {JSONPath} from 'jsonpath-plus';
+import {JSONPath} from "jsonpath-plus";
 import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
+import * as mathjs from "mathjs";
 import {
     action,
     app,
@@ -57,56 +58,84 @@ import {
 } from "./dependencies.js";
 
 /**
- * + ✅ Implement HTTP Response Mocking.
- * + ✅ Routing
- * + ✅ Debug using Redux Dev Tools.
- * + ✅ Should redux-devtools-extension be a dependency of the app or lib?
- * + ✅ Netflux Clone.
- * + ✅ Call view state that the user enters, e.g., form submit, scroll coordinate, etc, `user` state.
- * + ✅ Call view state that the user does not enter, e.g., state selected from the app state, `view` state.
- * + ✅ Consolidate Header and Modal Style into Background Image Style.
- * + ✅ Change all JSON Paths in the framework to use dot notation instead of subscript notation.
- * + ✅ Allow subviews to select from the view state of the super view; Allow array state to bind to repeatable views.
- * + ✅ Support JSON Path in data-state like data-if-path.
- * + Don't traverse `data-view` twice when the dereferenced view is a `data-state-repeat` with a template child element.
- *     + Warning: Invalid attribute name: ``
- * + Support Array Higher-Order Folding Functions in Reducers/Composers.
- * + Support Binding Multiple Props From State, e.g., children and value.
- * + Support Expanding Templates For Props Other Than Children, e.g., data-state-template.
- * + Support Encoding JSON Values From State.
- * + Support `data-memo` to Memoize Views?
- * + Make input state with from input fields with unique names not get provided in an array.
- * + Make `data-state-repeat=true` the default way to handle arrays.
- * + Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
- * + Conditional Compositions, i.e., AND, OR, XOR, ...
- * + Aborting HTTP Requests.
- * + Animations
- * + Action Sequences
- * + Check the order of the composition when recursively composing is `json_component` composition.
- * + Return app JSON from a server and reduce it in the client.
- * + Blog, Vlog, Pinterest, Etsy, 3d Print,
- * + Improve JSON JSX format, or allow XML to be used instead.
- * + Add map, reduce, filter, etc. to composers and reducers.
- * + Add FlatList equivalent for dynamic list elements.
- * + Add support for data-id to allow click events on items in a list to uniquely identify the item.
- * + Start trying to add event handlers for things like the Modal Dialog.
- * + Support data-event="onLayout".
- * + Create convenience for managing query parameter expansion for a request composer?
- * + Support embedding composers inside types like styles instead of generating styles from composers.
- * + Support data-style with className+CSS.
- * + Support state cascading from ancestor to child view elements, e.g., "FlatList-like."
- * + Support onScroll, onLayout, onRender, etc.
- * + Support data-state-* for multiple state bindings on one element.
- * + Support data-event-* for multiple event bindings on one element.
- * + getState doesn't appear to be getting the latest state between actions in an event.
- * + Support create composer in all the other composers for the value property to make them more useful.
- * + Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
- * + Support Action Sequences because order matters for being able to display a modal dialog after data is fetched.
- * + Organize the categories into the same model in the store state, and map them with a "FlatList."
- * + Detect onScroll and hide/show the navigation bar background.
- * + Store state as value attributes in any element that can be read from during an event.
- * + Allow `data-multi-state` to bind `{"value": "User Input", "plaecholder": "Move Title, Genre, etc."}` without a single
- *   `data-bind="value"`?
+ * ✅ Implement HTTP Response Mocking.
+ * ✅ Routing
+ * ✅ Debug using Redux Dev Tools.
+ * ✅ Should redux-devtools-extension be a dependency of the app or lib?
+ * ✅ Netflux Clone.
+ * ✅ Call view state that the user enters, e.g., form submit, scroll coordinate,
+ * etc, `user` state.
+ * ✅ Call view state that the user does not enter, e.g., state selected from the
+ * app state, `view` state.
+ * ✅ Consolidate Header and Modal Style into Background Image Style.
+ * ✅ Change all JSON Paths in the framework to use dot notation instead of
+ * subscript notation.
+ * ✅ Allow subviews to select from the view state of the super view; Allow array
+ * state to bind to repeatable views.
+ * ✅ Support JSON Path in data-state like data-if-path.
+ * ✅ Warning: Invalid attribute name: ``
+ *
+ * # Important
+ * ❌ Support Array Higher-Order Folding Functions in Reducers/Composers.
+ * ❌ Add map, reduce, filter, etc. to composers and reducers.
+ * ❌ Support Binding Multiple Props From State, e.g., children and value.
+ * ❌ Allow `data-multi-state` to bind `{"value": "User Input",
+ * "placeholder": "Movie Title,..."}` without a single `data-bind="value"`?
+ * ❌ Support Expanding Templates For Props Other Than Children, e.g.,
+ * data-state-template.
+ * ❌ Support Encoding JSON Values From State.
+ * ❌ Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
+ * ❌ Action Sequences
+ * ❌ Return app JSON from a server and reduce it in the client.
+ * ❌ Implement mapsort composer;
+ * ❌ Implement math composer;
+ * ❌ Implement conditional composer;
+ * ❌ Implement CRUD reducers as composers;
+ * ❌ Implement compare composer;
+ * ❌ Implement JS Object methods from snake to camel case for all methods, e.g.,
+ * String.prototype.includes, etc.
+ * ❌ Support data-event="onLayout".
+ *
+ * # Not Important
+ * ❌ Improve JSON JSX format, or allow XML to be used instead.
+ * ❌ Conditional Compositions, i.e., AND, OR, XOR, ...
+ * ❌ Aborting HTTP Requests.
+ * ❌ Animations
+ * ❌ Make input state with from input fields with unique names not get provided
+ * in an array.
+ * ❌ Make `data-state-repeat=true` the default way to handle arrays.
+ * ❌ Don't traverse `data-view` twice when the dereferenced view is a
+ * `data-state-repeat` with a template child element.
+ * ❌ Support `data-memo` to Memoize Views?
+ * ❌ Check the order of the composition when recursively composing is
+ * `json_component` composition.
+ * ❌ Add FlatList equivalent for dynamic list elements.
+ * ❌ Add support for data-id to allow click events on items in a list to
+ * uniquely identify the item.
+ * ❌ Start trying to add event handlers for things like the Modal Dialog.
+ * ❌ Create convenience for managing query parameter expansion for a
+ * request composer?
+ * ❌ Support embedding composers inside types like styles instead of generating
+ * styles from composers.
+ * ❌ Support data-style with className+CSS.
+ * ❌ Support state cascading from ancestor to child view elements,
+ * e.g., "FlatList-like."
+ * ❌ Support onScroll, onLayout, onRender, etc.
+ * ❌ Support data-state-* for multiple state bindings on one element.
+ * ❌ Support data-event-* for multiple event bindings on one element.
+ * ❌ getState doesn't appear to be getting the latest state between actions
+ * in an event.
+ * ❌ Support create composer in all the other composers for the value property
+ * to make them more useful.
+ * ❌ Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
+ * ❌ Support Action Sequences because order matters for being able to display a
+ * modal dialog after data is fetched.
+ * ❌ Organize the categories into the same model in the store state, and map
+ * them with a "FlatList."
+ * ❌ Detect onScroll and hide/show the navigation bar background.
+ * ❌ Store state as value attributes in any element that can be read from during
+ * an event.
+ * ❌ Blog, Vlog, Pinterest, Etsy, 3d Print,
  */
 
 // Reducers ------------------------------------------------------------------------------------------------------------
@@ -245,7 +274,7 @@ export const isComposer = (composer = functionalComposer) => {
     return (
         typeof composer === "function"
         || (composer !== null && typeof composer === "object" && typeof composer.$compose === "string")
-        || (Array.isArray(composer) && composer.every(isComposer))
+        || (Array.isArray(composer) && composer.length > 1 && composer.every(isComposer))
     );
 };
 
@@ -267,11 +296,13 @@ export const create = ({$value = undefined, $state = state},
     );
 };
 
+// TODO: Make CRUD composers based on CRUD reducers.
 export const spread = (composer, dependencies = {create}) => {
     const {create} = dependencies;
     const {$state: {composed} = state} = composer;
 
     return Array.isArray(composed)
+        // ? composed.concat(create(composer))
         ? [...composed, ...create(composer)]
         : {...composed, ...create(composer)};
 };
@@ -289,6 +320,48 @@ export const jsonpath = new JSONPath({"wrap": false, "autostart": false});
 
 export const readJsonPath = ({$value: $json_path = "", $state = state}, path = jsonpath) => {
     return path.evaluate({"path": $json_path, "json": $state});
+};
+
+export const math = ({$value: $expression = "", $state: {composed} = state}, expression = mathjs) => {
+    return expression.evaluate($expression, composed);
+};
+
+export const snakeToCamelCase = (string = "", config = {}) => {
+    const {expression = /[-_]([^-_])/g, withValue = (_, lowercase) => lowercase.toUpperCase()} = config;
+    return string.replace(expression, withValue);
+};
+
+export const fold = (composer = {}, dependencies = {composeFromValue, snakeToCamelCase}) => {
+    const {composeFromValue, snakeToCamelCase} = dependencies;
+    const {$type = "reduce", $value = {"$compose": "read", "$value": "$.composed"}, $state = state, $default = undefined} = composer;
+    const {composed} = $state;
+    const type = snakeToCamelCase($type);
+    const compose = ({composed, value, index, array} = {}) => {
+        return composeFromValue($value, {...$state, composed, "item": {value, index, array}});
+    };
+    switch ($type) {
+        // case "flat":
+        case "every":
+        case "filter":
+        case "find":
+        case "flat_map":
+        case "map":
+        case "some":
+            return composed[type]((value, index, array) => compose({value, index, array}));
+        // Implement a map and compare object.
+        case "sort":
+            return composed
+                .map((value, index, array) => ({value, index, array}))
+                .sort((one, two) => composeFromValue($value, {...$state, "item": {one, two}}))
+                .map(({index}) => composed[index]);
+        case "reduce_right":
+        case "reduce":
+        default: {
+            const initial = composeFromValue($default, {...$state, "composed": undefined});
+            const reduced = composed[type]((composed, value, index, array) => compose({composed, value, index, array}), initial);
+            return reduced !== undefined ? reduced : null;
+        }
+    }
 };
 
 export const matchPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
@@ -410,15 +483,23 @@ export const decodeJson = ({$value = undefined, $state: {composed} = state}) => 
 
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
-export const compose = ({$compose = "", $type = "", $default = undefined, ...$composer},
-                        dependencies = {
-                            create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
-                        }) => {
+export const compose = ($composer, dependencies = {
+    create, decodeJson, encodeJson,
+    encodeUri, expandPathTemplate, expandTemplate,
+    expandUriTemplate, fold, matchJsonSchema,
+    matchPathTemplate, matchPrimitive, matchRegularExpression,
+    math, readJsonPath, readPathTemplate,
+    readRegularExpression, spread, valueOrDefault
+}) => {
     const {
-        create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
+        create, decodeJson, encodeJson,
+        encodeUri, expandPathTemplate, expandTemplate,
+        expandUriTemplate, fold, matchJsonSchema,
+        matchPathTemplate, matchPrimitive, matchRegularExpression,
+        math, readJsonPath, readPathTemplate,
+        readRegularExpression, spread, valueOrDefault
     } = dependencies;
+    const {$compose = "", $type = "", $default = undefined} = $composer;
 
     switch ($compose) {
         case "create":
@@ -435,6 +516,10 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
                 default:
                     return valueOrDefault(readJsonPath($composer), $default);
             }
+        case "math":
+            return valueOrDefault(math($composer), $default);
+        case "fold":
+            return valueOrDefault(fold($composer), $default);
         case "match":
             switch ($type) {
                 case "path_template":
@@ -563,29 +648,25 @@ export const composeFromIdentifier = (identifier = "", states = state, type = `$
     );
 };
 
-export const compositionForPathFromRoute = () => {
-    return [{"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"}];
-};
-
 // TODO: Rename this.
 export const composeFromPathTemplate = (template = "", states = state, type = "path_template",
-                                        dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                        dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
     // Compare Path + Query + Fragment, or just Path?
     // Query and Fragment are Order-Dependent so comparisons with Path Template and RegExp could easily fail.
     return composeFromValue([
-        ...compositionForPathFromRoute(),
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
         {"$compose": "match", "$type": type, "$value": template, "$default": false}
     ], states);
 };
 
 export const composeParametersFromPathTemplate = (template = "", states = state, type = "path_template",
-                                                  dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                                  dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
     return composeFromValue([
-        ...compositionForPathFromRoute(),
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
         {"$compose": "read", "$type": type, "$value": template, "$default": {}}
     ], states);
 };
@@ -604,9 +685,7 @@ export const composeValueFromPath = (path = "", defaultValue = undefined, states
                                      dependencies = {composeFromValue}) => {
     const {composeFromValue} = dependencies;
 
-    return composeFromValue([
-        {"$compose": "read", "$type": "json_path", "$value": path, "$default": defaultValue}
-    ], states);
+    return composeFromValue({"$compose": "read", "$type": "json_path", "$value": path, "$default": defaultValue}, states);
 };
 
 // Actions -------------------------------------------------------------------------------------------------------------

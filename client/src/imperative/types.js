@@ -112,6 +112,21 @@ export const state = {
     "composed": undefined,
     "input": {},
     "view": {},
+    "item": {
+        "value": undefined,
+        "index": 0,
+        "array": [],
+        "one": {
+            "value": undefined,
+            "index": 0,
+            "array": []
+        },
+        "two": {
+            "value": undefined,
+            "index": 0,
+            "array": [],
+        }
+    }
 };
 
 export const action = {

@@ -1,32 +1,5 @@
 import React from "react";
 
-export const SearchRow = ({query = []}) => {
-    return (
-        <div className="search-container">
-            {
-                query
-                    .filter(({poster_path = "", media_type = ""}) => poster_path !== null && media_type !== "person")
-                    .map((result) => {
-                        const {id = 0, media_type = "tv", poster_path = ""} = result;
-                        return (
-                            <div className="movie" key={id}>
-                                <div className="movie__column-poster">
-                                    <form className="movie__poster" data-event="on_click_movie" data-bind-event="onSubmit"
-                                          data-state-type="dictionary">
-                                        <input name="id" type="hidden" value={JSON.stringify(id)}/>
-                                        <input name="media_type" type="hidden" value={JSON.stringify(media_type)}/>
-                                        <input className="movie__poster" type="image"
-                                               src={`https://image.tmdb.org/t/p/w500${poster_path}`} alt=""/>
-                                    </form>
-                                </div>
-                            </div>
-                        );
-                    })
-            }
-        </div>
-    );
-};
-
 export default {
     "$settings": {
         "debug": true,
@@ -148,10 +121,19 @@ export default {
             "$schema": "http://json-schema.org/draft-07/schema#",
             "type": "array",
             "maxItems": 0
+        },
+        "search_result_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["poster_path", "media_type", "vote_average"],
+            "properties": {
+                "poster_path": {"type": "string", "minLength": 1},
+                "media_type": {"type": "string", "pattern": "^(?:tv|movie)$"},
+                "vote_average": {"type": "number"}
+            }
         }
     },
     "$composers": {
-        SearchRow,
         "movie_background_image": [
             {
                 "$compose": "create",
@@ -167,24 +149,22 @@ export default {
                 "$default": "https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
             }
         ],
-        "movie_background_image_style": [
-            {
-                "$compose": "create",
-                "$value": {
-                    "backgroundSize": "cover",
-                    "backgroundImage": [
-                        {
-                            "$compose": "create",
-                            "$value": {"movie_background_image": {"$compose": "movie_background_image"}}
-                        },
-                        {
-                            "$compose": "expand", "$value": "url({movie_background_image})",
-                            "$default": "url(https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg)"
-                        }
-                    ]
-                }
+        "movie_background_image_style": {
+            "$compose": "create",
+            "$value": {
+                "backgroundSize": "cover",
+                "backgroundImage": [
+                    {
+                        "$compose": "create",
+                        "$value": {"movie_background_image": {"$compose": "movie_background_image"}}
+                    },
+                    {
+                        "$compose": "expand", "$value": "url({movie_background_image})",
+                        "$default": "url(https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg)"
+                    }
+                ]
             }
-        ],
+        },
         "is_title": [
             {"$compose": "read", "$value": "$.input", "$default": ""},
             {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "title_schema"}, "$default": false}
@@ -202,7 +182,7 @@ export default {
                 "$compose": "create",
                 "$value": {
                     "poster_path": {
-                        "$compose": "read", "$value": "$.view.show.poster_path", "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+                        "$compose": "read", "$value": "$.view.show.poster_path", "$default": "/78lPtwv72eTNqFW9COBYI0dWDJa.jpg"
                     }
                 }
             },
@@ -223,6 +203,152 @@ export default {
             {
                 "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{backdrop_path}",
                 "$default": "https://image.tmdb.org/t/p/w500/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+            }
+        ],
+        "folds": {
+            "$compose": "create",
+            "$value": {
+                "map": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {
+                        "$compose": "fold",
+                        "$type": "map",
+                        "$default": [],
+                        "$value": {
+                            "$compose": "create",
+                            "$value": {
+                                "poster_path": {"$compose": "read", "$value": "$.item.value.poster_path", "$default": ""},
+                                "media_type": {"$compose": "read", "$value": "$.item.value.media_type", "$default": "tv"},
+                                "title": {"$compose": "read", "$value": "$.item.value.title", "$default": ""}
+                            }
+                        }
+                    }
+                ],
+                "flat_map": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {
+                        "$compose": "fold",
+                        "$type": "flat_map",
+                        "$default": [],
+                        "$value": {
+                            "$compose": "read",
+                            "$value": "$.item.value",
+                            "$default": {"poster_path": "", "media_type": "", "title": ""}
+                        }
+                    }
+                ],
+                "reduce": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {
+                        "$compose": "fold",
+                        "$type": "reduce",
+                        "$default": [],
+                        "$value": [
+                            {"$compose": "read", "$value": "$.composed", "$default": []},
+                            {"$compose": "spread", "$value": [{"$compose": "read", "$value": "$.item.value.title", "$default": ""}], "$default": []}
+                        ]
+                    }
+                ],
+                "reduce_with_undefined_default": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "reduce", "$value": {"$compose": "read", "$value": "$.composed"}, "$default": undefined}
+                ],
+                "reduce_with_defined_default": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "reduce", "$value": {"$compose": "read", "$value": "$.composed"}, "$default": ""}
+                ],
+                "reduce_right": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {
+                        "$compose": "fold",
+                        "$type": "reduce_right",
+                        "$default": [],
+                        "$value": [
+                            {"$compose": "read", "$value": "$.composed", "$default": []},
+                            {"$compose": "spread", "$value": [{"$compose": "read", "$value": "$.item.value.title", "$default": ""}], "$default": []}
+                        ]
+                    }
+                ],
+                "every": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "every", "$value": {"$compose": "search_result", "$default": false}, "$default": false}
+                ],
+                "some": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "some", "$value": {"$compose": "search_result", "$default": false}, "$default": false}
+                ],
+                "find": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "find", "$value": {"$compose": "search_result", "$default": false}}
+                ],
+                "find_with_no_result": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "find", "$value": {"$compose": "create", "$default": false}, "$default": null}
+                ],
+                "filter": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "filter", "$value": {"$compose": "search_result", "$default": false}, "$default": []}
+                ],
+                // Implement sort with map and compare.
+                "sort": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {"$compose": "fold", "$type": "sort", "$value": {"$compose": "create", "$value": 0}, "$default": []}
+                ],
+                "sort_by_descending_popularity": [
+                    {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+                    {
+                        "$compose": "fold",
+                        "$type": "map",
+                        "$default": [],
+                        "$value": {
+                            "$compose": "create",
+                            "$value": {
+                                "popularity": {"$compose": "read", "$value": "$.item.value.popularity", "$default": 0},
+                                "title": {"$compose": "read", "$value": "$.item.value.title", "$default": ""},
+                                "poster_path": {"$compose": "read", "$value": "$.item.value.poster_path", "$default": ""},
+                                "media_type": {"$compose": "read", "$value": "$.item.value.media_type", "$default": "tv"}
+                            }
+                        }
+                    },
+                    {
+                        "$compose": "fold",
+                        "$type": "sort",
+                        "$default": [],
+                        "$value": [
+                            {
+                                "$compose": "create",
+                                "$value": {
+                                    "one": {"$compose": "read", "$value": "$.item.one.value.popularity", "$default": 0},
+                                    "two": {"$compose": "read", "$value": "$.item.two.value.popularity", "$default": 0}
+                                }
+                            },
+                            {"$compose": "math", "$value": "two - one", "$default": 0}
+                        ]
+                    }
+                ]
+            }
+        },
+        "search_result": [
+            {"$compose": "read", "$value": "$.item.value", "$default": {"poster_path": "", "media_type": ""}},
+            {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "search_result_schema"}, "$default": false}
+        ],
+        "search_results": [
+            {"$compose": "read", "$value": "$.response.body.results", "$default": []},
+            {"$compose": "fold", "$type": "filter", "$value": {"$compose": "search_result", "$default": false}, "$default": []},
+            {
+                "$compose": "fold",
+                "$type": "sort",
+                "$default": [],
+                "$value": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "one": {"$compose": "read", "$value": "$.item.one.value.vote_average", "$default": 0},
+                            "two": {"$compose": "read", "$value": "$.item.two.value.vote_average", "$default": 0}
+                        }
+                    },
+                    {"$compose": "math", "$value": "two - one", "$default": 0}
+                ]
             }
         ]
     },
@@ -1547,8 +1673,8 @@ export default {
                 "$value": {
                     "key": "movie",
                     "item": {
-                        "id": [{"$compose": "read", "$value": "$.input.id.0", "$default": "0"}],
-                        "media_type": [{"$compose": "read", "$value": "$.input.media_type.0", "$default": "tv"}]
+                        "id": {"$compose": "read", "$value": "$.input.id.0", "$default": "0"},
+                        "media_type": {"$compose": "read", "$value": "$.input.media_type.0", "$default": "tv"}
                     }
                 }
             },
@@ -1640,7 +1766,11 @@ export default {
         "on_request_search_success": [
             {
                 "$action": "create_$states_items",
-                "$value": {"items": {"query": {"$compose": "read", "$value": "$.response.body.results", "$default": []}}},
+                "$value": {"items": {"folds_results": {"$compose": "folds"}}},
+            },
+            {
+                "$action": "create_$states_items",
+                "$value": {"items": {"query": {"$compose": "search_results"}}},
                 "$if": [
                     {"$compose": "read", "$value": "$.response", "$default": {"status": 0, "headers": {}, "body": {}}},
                     {
@@ -2304,6 +2434,7 @@ export default {
         ],
         "title": "",
         "query": [],
+        "folds_results": {},
         "movie": {
             "id": 1726,
             "title": "Iron Man",
@@ -2491,7 +2622,19 @@ export default {
             </div>
         ),
         "results": (
-            <SearchRow data-state="query" data-bind-state="query"/>
+            <div className="search-container" data-state="query" data-state-repeat="true" data-state-repeat-key="show">
+                <div className="movie" data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                    <div className="movie__column-poster">
+                        <form className="movie__poster" data-event="on_click_movie" data-bind-event="onSubmit"
+                              data-state-type="dictionary">
+                            <input type="hidden" name="id" data-bind-state="defaultValue" data-state="id" data-state-path="$.view.show.id"/>
+                            <input type="hidden" name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                                   data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                            <input className="movie__poster" type="image" data-bind-state="src" data-state="show_poster_image" alt=""/>
+                        </form>
+                    </div>
+                </div>
+            </div>
         ),
         "search": (
             <>
@@ -2561,20 +2704,6 @@ export default {
             </nav>
         ),
     },
-    // <pre data-composer="read" data-composer-type="json_path" data-composer-value="$.view.primitive" data-composer-default="0"/>
-    // data-compose="expand" data-state-default="composition"
-    // data-state-path-type="json_path" data-state-path="$.input.netflix_originals[n].name"
-
-    // How to compose state with `data-state` or `data-state-path`?
-    // Since children nodes MUST BE elements or text, then interpolate all text nodes interspersed between elements.
-    // Interpolate the state into strings.
-    // 1. If `data-bind-state` is still the default `children` prop, then ...
-    // a. If `children` is `undefined`, create a text node that has a placeholder to interpolate and interpolate any value,
-    // simple or complex, e.g., "(data-state)".
-    // If children is defined as a string, interpolate the string with any value, simple or complex, e.g., "Start (data-state) Finish"
-    // If the value is a primitive, interpolate it in (data-state).
-    // If the value is an object, interpolate its keys to (data-state.key) (data-state.0) ...
-    // If children is other JSX elements, ...
     "$view": (
         <>
             <div data-view="navigation_bar"/>
