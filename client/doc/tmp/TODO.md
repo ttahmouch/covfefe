@@ -478,3 +478,422 @@ console.log(expandTemplate({
     //     "vote_average": 8.5,
     // }
 }
+
+```
+<>
+    <div data-view="navigation_bar"/>
+    <div data-if-path="/" data-view="home"/>
+    <div data-if-path="/search" data-view="search"/>
+    <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
+
+    <div style={{color: "red", fontSize: 14}}>
+        <pre data-state="boolean" data-state-value={false}/>
+        <pre data-state="null" data-state-value={null}/>
+        <pre data-state="number" data-state-value={9000}/>
+        <pre data-state="string" data-state-value={"string"}/>
+        {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}/>*/}
+        <pre data-state="undefined" data-state-value={undefined}/>
+        <pre data-state="object" data-state-value={{"0": 0, "1": 1}}/>
+        <pre data-state="array" data-state-value={[0, 1]}/>
+
+        <pre data-state="boolean" data-state-value={false}>(boolean)</pre>
+        <pre data-state="null" data-state-value={null}>(null)</pre>
+        <pre data-state="number" data-state-value={9000}>(number)</pre>
+        <pre data-state="string" data-state-value={"string"}>(string)</pre>
+        {/*<pre data-state="symbol" data-state-value={Symbol.for("symbol")}>(symbol)</pre>*/}
+        <pre data-state="undefined" data-state-value={undefined}>(undefined)</pre>
+        <pre data-state="primitive" data-state-value={true}>(primitive) <span/> (primitive)</pre>
+        <pre data-state="object" data-state-value={{"0": 0, "1": 1}}>(0) <span/> (1)</pre>
+        <pre data-state="array" data-state-value={[0, 1]}>(0) <span/> (1)</pre>
+
+        <pre data-state="noop"/>
+        <pre data-state="noop" data-state-default="noop"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="noop"/>
+        <pre data-state="noop" data-state-default-value="default"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default-value="default"/>
+        <pre data-state="title"/>
+        <pre data-state="noop" data-state-default="title"/>
+        <pre data-state="title" data-state-path="$.app.$states.title"/>
+        <pre data-state="title" data-state-path="$.app.$states.noop" data-state-default="title"/>
+
+        <div data-state-repeat="true" data-state-repeat-key="9000"
+             data-state="nested_primitive" data-state-value={9000}>
+            <pre data-state="9000" data-state-path="$.view.9000"/>
+        </div>
+        <div data-state-repeat="true" data-state-repeat-key="integer"
+             data-state="nested_array_of_integers" data-state-value={[0, 1, 2, 3]}>
+            <pre data-state="integer" data-state-path="$.view.integer"/>
+        </div>
+        <div data-state-repeat="true" data-state-repeat-key="person" data-state="people"
+             data-state-value={[
+                 {
+                     "children": [
+                         {"pets": [{"name": "marshmallow"}, {"name": "chocolate"}]},
+                         {"pets": [{"name": "graham"}, {"name": "peanut butter"}]}
+                     ]
+                 },
+                 {
+                     "children": [
+                         {"pets": [{"name": "red"}, {"name": "orange"}]},
+                         {"pets": [{"name": "yellow"}, {"name": "green"}]}
+                     ]
+                 }
+             ]}>
+            <div data-state-repeat="true" data-state-repeat-key="child" data-state-repeat-depth="1"
+                 data-state="children" data-state-path="$.view.person.children">
+                <div data-state-repeat="true" data-state-repeat-key="pet" data-state-repeat-depth="2"
+                     data-state="pets" data-state-path="$.view.child.pets">
+                    <pre data-state="name" data-state-path="$.view.pet.name"/>
+                </div>
+            </div>
+        </div>
+        <div data-state="netflix_originals"
+             data-state-repeat="true" data-state-repeat-key="show">
+            <div className="showcase_movie"
+                 data-state="id" data-state-path="$.view.show.id" data-bind-state="key">
+                <form className="showcase_movie_image"
+                      data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                    <input className="showcase_movie_image" type="image"
+                           data-bind-state="src" data-state="show_poster_image" alt=""/>
+                    <input name="original_name" data-bind-state="defaultValue"
+                           data-state="original_name" data-state-path="$.view.show.original_name"/>
+                    <input name="name" data-bind-state="defaultValue"
+                           data-state="name" data-state-path="$.view.show.name"/>
+                    <input name="first_air_date" data-bind-state="defaultValue"
+                           data-state="first_air_date" data-state-path="$.view.show.first_air_date"/>
+                    <input name="backdrop_path" data-bind-state="defaultValue"
+                           data-state="backdrop_path" data-state-path="$.view.show.backdrop_path"/>
+                    <input name="original_language" data-bind-state="defaultValue"
+                           data-state="original_language" data-state-path="$.view.show.original_language"/>
+                    <input name="overview" data-bind-state="defaultValue"
+                           data-state="overview" data-state-path="$.view.show.overview"/>
+                    <input name="poster_path" data-bind-state="defaultValue"
+                           data-state="poster_path" data-state-path="$.view.show.poster_path"/>
+                    <input name="genre_ids" data-bind-state="defaultValue"
+                           data-state="genre_ids" data-state-path="$.view.show.genre_ids"/>
+                    <input name="popularity" data-bind-state="defaultValue"
+                           data-state="popularity" data-state-path="$.view.show.popularity"/>
+                    <input name="origin_country" data-bind-state="defaultValue"
+                           data-state="origin_country" data-state-path="$.view.show.origin_country"/>
+                    <input name="vote_count" data-bind-state="defaultValue"
+                           data-state="vote_count" data-state-path="$.view.show.vote_count"/>
+                    <input name="vote_average" data-bind-state="defaultValue"
+                           data-state="vote_average" data-state-path="$.view.show.vote_average"/>
+                    <input name="id" data-bind-state="defaultValue"
+                           data-state="id" data-state-path="$.view.show.id"/>
+                    <input name="media_type" data-bind-state="defaultValue" data-state="media_type"
+                           data-state-path="$.view.show.media_type" data-state-default-value="tv"/>
+                    <div data-state-repeat="true" data-state-repeat-key="nation" data-state-repeat-depth="1"
+                         data-state="country" data-state-path="$.view.show.origin_country">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="nation" data-state-path="$.view.nation"/>
+                        <div data-state-repeat="true" data-state-repeat-key="genre" data-state-repeat-depth="2"
+                             data-state="genres" data-state-path="$.view.show.genre_ids">
+                            <input type="text" data-bind-state="defaultValue"
+                                   data-state="genre" data-state-path="$.view.genre"/>
+                        </div>
+                    </div>
+                    <div data-state-repeat="true" data-state-repeat-key="genre_id"
+                         data-state-repeat-depth="0"
+                         data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="genre_id" data-state-path="$.view.genre_id"/>
+                    </div>
+                </form>
+            </div>
+            <br/>
+        </div>
+
+        <div data-state="netflix_originals"
+             data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
+             data-state-repeat="true" data-state-repeat-key="show">
+            <form className="showcase_movie_image"
+                  data-event="on_click_movie" data-bind-event="onSubmit" data-state-type="dictionary">
+                <div data-state-repeat="true" data-state-repeat-key="genre_id" data-state-repeat-depth="1"
+                     data-state="genre_ids" data-state-path="$.view.show.genre_ids">
+                    <input type="text" data-bind-state="defaultValue"
+                           data-state="genre_id" data-state-path="$.view.genre_id"/>
+                    <div data-state-repeat="true" data-state-repeat-key="country" data-state-repeat-depth="2"
+                         data-state="countries" data-state-path="$.view.show.origin_country">
+                        <input type="text" data-bind-state="defaultValue"
+                               data-state="country" data-state-path="$.view.country"/>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div data-state="netflix_originals"
+             data-state-value={[{"genre_ids": [80, 10765], "origin_country": ["US", "CA"]}]}
+             data-state-repeat="true"
+             data-state-repeat-key="show">
+            <div data-state="countries"
+                 data-state-path="$.view.show.origin_country"
+                 data-state-repeat="true"
+                 data-state-repeat-key="country"
+                 data-state-repeat-depth="1">
+                <p>Country</p>
+                <p data-state="country"
+                   data-state-path="$.view.country"/>
+                <div data-state="genre_ids"
+                     data-state-path="$.view.show.genre_ids"
+                     data-state-repeat="true"
+                     data-state-repeat-key="genre_id"
+                     data-state-repeat-depth="2">
+                    <p>Genre ID</p>
+                    <p data-state="genre_id"
+                       data-state-path="$.view.genre_id"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</>
+```
+
++ I need a list of all JavaScript Array Fold Functions.
++ I need them to not mutate the input Array, i.e., pure Higher-Order Functions, e.g., `[0,1].reverse()`.
++ I need them to rely on VALUE over REFERENCE comparisons, e.g., `[{}].indexOf({})`, `[{}].includes({})`.
+
+**Input State:** 
+> Array
+
+**Output State:** 
+> Array (Filter, Flat, FlatMap, Map, Sort (Copy -> Sort))
+> 
+> Boolean (Every, Some)
+> 
+> String (Join (i.e., Reduce -> String))
+> 
+> Any (Find, Reduce, ReduceRight)
+
+**Predicate:** 
+> `callback(element[, index[, array]])` (Not Reduce or ReduceRight)
+> 
+> `callback(accumulator, element[, index[, array]])` (Reduce, ReduceRight)
+> 
+> `callback(a, b)` (Sort)
+
+```
+✅ Array.prototype.filter()
+✅ Array.prototype.flat()
+✅ Array.prototype.map()
+✅ Array.prototype.flatMap()
+✅ Array.prototype.every()
+✅ Array.prototype.find()
+✅ Array.prototype.some()
+✅ Array.prototype.reduce()
+✅ Array.prototype.reduceRight()
+✅ Array.prototype.sort()
+```
+
+// [
+//     {"expression": "", "scope": {"a": 0, "b": 1}},
+//     {"expression": ["a > b", "a < b"], "scope": {"a": 0, "b": 1}},
+//     {"expression": "a > b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a < b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a != b", "scope": {"a": true, "b": false}},
+//     {"expression": "a == b", "scope": {"a": true, "b": true}},
+//     {"expression": "a / b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a / b", "scope": {"a": 0, "b": 0}},
+//     {"expression": "a / b", "scope": {"a": 1, "b": 0}},
+//     {"expression": "a * b", "scope": {"a": 0, "b": 1}},
+//     {"expression": "a > b", "scope": {"a": "3.14159", "b": "0"}},
+// ].forEach(({expression, scope}) => {
+//     console.time();
+//     console.log(mathjs.evaluate(expression, scope));
+//     console.timeEnd();
+// })
+
+// The sort fold needs to have a compare composition that can use the math expressions to evaluate a
+// positive, negative, or neutral result to determine order of the items being sorted.
+// The items being sorted may be primitive or complex data structures, i.e., undefined, null, boolean,
+// number, string, (bigint, symbol,) object, array, (date, etc.)
+// If a composition is provided, then it must be a compare composition.
+// If `map` and `compare` compositions are provided, then
+
+// If a single compsition is supplied, then it should be used as the compare function for the sort.
+// If a mapsort is supplied with only a map, then a default sort function should be used.
+// If a mapsort is supplied with only a sort, then a default map function should be used.
+// If nothing is supplied, then a default map and sort function should be used.
+// A map function should read state from each item in the array and map it to a new data structure
+// to make the data easily comparable when sorting.
+// A sort function should read state from two items in the array and compane them against each other.
+// If the first is greater than the second, it should return a positive number; less, negative; equal, zero.
+
+// This compare function receives the versions ideal for sorting returned by the map callback.
+// If omitted, the versions ideal for sorting returned by the map callback are converted to strings and
+// the elements are sorted according to the Unicode code point values of the characters of those
+// converted "sortable" values.
+
+// instance === null; JSON.stringify(null) => 'null'
+// typeof instance === "undefined"; JSON.stringify(undefined) => undefined
+// typeof instance === "function"; JSON.stringify(() => undefined) => undefined
+// typeof instance === "symbol"; JSON.stringify(Symbol.for('')) => undefined
+// typeof instance === "bigint"; JSON.stringify(0n) => TypeError: Do not know how to serialize a BigInt
+// typeof instance === "boolean"; JSON.stringify(true) => 'true'
+// typeof instance === "number"; JSON.stringify(0) => '0'
+// typeof instance === "string"; JSON.stringify("") => '""'
+// typeof instance === "object"; {}, [], new Date();
+// JSON.stringify({}) => '{}';
+// JSON.stringify([]) => '[]';
+// JSON.stringify(new Date()) => '"2020-12-20T20:40:28.582Z"'
+
+// If either operand evaluates to an object, then that object is converted to a primitive value.
+// If both operands are strings, the two strings are compared.
+// If at least one operand is not a string, both operands are converted to numbers and compared numerically.
+
+// "$compare": [
+//     {
+//         "$compose": "create",
+//         "$value": {
+//             "one": {"$compose": "read", "$value": "$.item.one.value", "$default": 0},
+//             "two": {"$compose": "read", "$value": "$.item.two.value", "$default": 0}
+//         }
+//     },
+//     {"$compose": "math", "$value": "two - one", "$default": 0}
+// ],
+// "$compare": {
+//     '$compose': 'compare',
+//     '$value': {
+//         '$one': {"$compose": "read", "$value": "$.item.one.value", "$default": 0},
+//         '$two': {"$compose": "read", "$value": "$.item.two.value", "$default": 0},
+//         '$order': 'descending'
+//     },
+//     '$default': 0
+// }
+// "$value": [
+//     {
+//         "$compose": "create",
+//         "$value": {
+//             "one": {"$compose": "read", "$value": "$.item.one.value.vote_average", "$default": 0},
+//             "two": {"$compose": "read", "$value": "$.item.two.value.vote_average", "$default": 0}
+//         }
+//     },
+//     {"$compose": "math", "$value": "two - one", "$default": 0}
+// ]
+
+// console.log(composeFromValue([
+//     {
+//         '$compose': 'create',
+//         '$value': {
+//             '$one': {'$compose': 'create', '$value': 100},
+//             '$two': {'$compose': 'create', '$value': 101},
+//             '$order': 'descending'
+//         }
+//     },
+//     {'$compose': 'compare', '$default': 0}
+// ]));
+// console.log(composeFromValue([
+//     {
+//         '$compose': 'create',
+//         '$value': {
+//             '$one': {'$compose': 'create', '$value': "xavier"},
+//             '$two': {'$compose': 'create', '$value': "tahmouch"},
+//             '$order': 'descending'
+//         }
+//     },
+//     {'$compose': 'compare', '$default': 0}
+// ]));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': Symbol.for('symbol1'), '$two': Symbol.for('symbol2')}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': false, '$two': true}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': 0, '$two': 1}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': '0', '$two': '1'}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': () => undefined, '$two': () => undefined}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': null, '$two': undefined}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': [], '$two': {}}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': [0, 1], '$two': [1, 0]}, '$default': 0}));
+// console.log(composeFromValue({'$compose': 'compare', '$value': {'$one': {'key1': 0, 'key2': 1}, '$two': {'key2': 1, 'key1': 0}}, '$default': 0}));
+// console.log(composeFromValue({
+//     '$compose': 'compare',
+//     '$type': 'date',
+//     '$value': {
+//         '$one': '2020-12-21T20:09:14.308Z',
+//         '$two': '2020-12-21T20:09:14.309Z'
+//     },
+//     '$default': 0
+// }));
+// console.log(composeFromValue({
+//     '$compose': 'compare',
+//     '$type': 'locale',
+//     '$value': {'$one': 'ä', '$two': 'z', '$order': 'ascending'},
+//     '$default': 0
+// }));
+// console.log(composeFromValue({
+//     '$compose': 'compare',
+//     '$value': {
+//         '$one': [{"0": 0, "fuck": [{"0": 0, "fuck": []}]}],
+//         '$two': [{"fuck": [{"fuck": [], "0": 0}], "0": 0}]
+//     },
+//     '$default': 0
+// }));
+
+// console.log(composeFromValue([
+//     {
+//         $compose: "create",
+//         // $value: [9,8,7,6,5,4,3,2,1,0],
+//         $value: [
+//             {surname: "z", name: "z"},
+//             {surname: "tahmouch", name: "tony"},
+//             {surname: "xavier", name: "charles"}
+//         ],
+//         // $value: ["9","8","7","6","5","4","3","2","1","0"],
+//         // $value: [
+//         //     "2020-12-21T20:09:14.309Z",
+//         //     "2020-12-21T20:09:14.308Z",
+//         //     "2020-12-21T20:09:14.307Z",
+//         //     "2020-12-21T20:09:14.300Z"
+//         // ]
+//     },
+//     {
+//         $compose: "fold",
+//         $type: "sort",
+//         $value: {
+//             // $map: [
+//             //     {
+//             //         "$compose": "create",
+//             //         "$value": {"one": {"$compose": "read", "$value": "$.item.value", "$default": 0}}
+//             //     },
+//             //     {"$compose": "math", "$value": "one * PI", "$default": 0}
+//             // ],
+// $map: {"$compose": "read", "$value": "$.item.value.surname", "$default": ""},
+// $compare: {"$compose": "compare", "$value": {"$order": "ascending"}, "$default": 0}
+//             $map: [
+//                 {
+//                     $compose: "create",
+//                     $value: {
+//                         "name": {"$compose": "read", "$value": "$.item.value.name", "$default": ""},
+//                         "surname": {"$compose": "read", "$value": "$.item.value.surname", "$default": ""}
+//                     }
+//                 },
+//                 {$compose: "expand", $value: "{surname},{name}"}
+//             ],
+//             // $compare: {
+//             //     $compose: "compare",
+//             //     $type: "lexical",
+//             //     $value: {
+//             //         $one: [
+//             //             {
+//             //                 $compose: "create",
+//             //                 $value: {
+//             //                     "name": {"$compose": "read", "$value": "$.item.one.value.name", "$default": ""},
+//             //                     "surname": {"$compose": "read", "$value": "$.item.one.value.surname", "$default": ""}
+//             //                 }
+//             //             },
+//             //             {$compose: "expand", $value: "{surname},{name}"}
+//             //         ],
+//             //         $two: [
+//             //             {
+//             //                 $compose: "create",
+//             //                 $value: {
+//             //                     "name": {"$compose": "read", "$value": "$.item.two.value.name", "$default": ""},
+//             //                     "surname": {"$compose": "read", "$value": "$.item.two.value.surname", "$default": ""}
+//             //                 }
+//             //             },
+//             //             {$compose: "expand", $value: "{surname},{name}"}
+//             //         ],
+//             //         $order: "ascending"
+//             //     }
+//             // }
+//         },
+//         $default: []
+//     }
+// ]));

@@ -3,11 +3,11 @@ import React, {createElement} from "react";
 import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
-import jsonpath from "jsonpath/jsonpath.min";
+import {JSONPath} from "jsonpath-plus";
 import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
-
+import * as mathjs from "mathjs";
 import {
     action,
     app,
@@ -56,6 +56,89 @@ import {
     viewFromAppState,
     viewStateFromStates
 } from "./dependencies.js";
+
+/**
+ * ✅ Implement HTTP Response Mocking.
+ * ✅ Routing
+ * ✅ Debug using Redux Dev Tools.
+ * ✅ Should redux-devtools-extension be a dependency of the app or lib?
+ * ✅ Netflux Clone.
+ * ✅ Call view state that the user enters, e.g., form submit, scroll coordinate,
+ * etc, `user` state.
+ * ✅ Call view state that the user does not enter, e.g., state selected from the
+ * app state, `view` state.
+ * ✅ Consolidate Header and Modal Style into Background Image Style.
+ * ✅ Change all JSON Paths in the framework to use dot notation instead of
+ * subscript notation.
+ * ✅ Allow subviews to select from the view state of the super view; Allow array
+ * state to bind to repeatable views.
+ * ✅ Support JSON Path in data-state like data-if-path.
+ * ✅ Warning: Invalid attribute name: ``
+ * ✅ Implement mapsort composer;
+ * ✅ Implement compare composer;
+ * ✅ Implement math composer;
+ * ✅ Support Array Higher-Order Folding Functions in Composers.
+ * ✅ Add map, reduce, filter, etc. to composers.
+ *
+ * # Important
+ * ❌ Support data-event="onLayout".
+ * ❌ Support onScroll, onLayout, onRender, etc.
+ * ❌ Support Array Higher-Order Folding Functions in Reducers.
+ * ❌ Add map, reduce, filter, etc. to reducers.
+ * ❌ Support Binding Multiple Props From State, e.g., children and value.
+ * ❌ Allow `data-multi-state` to bind `{"value": "User Input",
+ * "placeholder": "Movie Title,..."}` without a single `data-bind="value"`?
+ * ❌ Support Expanding Templates For Props Other Than Children, e.g.,
+ * data-state-template.
+ * ❌ Support Encoding JSON Values From State.
+ * ❌ Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
+ * ❌ Action Sequences
+ * ❌ Return app JSON from a server and reduce it in the client.
+ * ❌ Implement conditional composer;
+ * ❌ Conditional Compositions, i.e., AND, OR, XOR, ...
+ * ❌ Implement CRUD reducers as composers;
+ * ❌ Implement JS Object methods from snake to camel case for all methods, e.g.,
+ * String.prototype.includes, etc.
+ * ❌ Support data-state-* for multiple state bindings on one element.
+ * ❌ Support data-event-* for multiple event bindings on one element.
+ * ❌ Support create composer in all the other composers for the value property
+ * to make them more useful.
+ * ❌ Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
+ * ❌ Detect onScroll and hide/show the navigation bar background.
+ *
+ * # Not Important
+ * ❌ Improve JSON JSX format, or allow XML to be used instead.
+ * ❌ Aborting HTTP Requests.
+ * ❌ Animations
+ * ❌ Support embedding composers inside types like styles instead of generating
+ * styles from composers.
+ * ❌ Make input state from input fields with unique names not get provided
+ * in an array.
+ * ❌ Create convenience for managing query parameter expansion for a
+ * request composer?
+ * ❌ Check the order of the composition when recursively composing is
+ * `json_component` composition.
+ * ❌ Add FlatList equivalent for dynamic list elements.
+ * ❌ Add support for data-id to allow click events on items in a list to
+ * uniquely identify the item.
+ * ❌ Start trying to add event handlers for things like the Modal Dialog.
+ * ❌ Support data-style with className+CSS.
+ * ❌ Support state cascading from ancestor to child view elements,
+ * e.g., "FlatList-like."
+ * ❌ getState doesn't appear to be getting the latest state between actions
+ * in an event.
+ * ❌ Support Action Sequences because order matters for being able to display a
+ * modal dialog after data is fetched.
+ * ❌ Organize the categories into the same model in the store state, and map
+ * them with a "FlatList."
+ * ❌ Store state as value attributes in any element that can be read from during
+ * an event.
+ * ❌ Make `data-state-repeat=true` the default way to handle arrays.
+ * ❌ Blog, Vlog, Pinterest, Etsy, 3d Print,
+ * ❌ Don't traverse `data-view` twice when the dereferenced view is a
+ * `data-state-repeat` with a template child element.
+ * ❌ Support `data-memo` to Memoize Views?
+ */
 
 // Reducers ------------------------------------------------------------------------------------------------------------
 
@@ -193,7 +276,7 @@ export const isComposer = (composer = functionalComposer) => {
     return (
         typeof composer === "function"
         || (composer !== null && typeof composer === "object" && typeof composer.$compose === "string")
-        || (Array.isArray(composer) && composer.every(isComposer))
+        || (Array.isArray(composer) && composer.length > 1 && composer.every(isComposer))
     );
 };
 
@@ -215,11 +298,13 @@ export const create = ({$value = undefined, $state = state},
     );
 };
 
+// TODO: Make CRUD composers based on CRUD reducers.
 export const spread = (composer, dependencies = {create}) => {
     const {create} = dependencies;
     const {$state: {composed} = state} = composer;
 
     return Array.isArray(composed)
+        // ? composed.concat(create(composer))
         ? [...composed, ...create(composer)]
         : {...composed, ...create(composer)};
 };
@@ -233,22 +318,108 @@ export const readRegularExpression = ({$value: $regular_expression = "", $state:
     return new RegExp($regular_expression).exec(composed) || [];
 };
 
-export const readJsonPath = ({$value: $json_path = "", $state = state}) => {
-    return jsonpath.value($state, $json_path);
+export const jsonpath = new JSONPath({"wrap": false, "autostart": false});
+
+export const readJsonPath = ({$value: $json_path = "", $state = state}, path = jsonpath) => {
+    return path.evaluate({"path": $json_path, "json": $state});
+};
+
+export const math = ({$value: $expression = "", $state: {composed} = state}, expression = mathjs) => {
+    return expression.evaluate($expression, composed);
+};
+
+export const snakeToCamelCase = (string = "", config = {}) => {
+    const {expression = /[-_]([^-_])/g, withValue = (_, lowercase) => lowercase.toUpperCase()} = config;
+    return string.replace(expression, withValue);
+};
+
+export const fold = (composer = {}, dependencies = {composeFromValue, isComposer, snakeToCamelCase}) => {
+    const {composeFromValue, isComposer, snakeToCamelCase} = dependencies;
+    const {$type = "reduce", $value = {"$compose": "read", "$value": "$.composed"}, $state = state, $default = undefined} = composer;
+    const {composed} = $state;
+    const type = snakeToCamelCase($type);
+    const compose = ({composed, value, index, array, composer = $value, state = $state} = {}) => {
+        return composeFromValue(composer, {...state, composed, "item": {value, index, array}});
+    };
+    switch ($type) {
+        // case "flat":
+        case "every":
+        case "filter":
+        case "find":
+        case "flat_map":
+        case "map":
+        case "some":
+            return composed[type]((value, index, array) => compose({value, index, array}));
+        // Implement a map and compare object.
+        case "sort":
+            const {
+                "$map": map = {"$compose": "read", "$value": "$.item.value"},
+                "$compare": compare = {"$compose": "compare", "$default": 0}
+            } = isComposer($value) ? {"$map": undefined, "$compare": $value} : $value;
+            return composed
+                .map((value, index, array) => ({"value": compose({value, index, array, "composer": map}), index, array}))
+                .sort((one, two) => composeFromValue(compare, {...$state, "item": {one, two}}))
+                .map(({index}) => composed[index]);
+        case "reduce_right":
+        case "reduce":
+        default: {
+            const initial = composeFromValue($default, {...$state, "composed": undefined});
+            const reduced = composed[type]((composed, value, index, array) => compose({composed, value, index, array}), initial);
+            return reduced !== undefined ? reduced : null;
+        }
+    }
+};
+
+export const compare = (composer = {}, dependencies = {create, toNormalizedJson, toType}) => {
+    // If either operand evaluates to an object, then that object is converted to a primitive value.
+    // If both operands are strings, the two strings are compared.
+    // If at least one operand is not a string, both operands are converted to numbers and compared numerically.
+    const {create, toNormalizedJson, toType} = dependencies;
+    const {$type = "lexical", $value = undefined, $state = state} = composer;
+    const {composed} = $state;
+    const {
+        $one = {"$compose": "read", "$value": "$.item.one.value"},
+        $two = {"$compose": "read", "$value": "$.item.two.value"},
+        $order = "ascending"
+    } = $value || composed;
+    const composedOne = toNormalizedJson(create({"$value": $one, $state}));
+    const composedTwo = toNormalizedJson(create({"$value": $two, $state}));
+    const oneType = toType(composedOne);
+    const twoType = toType(composedTwo);
+    const oneIsObject = oneType === "array" || oneType === "object";
+    const twoIsObject = twoType === "array" || twoType === "object";
+    const oneIsDate = oneType === "string" && $type === "date";
+    const twoIsDate = twoType === "string" && $type === "date";
+    const shouldCompareLocaleSensitively = oneType === "string" && twoType === "string" && $type === "locale";
+    const onValue = (key, value) => toNormalizedJson(value);
+    const one = oneIsObject ? JSON.stringify(composedOne, onValue) : oneIsDate ? Date.parse(composedOne) : composedOne;
+    const two = twoIsObject ? JSON.stringify(composedTwo, onValue) : twoIsDate ? Date.parse(composedTwo) : composedTwo;
+    const compareLexicographically = (one, two) => one < two ? -1 : one > two ? +1 : 0;
+
+    switch ($order) {
+        case "descending":
+            return shouldCompareLocaleSensitively ? two.localeCompare(one) : compareLexicographically(two, one);
+        case "ascending":
+        default:
+            return shouldCompareLocaleSensitively ? one.localeCompare(two) : compareLexicographically(one, two);
+    }
 };
 
 export const matchPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
     return !!match($path_template, {"decode": decodeURIComponent})(composed);
 };
 
+export const jsonschema = new Ajv();
+
 export const matchJsonSchema = ({
                                     $value: $json_schema = {"$schema": "http://json-schema.org/draft-07/schema#"},
                                     $state = state,
                                 },
+                                schema = jsonschema,
                                 dependencies = {toDereferencedSchema}) => {
     const {toDereferencedSchema} = dependencies;
     const {composed} = $state;
-    return new Ajv().validate(toDereferencedSchema($json_schema, $state), composed);
+    return schema.validate(toDereferencedSchema($json_schema, $state), composed);
 };
 
 export const matchRegularExpression = ({$value: $regular_expression = "", $state: {composed} = state}) => {
@@ -308,16 +479,14 @@ export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed
     return new URITemplate($uri_template).expand(composed);
 };
 
-export const expandTemplate = (composer, dependencies = {create}) => {
-    const {create} = dependencies;
+export const expandTemplate = (composer, dependencies = {create, toNormalizedJson}) => {
+    const {create, toNormalizedJson} = dependencies;
     const {$state: {composed} = state} = composer;
     const expression = /[{(]([^{}()]*)[)}]/g;
-    // const withValue = (match, param) => typeof composed[param] !== "undefined" ? String(composed[param]) : match;
     const withValue = (match, param) => {
         const value = composed[param];
         const type = value === null ? "null" : typeof value;
 
-        // console.log(type === "object");
         return type === "object"
             ? JSON.stringify(value, (key, value) => toNormalizedJson(value), 2)
             : type !== "undefined"
@@ -355,15 +524,23 @@ export const decodeJson = ({$value = undefined, $state: {composed} = state}) => 
 
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
-export const compose = ({$compose = "", $type = "", $default = undefined, ...$composer},
-                        dependencies = {
-                            create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
-                        }) => {
+export const compose = ($composer, dependencies = {
+    compare, create, decodeJson, encodeJson,
+    encodeUri, expandPathTemplate, expandTemplate,
+    expandUriTemplate, fold, matchJsonSchema,
+    matchPathTemplate, matchPrimitive, matchRegularExpression,
+    math, readJsonPath, readPathTemplate,
+    readRegularExpression, spread, valueOrDefault
+}) => {
     const {
-        create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
+        compare, create, decodeJson, encodeJson,
+        encodeUri, expandPathTemplate, expandTemplate,
+        expandUriTemplate, fold, matchJsonSchema,
+        matchPathTemplate, matchPrimitive, matchRegularExpression,
+        math, readJsonPath, readPathTemplate,
+        readRegularExpression, spread, valueOrDefault
     } = dependencies;
+    const {$compose = "", $type = "", $default = undefined} = $composer;
 
     switch ($compose) {
         case "create":
@@ -380,6 +557,12 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
                 default:
                     return valueOrDefault(readJsonPath($composer), $default);
             }
+        case "math":
+            return valueOrDefault(math($composer), $default);
+        case "fold":
+            return valueOrDefault(fold($composer), $default);
+        case "compare":
+            return valueOrDefault(compare($composer), $default);
         case "match":
             switch ($type) {
                 case "path_template":
@@ -498,43 +681,35 @@ export const composeFromIdentifier = (identifier = "", states = state, type = `$
 
     return composeFromValue(
         {
-            "$comment": "Dereference Composer.",
-            "$compose": identifier,
+            "$comment": "Dereference Composer.", "$compose": identifier,
             "$default": {
                 "$comment": "Dereference State.",
-                "$compose": "read",
-                "$type": "json_path",
-                "$value": `$["app"]["${type}"]["${identifier}"]`,
-                "$default": defaultValue
+                "$compose": "read", "$type": "json_path", "$value": `$.app.${type}.${identifier}`, "$default": defaultValue
             }
         },
         states
     );
 };
 
-export const compositionForPathFromRoute = () => {
-    return [{"$compose": "read", "$type": "json_path", "$value": "$.app['$route'].pathname", "$default": "/"}];
-};
-
 // TODO: Rename this.
 export const composeFromPathTemplate = (template = "", states = state, type = "path_template",
-                                        dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                        dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
     // Compare Path + Query + Fragment, or just Path?
     // Query and Fragment are Order-Dependent so comparisons with Path Template and RegExp could easily fail.
     return composeFromValue([
-        ...compositionForPathFromRoute(),
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
         {"$compose": "match", "$type": type, "$value": template, "$default": false}
     ], states);
 };
 
 export const composeParametersFromPathTemplate = (template = "", states = state, type = "path_template",
-                                                  dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                                  dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
     return composeFromValue([
-        ...compositionForPathFromRoute(),
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
         {"$compose": "read", "$type": type, "$value": template, "$default": {}}
     ], states);
 };
@@ -553,9 +728,7 @@ export const composeValueFromPath = (path = "", defaultValue = undefined, states
                                      dependencies = {composeFromValue}) => {
     const {composeFromValue} = dependencies;
 
-    return composeFromValue([
-        {"$compose": "read", "$type": "json_path", "$value": path, "$default": defaultValue}
-    ], states);
+    return composeFromValue({"$compose": "read", "$type": "json_path", "$value": path, "$default": defaultValue}, states);
 };
 
 // Actions -------------------------------------------------------------------------------------------------------------
@@ -906,44 +1079,19 @@ export const dispatchRoutePathParamsToStore = (pathParams = {}, states = state, 
                                                dependencies = {dispatchEventToStore}) => {
     const {dispatchEventToStore} = dependencies;
     const spreadRoutePathParams = [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$.app['$route'].pathParams",
-            "$default": {}
-        },
-        {
-            "$compose": "spread",
-            "$value": pathParams,
-            "default": {}
-        }
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathParams", "$default": {}},
+        {"$compose": "spread", "$value": pathParams, "default": {}}
     ];
     const routePathParamsDidNotChange = [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$.app['$route'].pathParams",
-            "$default": {}
-        },
-        {
-            "$compose": "match",
-            "$type": "primitive",
-            "$value": spreadRoutePathParams,
-            "$default": false
-        }
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathParams", "$default": {}},
+        {"$compose": "match", "$type": "primitive", "$value": spreadRoutePathParams, "$default": false}
     ];
 
     return dispatchEventToStore(
-        [
-            {
-                "$action": "update_$route_item",
-                "$value": {
-                    "key": "pathParams",
-                    "item": spreadRoutePathParams
-                },
-                "$unless": routePathParamsDidNotChange
-            }
-        ],
+        [{
+            "$action": "update_$route_item", "$value": {"key": "pathParams", "item": spreadRoutePathParams},
+            "$unless": routePathParamsDidNotChange
+        }],
         states,
         store
     );
@@ -1093,36 +1241,55 @@ export const eventDispatcherForStore = (store = store, view = {},
 
 // App -----------------------------------------------------------------------------------------------------------------
 
-export const toNormalizedJson = (value) => {
-    return (typeof value === "undefined" || typeof value === "function")
-        ? null
-        : typeof value === "symbol"
-            ? `${Symbol.keyFor(value)}`
-            : typeof value === "bigint"
-                ? Number(value)
-                : value;
+export const toType = (value) => Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+
+export const toNormalizedJson = (value, dependencies = {toType}) => {
+    const {toType} = dependencies;
+
+    switch (toType(value)) {
+        case "bigint":
+            return Number(value);
+        case "object":
+            return Object.keys(value).sort().reduce((map, key) => (map[key] = value[key], map), {});
+        case "symbol":
+            return Symbol.keyFor(value);
+        case "array":
+        case "boolean":
+        case "number":
+        case "string":
+            return value;
+        case "function":
+        case "null":
+        case "undefined":
+            return null;
+    }
 };
 
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {
-                                               appStateFromStore, composeFromIdentifier, composeValueFromPath,
-                                               composeStringFromTemplate, eventDispatcherForStore
+                                               appStateFromStore, composeFromIdentifier, composeStringFromTemplate,
+                                               composeValueFromPath, eventDispatcherForStore, toNormalizedJson
                                            }) => {
     const {
-        appStateFromStore, composeFromIdentifier, composeValueFromPath, composeStringFromTemplate, eventDispatcherForStore
+        appStateFromStore, composeFromIdentifier, composeStringFromTemplate,
+        composeValueFromPath, eventDispatcherForStore, toNormalizedJson
     } = dependencies;
     const app = appStateFromStore(store) || {};
     const dispatch = eventDispatcherForStore(store, view);
+    const {"data-current-depth": $currentDepth = 0} = view;
     const {
-        "data-state": $state = "",
-        "data-style": $style = "",
-        "data-event": $event = "",
+        // Did switching from "" to undefined impact rendering speed?
+        "data-state": $state = undefined,
+        "data-style": $style = undefined,
+        "data-event": $event = undefined,
         "data-state-repeat": $stateRepeat = undefined,
-        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true",
+        "data-state-repeat-depth": $stateRepeatDepth = "0",
+        "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
+        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $currentDepth,
         "data-state-repeat-key": $stateRepeatKey = "item",
         "data-state-default": $stateDefault = undefined,
         "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, {app, view}, "$states"),
-        "data-state-path": $statePath = "",
+        "data-state-path": $statePath = undefined,
         "data-state-path-value": $statePathValue = $statePath && composeValueFromPath($statePath, $stateDefaultValue, {app, view}),
         "data-state-value": $stateValue = $statePath ? $statePathValue : $state
             ? composeFromIdentifier($state, {app, view}, "$states", $stateDefaultValue)
@@ -1140,37 +1307,37 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
         "data-bind-event": $bindEvent = "data-bind-event",
+        // "data-children": $children = children
     } = props;
 
-    view[$state] = $stateValue;
+    $state && (view[$state] = $stateValue);
 
-    return {
+    const reactProps = {
         "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
-        // "children": [...$shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue]]
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
-            .reduce((repeated, item, index) => {
+            .flatMap((item) => {
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
+                $shouldStateRepeat && (view["data-current-depth"]++);
 
-                const elements = [
-                    ...repeated,
-                    ...[...$shouldBindTemplate ? [$bindTemplate] : []]
-                        .concat(children)
-                        .map((child) => {
-                            return typeof child === "string"
-                                ? composeStringFromTemplate(child, $stateParams, {app, view})
-                                : $shouldStateRepeat
-                                    ? React.createElement(child)
-                                    : child;
-                        })
-                ];
+                const elements = ($shouldBindTemplate ? [$bindTemplate] : children)
+                    .map((child) => {
+                        return typeof child === "string"
+                            ? composeStringFromTemplate(child, $stateParams, {app, view})
+                            : $shouldStateRepeat
+                                ? React.createElement(child)
+                                : child;
+                    });
 
-                // console.log({state: $state, path: $statePath, value: $stateValue, props, elements, view: {...view}});
-
+                $shouldStateRepeat && (view["data-current-depth"]--);
                 $shouldStateRepeat && (view[$stateRepeatKey] = undefined);
 
                 return elements;
-            }, [])
+            })
     };
+
+    $state && (view[$state] = undefined);
+
+    return reactProps;
 };
 
 export const toReactProps = (props = {}, children = [], store = {}, view = {},
@@ -1181,7 +1348,7 @@ export const toReactProps = (props = {}, children = [], store = {}, view = {},
     return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view) : {props, children};
 };
 
-export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {},
+export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {"data-current-depth": 0},
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
@@ -1192,7 +1359,10 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         composeParametersFromPathTemplate, dispatchRoutePathParamsToStore, toReactProps, getType, isElement
     } = dependencies;
     const {createElement} = method;
-    const toChild = (child) => typeof child === "string" ? child : toElement(child);
+    // If Child is a `data-view` don't traverse it twice.
+    const toChild = (child) => {
+        return typeof child === "string" ? child : toElement(child);
+    };
     const toElement = (type = "", props = {}, ...children) => {
         // Support single, exclusive routes like a Switch component, e.g., /login, /:route.
         // Would the useSelector hook work in a non-component function used in the provider?
@@ -1221,7 +1391,6 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
             "data-path-params": $pathParams = ($path && $should && composeParametersFromPathTemplate($path, {app, view}, $pathType)) || {},
             "data-view": $view = "",
             "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app, view}, "$views"),
-            // "data-state-repeat": $stateRepeat = undefined,
             ...$props
         } = props;
         const $element = $viewValue || type;
@@ -1232,14 +1401,10 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // $view && !$should && console.group("Suppressing View:", $view);
         // $view && console.groupEnd();
 
-        // console.log(type, props["data-state"], children);
-
         if (isElement($element)) {
             const {type = "", props: {children = [], ...props} = {}} = $element;
             const $type = getType(components, type);
-            // const $children = [].concat(children).map($stateRepeat === "true" ? (child) => child : toChild);
             const $children = [].concat(children).map(toChild);
-            // $element.props["data-state-repeat"] === "true" && console.log(type, $element.props["data-state"], children);
             return toElement($type, {...props, ...$props}, ...$children);
         }
 
