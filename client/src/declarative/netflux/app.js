@@ -289,7 +289,6 @@ export default {
                     {"$compose": "read", "$value": "$.response.body.results", "$default": []},
                     {"$compose": "fold", "$type": "filter", "$value": {"$compose": "search_result", "$default": false}, "$default": []}
                 ],
-                // Implement sort with map and compare.
                 "sort": [
                     {"$compose": "read", "$value": "$.response.body.results", "$default": []},
                     {"$compose": "fold", "$type": "sort", "$value": {"$compose": "create", "$value": 0}, "$default": []}
@@ -314,16 +313,10 @@ export default {
                         "$compose": "fold",
                         "$type": "sort",
                         "$default": [],
-                        "$value": [
-                            {
-                                "$compose": "create",
-                                "$value": {
-                                    "one": {"$compose": "read", "$value": "$.item.one.value.popularity", "$default": 0},
-                                    "two": {"$compose": "read", "$value": "$.item.two.value.popularity", "$default": 0}
-                                }
-                            },
-                            {"$compose": "math", "$value": "two - one", "$default": 0}
-                        ]
+                        "$value": {
+                            "$map": {"$compose": "read", "$value": "$.item.value.popularity", "$default": 0},
+                            "$compare": {"$compose": "compare", "$value": {"$order": "descending"}, "$default": 0}
+                        }
                     }
                 ]
             }
@@ -338,17 +331,11 @@ export default {
             {
                 "$compose": "fold",
                 "$type": "sort",
-                "$default": [],
-                "$value": [
-                    {
-                        "$compose": "create",
-                        "$value": {
-                            "one": {"$compose": "read", "$value": "$.item.one.value.vote_average", "$default": 0},
-                            "two": {"$compose": "read", "$value": "$.item.two.value.vote_average", "$default": 0}
-                        }
-                    },
-                    {"$compose": "math", "$value": "two - one", "$default": 0}
-                ]
+                "$value": {
+                    "$map": {"$compose": "read", "$value": "$.item.value.vote_average", "$default": 0},
+                    "$compare": {"$compose": "compare", "$value": {"$order": "descending"}, "$default": 0}
+                },
+                "$default": []
             }
         ]
     },
