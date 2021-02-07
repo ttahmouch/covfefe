@@ -174,7 +174,7 @@ Should the nest structure of the state keys change instead?
 
 + Remember to solve the issue of name collision of renaming $schema_comparison to $schema.
 + $compare: {$regexp,$schema,$literal}
-// I completely fucking forgot that functions are being parsed from a JSON string meaning that's why they won't
+// I completely forgot that functions are being parsed from a JSON string meaning that's why they won't
 // be called. They won't exist. Functional selectors may have to be replaced with a filename or be serialized
 // and evaluated which sounds horrible, e.g., {$file_path, $json_path}
 // I may also be able to deserialize the entire request object at the proper time before dispatching an async
@@ -431,7 +431,7 @@ console.log(expandTemplate({
         ⦿ Try a genre, like comedy, romance, sports, or drama.
         ⦿ {something} (something)
     `,
-    "$state": {"composed": {"something": "fuck"}}
+    "$state": {"composed": {"something": "test"}}
 }));
 
 {/*<div children={0n}/>*/}
@@ -820,8 +820,8 @@ console.log(expandTemplate({
 // console.log(composeFromValue({
 //     '$compose': 'compare',
 //     '$value': {
-//         '$one': [{"0": 0, "fuck": [{"0": 0, "fuck": []}]}],
-//         '$two': [{"fuck": [{"fuck": [], "0": 0}], "0": 0}]
+//         '$one': [{"0": 0, "test": [{"0": 0, "test": []}]}],
+//         '$two': [{"test": [{"test": [], "0": 0}], "0": 0}]
 //     },
 //     '$default': 0
 // }));
@@ -1362,7 +1362,7 @@ export default {
 //  *
 //  */
 
-// const fuck1 = [
+// const test = [
 //     {
 //         "$action": "request_json_card_view"
 //     },
