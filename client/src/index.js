@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import {composeWithDevTools} from 'redux-devtools-extension';
 import {createBrowserHistory} from "history";
 // import app from "./declarative/app.js";
-import app from "./declarative/netflux/app.js";
+import app from "./declarative/netflux.js";
 import {
     App,
     createElementWithCustomDataProps,

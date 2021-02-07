@@ -108,6 +108,6 @@ export const eventFromEvents = (events = {}, identifier = "") => events[identifi
 
 export const eventTypeFromDomEvent = ({type = ""} = domEvent) => type;
 
-export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""}}} = domEvent) => id;
+export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
 
 export const eventIdentifierFromEvent = ({"$event": id = ""} = {"$event": ""}) => id;

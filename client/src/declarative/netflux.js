@@ -2666,7 +2666,8 @@ export default {
             </div>
         ),
         "navigation_bar": (
-            <nav className="navigation">
+            // <nav className="navigation" data-bind-event="load" data-event="on_logo_click" data-event-target="window">
+            <nav className="navigation" data-bind-event="DOMContentLoaded" data-event="on_logo_click" data-event-target="window">
                 <ul className="navigation__container">
                     <img className="navigation__container--logo" data-state="netflix_logo" data-bind-state="src"
                          data-bind-event="onClick" data-event="on_logo_click" alt=""/>

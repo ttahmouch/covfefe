@@ -57,89 +57,6 @@ import {
     viewStateFromStates
 } from "./dependencies.js";
 
-/**
- * ✅ Implement HTTP Response Mocking.
- * ✅ Routing
- * ✅ Debug using Redux Dev Tools.
- * ✅ Should redux-devtools-extension be a dependency of the app or lib?
- * ✅ Netflux Clone.
- * ✅ Call view state that the user enters, e.g., form submit, scroll coordinate,
- * etc, `user` state.
- * ✅ Call view state that the user does not enter, e.g., state selected from the
- * app state, `view` state.
- * ✅ Consolidate Header and Modal Style into Background Image Style.
- * ✅ Change all JSON Paths in the framework to use dot notation instead of
- * subscript notation.
- * ✅ Allow subviews to select from the view state of the super view; Allow array
- * state to bind to repeatable views.
- * ✅ Support JSON Path in data-state like data-if-path.
- * ✅ Warning: Invalid attribute name: ``
- * ✅ Implement mapsort composer;
- * ✅ Implement compare composer;
- * ✅ Implement math composer;
- * ✅ Support Array Higher-Order Folding Functions in Composers.
- * ✅ Add map, reduce, filter, etc. to composers.
- *
- * # Important
- * ❌ Support data-event="onLayout".
- * ❌ Support onScroll, onLayout, onRender, etc.
- * ❌ Support Array Higher-Order Folding Functions in Reducers.
- * ❌ Add map, reduce, filter, etc. to reducers.
- * ❌ Support Binding Multiple Props From State, e.g., children and value.
- * ❌ Allow `data-multi-state` to bind `{"value": "User Input",
- * "placeholder": "Movie Title,..."}` without a single `data-bind="value"`?
- * ❌ Support Expanding Templates For Props Other Than Children, e.g.,
- * data-state-template.
- * ❌ Support Encoding JSON Values From State.
- * ❌ Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
- * ❌ Action Sequences
- * ❌ Return app JSON from a server and reduce it in the client.
- * ❌ Implement conditional composer;
- * ❌ Conditional Compositions, i.e., AND, OR, XOR, ...
- * ❌ Implement CRUD reducers as composers;
- * ❌ Implement JS Object methods from snake to camel case for all methods, e.g.,
- * String.prototype.includes, etc.
- * ❌ Support data-state-* for multiple state bindings on one element.
- * ❌ Support data-event-* for multiple event bindings on one element.
- * ❌ Support create composer in all the other composers for the value property
- * to make them more useful.
- * ❌ Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
- * ❌ Detect onScroll and hide/show the navigation bar background.
- *
- * # Not Important
- * ❌ Improve JSON JSX format, or allow XML to be used instead.
- * ❌ Aborting HTTP Requests.
- * ❌ Animations
- * ❌ Support embedding composers inside types like styles instead of generating
- * styles from composers.
- * ❌ Make input state from input fields with unique names not get provided
- * in an array.
- * ❌ Create convenience for managing query parameter expansion for a
- * request composer?
- * ❌ Check the order of the composition when recursively composing is
- * `json_component` composition.
- * ❌ Add FlatList equivalent for dynamic list elements.
- * ❌ Add support for data-id to allow click events on items in a list to
- * uniquely identify the item.
- * ❌ Start trying to add event handlers for things like the Modal Dialog.
- * ❌ Support data-style with className+CSS.
- * ❌ Support state cascading from ancestor to child view elements,
- * e.g., "FlatList-like."
- * ❌ getState doesn't appear to be getting the latest state between actions
- * in an event.
- * ❌ Support Action Sequences because order matters for being able to display a
- * modal dialog after data is fetched.
- * ❌ Organize the categories into the same model in the store state, and map
- * them with a "FlatList."
- * ❌ Store state as value attributes in any element that can be read from during
- * an event.
- * ❌ Make `data-state-repeat=true` the default way to handle arrays.
- * ❌ Blog, Vlog, Pinterest, Etsy, 3d Print,
- * ❌ Don't traverse `data-view` twice when the dereferenced view is a
- * `data-state-repeat` with a template child element.
- * ❌ Support `data-memo` to Memoize Views?
- */
-
 // Reducers ------------------------------------------------------------------------------------------------------------
 
 /**
@@ -1203,14 +1120,15 @@ export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}
     const {eventTypeFromDomEvent} = dependencies;
     const type = eventTypeFromDomEvent(event) || "";
 
-    return ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type)
+    return event.target instanceof XMLHttpRequest
+        && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
 };
 
 export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
     const {eventTypeFromDomEvent} = dependencies;
     const type = eventTypeFromDomEvent(event) || "";
 
-    return ["change", "input", "submit"].includes(type)
+    return ["change", "input", "submit"].includes(type);
 };
 
 export const eventDispatcherForStore = (store = store, view = {},
@@ -1234,7 +1152,7 @@ export const eventDispatcherForStore = (store = store, view = {},
         const $states = {app, input, response, view};
         const $event = toDereferencedEvent(event, $states);
 
-        event.preventDefault();
+        typeof event.preventDefault === "function" && event.preventDefault();
         return store.dispatch({$event, $states, type: eventTypeFromDomEvent(event)});
     };
 };
@@ -1265,14 +1183,32 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
     }
 };
 
+export const bindEvent = ({
+                              target = "self",
+                              // target = {"addEventListener": (type, listener) => listener({type})},
+                              dispatch = (event) => undefined,
+                              fromEvent = "",
+                              toEvent = ""
+                          } = {}) => {
+    switch (target) {
+        case "window":
+        case "document":
+            return window[target].addEventListener(fromEvent, (event) => dispatch({"$event": toEvent}));
+        case "self":
+        default:
+            return;
+    }
+};
+
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {
-                                               appStateFromStore, composeFromIdentifier, composeStringFromTemplate,
-                                               composeValueFromPath, eventDispatcherForStore, toNormalizedJson
+                                               appStateFromStore, bindEvent, composeFromIdentifier,
+                                               composeStringFromTemplate, composeValueFromPath, eventDispatcherForStore,
+                                               toNormalizedJson
                                            }) => {
     const {
-        appStateFromStore, composeFromIdentifier, composeStringFromTemplate,
-        composeValueFromPath, eventDispatcherForStore, toNormalizedJson
+        appStateFromStore, bindEvent, composeFromIdentifier,
+        composeStringFromTemplate, composeValueFromPath, eventDispatcherForStore, toNormalizedJson
     } = dependencies;
     const app = appStateFromStore(store) || {};
     const dispatch = eventDispatcherForStore(store, view);
@@ -1280,8 +1216,6 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
     const {
         // Did switching from "" to undefined impact rendering speed?
         "data-state": $state = undefined,
-        "data-style": $style = undefined,
-        "data-event": $event = undefined,
         "data-state-repeat": $stateRepeat = undefined,
         "data-state-repeat-depth": $stateRepeatDepth = "0",
         "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
@@ -1303,17 +1237,23 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
             // TODO: Consolidate the JSON.stringifys.
             ? JSON.stringify($stateValue, (key, value) => toNormalizedJson(value), 2)
             : `(${$state})`,
+        "data-style": $style = undefined,
         "data-style-value": $styleValue = $style && composeFromIdentifier($style, {app, view}, "$styles"),
-        "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
+        "data-event": $event = undefined,
+        "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
+        "data-event-target": $eventTarget = "self",
         "data-bind-event": $bindEvent = "data-bind-event",
-        // "data-children": $children = children
+        "data-should-event-target-self": $shouldEventTargetSelf = $eventTarget === "self",
+        "data-bind-self-event": $bindSelfEvent = $shouldEventTargetSelf ? $bindEvent : "data-bind-event",
+        "data-event-self-value": $eventSelfValue = $shouldEventTargetSelf ? $eventValue : undefined
     } = props;
 
     $state && (view[$state] = $stateValue);
+    bindEvent({"target": $eventTarget, "dispatch": $eventValue, "fromEvent": $bindEvent, "toEvent": $event});
 
     const reactProps = {
-        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
+        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindSelfEvent]: $eventSelfValue},
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
             .flatMap((item) => {
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
