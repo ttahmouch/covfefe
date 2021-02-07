@@ -907,6 +907,15 @@ console.log(expandTemplate({
 // window.addEventListener("load", listener);
 // window.addEventListener("DOMContentLoaded", listener);
 
+/**
+ TT | Replacing JS Functional Component `SearchRow` with a declarative JSX element for the repeated search results.
+
+ + Previously, the `SearchRow` component was needed to do an array filter before rendering the search results.
+ Now, filter, map, reduce, and various other array folding operations have been built in a declarative way.
+ `map`, `filter`, `sort` have been used to filter only TV Shows and Movies from TMDB API results and sort them
+ descendingly by rating when rendering declaratively.
+ */
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -1343,3 +1352,61 @@ export default {
         }
     }
 };
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// /**
+//  * Events are groups of synchronous or asynchronous actions, or other events.
+//  * Events are arrays of sync and async actions, and possibly other events.
+//  * Referenced actions should have some properties transferred, e.g., if, unless, etc.
+//  *
+//  */
+
+// const fuck1 = [
+//     {
+//         "$action": "request_json_card_view"
+//     },
+//     {
+//         "$action": "request_json_card_view"
+//         // Asynchronous action dereferenced.
+//     },
+//     {
+//         "$action": "update",
+//         "$path": "$['$states']['loading']",
+//         "$value": false
+//         // Basic synchronous action.
+//     },
+//     {
+//         "$action": "update",
+//         "$path": "views.card",
+//         "$value": {
+//             "$default": {"type": "div"},
+//             "$compose": "read",
+//             "$type": "jsonpath",
+//             "$value": "$['response']['body']"
+//         },
+//         "$if": {
+//             "$default": false,
+//             "$compose": "is_response_json_card_view"
+//         }
+//         // Synchronous action with value and if conditional composition.
+//     },
+//     {
+//         "$action": "update",
+//         "$path": "states.error",
+//         "$value": true,
+//         "$unless": {
+//             "$default": true,
+//             "$compose": "is_response_json_card_view"
+//         }
+//         // Synchronous action with unless conditional composition.
+//     },
+//     {
+//         "$action": "request_titles_dictionary",
+//         "$if": {
+//             "$compose": "is_title",
+//             "$default": false
+//         }
+//         // Asynchronous action dereferenced, and conditionally dispatched.
+//     }
+// ];
