@@ -1,3 +1,5 @@
+# Product Backlog
+
 + ✅ Implement HTTP Response Mocking.
 + ✅ Routing
 + ✅ Debug using Redux Dev Tools.
@@ -19,9 +21,10 @@
 + ❌ Support data-event="onLayout".
 + ❌ Support onScroll, onLayout, onRender, etc.
 
-# Important
+## Important
 
 + ❌ Triage this list and categorize them logically instead of just by importance.
++ ❌ Grab all comments from the code that are TODO-ish and consolidate them here.
 + ❌ Organize the "imperative" library code into a react library that can be published to NPM with `create-react-library`.
 + ❌ Port "netflux" to the library as a sample application that uses it.
 + ❌ Write unit and integration tests. Not a lot of them though.
@@ -53,7 +56,7 @@
 + ❌ Support Array Higher-Order Folding Functions in Reducers.
 + ❌ Add map, reduce, filter, etc. to reducers.
 
-# Not Important
+## Not Important
 
 + ❌ Improve JSON JSX format, or allow XML to be used instead.
 + ❌ Aborting HTTP Requests.

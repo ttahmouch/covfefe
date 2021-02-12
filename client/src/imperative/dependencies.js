@@ -7,50 +7,26 @@ export const viewFromAppState = ({$view = []} = app) => $view;
 
 export const isDataProp = (prop = "") => /^data[-]/.test(prop);
 
-export const areDataProps = (props = {},
-                             dependencies = {isDataProp}) => {
+export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
     const {isDataProp} = dependencies;
 
-    return props !== null
-        && typeof props === "object"
-        && Object.keys(props).filter(isDataProp).length;
+    return props !== null && typeof props === "object" && Object.keys(props).filter(isDataProp).length;
 };
 
 export const isFragment = (fragment = Fragment) => fragment === Fragment;
 
 export const isComponent = (component = Component) => typeof component === "function";
 
-export const isElementLike = (element = element) => (
-    typeof element === "object"
-    && element !== null
-    && typeof element.$$typeof === "undefined"
-);
+export const isElementLike = (element = element) => (typeof element === "object" && element !== null && typeof element.$$typeof === "undefined");
 
-export const isElement = (element = element,
-                          dependencies = {
-                              isElementLike,
-                              isValidElement
-                          }) => {
-    const {
-        isElementLike,
-        isValidElement
-    } = dependencies;
+export const isElement = (element = element, dependencies = {isElementLike, isValidElement}) => {
+    const {isElementLike, isValidElement} = dependencies;
 
     return isElementLike(element) || isValidElement(element);
 };
 
-export const getType = (components = {},
-                        type = "",
-                        dependencies = {
-                            isFragment,
-                            isComponent,
-                            isElement
-                        }) => {
-    const {
-        isFragment,
-        isComponent,
-        isElement
-    } = dependencies;
+export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElement}) => {
+    const {isFragment, isComponent, isElement} = dependencies;
     const $components = {...components, "": Fragment, Fragment};
 
     return isElement(type) || isFragment(type) || isComponent(type)
