@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define,no-unused-vars,no-fallthrough */
-import React, {createElement} from "react";
+import React, {Component, createElement, Fragment, isValidElement} from "react";
 import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
@@ -8,54 +8,152 @@ import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
 import * as mathjs from "mathjs";
-import {
-    action,
-    app,
-    asyncAction,
-    client,
-    declarativeComposer,
-    domEvent,
-    functionalComposer,
-    headers,
-    request,
-    response,
-    settings,
-    state,
-    store,
-    syncAction
-} from "./types.js";
-import {
-    actionFromActions,
-    actionIdentifierFromAction,
-    actionsFromAppState,
-    appStateFromStates,
-    appStateFromStore,
-    areDataProps,
-    clientFromDomEvent,
-    composerDefaultFromComposer,
-    composerFromComposers,
-    composerIdentifierFromComposer,
-    composersFromAppState,
-    eventFromAction,
-    eventFromEvents,
-    eventIdentifierFromDomEvent,
-    eventIdentifierFromEvent,
-    eventsFromAppState,
-    eventsFromAsyncAction,
-    eventTypeFromDomEvent,
-    getType,
-    isElement,
-    requestFromAsyncAction,
-    requestIdentifierFromRequest,
-    responseFromAsyncAction,
-    responseIdentifierFromResponse,
-    responsesFromAsyncAction,
-    schemaIdentifierFromSchema,
-    statesFromAction,
-    valueFromAction,
-    viewFromAppState,
-    viewStateFromStates
-} from "./dependencies.js";
+
+// Types ---------------------------------------------------------------------------------------------------------------
+
+export const headers = {"content-type": ""};
+
+export const request = {
+    "$request": "", "$method": "GET", "$uri": "/", "$headers": headers, "$body": "", "$username": "", "$password": "",
+    "$withCredentials": "false"
+};
+
+export const response = {"$response": "", "$status": 0, "$headers": headers, "$body": ""};
+
+export const client = {"getAllResponseHeaders": () => "", "status": 0, "responseText": "", "dataset": {"event": ""}};
+
+export const node = {"value": "", "dataset": {"event": "", "stateType": "string"}};
+
+export const domEvent = {"preventDefault": () => undefined, "type": "", "target": {...client, ...node}};
+
+export const syncAction = {"$action": "", "$path": "", "$value": undefined, "$if": undefined, "$unless": undefined};
+
+export const asyncAction = {"$action": "", "$request": {"$uri": ""}, "$responses": [], "$response": {"$status": 0}, "$events": {}};
+
+export const settings = {"mock": false, "debug": false};
+
+export const app = {
+    "$actions": {}, "$composers": {}, "$events": {}, "$schemas": {}, "$settings": settings, "$states": {}, "$styles": {},
+    "$views": {}, "$view": []
+};
+
+export const state = {
+    app, "composed": undefined, "input": {}, "view": {}, "response": {"status": 0, headers, "body": ""},
+    "item": {
+        "value": undefined, "index": 0, "array": [],
+        "one": {"value": undefined, "index": 0, "array": []},
+        "two": {"value": undefined, "index": 0, "array": []}
+    }
+};
+
+export const event = [];
+
+export const action = {"$domEvent": domEvent, "$event": event, "$states": state};
+
+export const store = {"getState": () => app, "dispatch": (action) => action, "subscribe": () => (() => undefined)};
+
+export const schema = {"$schema": "http://json-schema.org/draft-07/schema#"};
+
+export const functionalComposer = ({composed = undefined} = state) => composed;
+
+export const declarativeComposer = {"$compose": "", "$type": "", "$value": undefined, "$default": undefined, "$state": state};
+
+export const reducers = {};
+
+export const reducer = () => app;
+
+export const enhancer = (createStore) => createStore
+
+export const element = {"type": "", "props": {"children": []}};
+
+// Dependencies --------------------------------------------------------------------------------------------------------
+
+export const appStateFromStore = (store = store) => store.getState() || {};
+
+export const viewFromAppState = ({$view = []} = app) => $view;
+
+export const isDataProp = (prop = "") => /^data[-]/.test(prop);
+
+export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
+    const {isDataProp} = dependencies;
+
+    return props !== null && typeof props === "object" && Object.keys(props).filter(isDataProp).length;
+};
+
+export const isFragment = (fragment = Fragment) => fragment === Fragment;
+
+export const isComponent = (component = Component) => typeof component === "function";
+
+export const isElementLike = (element = element) => (typeof element === "object" && element !== null && typeof element.$$typeof === "undefined");
+
+export const isElement = (element = element, dependencies = {isElementLike, isValidElement}) => {
+    const {isElementLike, isValidElement} = dependencies;
+
+    return isElementLike(element) || isValidElement(element);
+};
+
+export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElement}) => {
+    const {isFragment, isComponent, isElement} = dependencies;
+    const $components = {...components, "": Fragment, Fragment};
+
+    return isElement(type) || isFragment(type) || isComponent(type)
+        ? type
+        : $components[type] || type || Fragment;
+};
+
+// Composers
+
+export const appStateFromStates = ({app = app} = state) => app;
+
+export const viewStateFromStates = ({view = {}} = state) => view;
+
+export const composersFromAppState = ({$composers = {}} = app) => $composers;
+
+export const composerIdentifierFromComposer = ({"$compose": id = ""} = declarativeComposer) => id;
+
+export const composerDefaultFromComposer = ({$default = undefined} = declarativeComposer) => $default;
+
+export const composerFromComposers = (composers = {}, identifier = "") => composers[identifier];
+
+export const schemaIdentifierFromSchema = ({"$schema": id = ""} = schema) => id;
+
+// Actions
+
+export const clientFromDomEvent = ({target = client} = domEvent) => target;
+
+export const requestFromAsyncAction = ({$request = {}} = asyncAction) => $request;
+
+export const responsesFromAsyncAction = ({$responses = []} = asyncAction) => $responses;
+
+export const responseFromAsyncAction = ({$response = {}} = asyncAction) => $response;
+
+export const eventsFromAsyncAction = ({$events = {}} = asyncAction) => $events;
+
+export const eventFromAction = ({$event} = action) => $event;
+
+export const statesFromAction = ({$states = state} = action) => $states;
+
+export const valueFromAction = ({value} = syncAction) => value;
+
+export const requestIdentifierFromRequest = ({"$request": id = ""} = request) => id;
+
+export const responseIdentifierFromResponse = ({"$response": id = ""} = response) => id;
+
+export const actionIdentifierFromAction = ({"$action": id = ""} = syncAction) => id;
+
+export const actionsFromAppState = ({$actions = {}} = app) => $actions;
+
+export const actionFromActions = (actions = {}, identifier = "") => actions[identifier];
+
+export const eventsFromAppState = ({$events = {}} = app) => $events;
+
+export const eventFromEvents = (events = {}, identifier = "") => events[identifier];
+
+export const eventTypeFromDomEvent = ({type = ""} = domEvent) => type;
+
+export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
+
+export const eventIdentifierFromEvent = ({"$event": id = ""} = {"$event": ""}) => id;
 
 // Reducers ------------------------------------------------------------------------------------------------------------
 
@@ -358,6 +456,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
     const {matchObjects} = dependencies;
 
     switch (type) {
+        case "object":
+            return one === two || matchObjects(one, two);
         case "bigint":
         case "boolean":
         case "function":
@@ -366,9 +466,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
         case "string":
         case "symbol":
         case "undefined":
+        default:
             return one === two;
-        case "object":
-            return one === two || matchObjects(one, two);
     }
 };
 
@@ -828,7 +927,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
     Object
         .keys(events)
         .map(($fromEvent = "") => {
-            const {$event: $toEvent = ""} = events[$fromEvent];
+            const {"$event": $toEvent = ""} = events[$fromEvent];
 
             return {$fromEvent, $toEvent};
         })
@@ -841,7 +940,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
 
     client.addEventListener("load", (event = domEvent) => {
         const {status = 0} = responseStateFromDomEvent(event);
-        const {$event: $toEvent = ""} = events[`${status}`] || {}
+        const {"$event": $toEvent = ""} = events[`${status}`] || {};
         event.target.dataset = {"event": $toEvent};
         return $toEvent && dispatch(event, states);
     });
@@ -1153,7 +1252,7 @@ export const eventDispatcherForStore = (store = store, view = {},
         const $event = toDereferencedEvent(event, $states);
 
         typeof event.preventDefault === "function" && event.preventDefault();
-        return store.dispatch({$event, $states, type: eventTypeFromDomEvent(event)});
+        return store.dispatch({$event, $states, "type": eventTypeFromDomEvent(event)});
     };
 };
 
@@ -1168,7 +1267,10 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
         case "bigint":
             return Number(value);
         case "object":
-            return Object.keys(value).sort().reduce((map, key) => (map[key] = value[key], map), {});
+            return Object.keys(value).sort().reduce((map, key) => {
+                map[key] = value[key];
+                return map;
+            }, {});
         case "symbol":
             return Symbol.keyFor(value);
         case "array":
@@ -1179,39 +1281,41 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
         case "function":
         case "null":
         case "undefined":
+        default:
             return null;
     }
 };
 
-export const bindEvent = ({
-                              target = "self",
-                              // target = {"addEventListener": (type, listener) => listener({type})},
-                              dispatch = (event) => undefined,
-                              fromEvent = "",
-                              toEvent = ""
-                          } = {}) => {
-    switch (target) {
+export const bindEvent = (config = {}, dependencies = {eventDispatcherForStore, viewStateFromStates}) => {
+    const {eventDispatcherForStore, viewStateFromStates} = dependencies;
+    const {$target = "self", $from = "", $to = "", $states = state, $store = store} = config;
+    const view = viewStateFromStates($states) || {};
+    const dispatch = eventDispatcherForStore($store, view) || ((event = domEvent) => undefined);
+
+    switch ($target) {
         case "window":
         case "document":
-            return window[target].addEventListener(fromEvent, (event) => dispatch({"$event": toEvent}));
+            // Do we need to check if an event listener exists before adding a new one?
+            window[$target].addEventListener($from, (event) => {
+                event.target.dataset = {"event": $to};
+                return dispatch(event, $states);
+            });
+            return {"$bindEvent": undefined, "$eventValue": undefined};
         case "self":
         default:
-            return;
+            // Can I get a reference to the element from within the createElement method to avoid setting the prop?
+            return {"$bindEvent": $from, "$eventValue": $to ? (event) => dispatch(event, $states) : undefined};
     }
 };
 
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {
-                                               appStateFromStore, bindEvent, composeFromIdentifier,
-                                               composeStringFromTemplate, composeValueFromPath, eventDispatcherForStore,
-                                               toNormalizedJson
+                                               appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate,
+                                               composeValueFromPath, toNormalizedJson
                                            }) => {
-    const {
-        appStateFromStore, bindEvent, composeFromIdentifier,
-        composeStringFromTemplate, composeValueFromPath, eventDispatcherForStore, toNormalizedJson
-    } = dependencies;
+    const {appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath, toNormalizedJson} = dependencies;
     const app = appStateFromStore(store) || {};
-    const dispatch = eventDispatcherForStore(store, view);
+    const $states = {app, view};
     const {"data-current-depth": $currentDepth = 0} = view;
     const {
         // Did switching from "" to undefined impact rendering speed?
@@ -1222,11 +1326,11 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $currentDepth,
         "data-state-repeat-key": $stateRepeatKey = "item",
         "data-state-default": $stateDefault = undefined,
-        "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, {app, view}, "$states"),
+        "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, $states, "$states"),
         "data-state-path": $statePath = undefined,
-        "data-state-path-value": $statePathValue = $statePath && composeValueFromPath($statePath, $stateDefaultValue, {app, view}),
+        "data-state-path-value": $statePathValue = $statePath && composeValueFromPath($statePath, $stateDefaultValue, $states),
         "data-state-value": $stateValue = $statePath ? $statePathValue : $state
-            ? composeFromIdentifier($state, {app, view}, "$states", $stateDefaultValue)
+            ? composeFromIdentifier($state, $states, "$states", $stateDefaultValue)
             : $stateDefaultValue,
         "data-state-type": $stateType = $stateValue === null ? "null" : typeof $stateValue,
         "data-state-params": $stateParams = $stateType === "object" ? $stateValue : {[$state]: toNormalizedJson($stateValue)},
@@ -1238,22 +1342,19 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
             ? JSON.stringify($stateValue, (key, value) => toNormalizedJson(value), 2)
             : `(${$state})`,
         "data-style": $style = undefined,
-        "data-style-value": $styleValue = $style && composeFromIdentifier($style, {app, view}, "$styles"),
+        "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
-        "data-event": $event = undefined,
-        "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
-        "data-event-target": $eventTarget = "self",
-        "data-bind-event": $bindEvent = "data-bind-event",
-        "data-should-event-target-self": $shouldEventTargetSelf = $eventTarget === "self",
-        "data-bind-self-event": $bindSelfEvent = $shouldEventTargetSelf ? $bindEvent : "data-bind-event",
-        "data-event-self-value": $eventSelfValue = $shouldEventTargetSelf ? $eventValue : undefined
+        "data-event": $to = undefined,
+        "data-event-target": $target = "self",
+        "data-bind-event": $from = "data-bind-event",
+        "data-bind-event-value": $bindEventValue = bindEvent({$target, $from, $to, $states, "$store": store})
     } = props;
+    const {$bindEvent = "data-bind-event", $eventValue = undefined} = $bindEventValue;
 
     $state && (view[$state] = $stateValue);
-    bindEvent({"target": $eventTarget, "dispatch": $eventValue, "fromEvent": $bindEvent, "toEvent": $event});
 
     const reactProps = {
-        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindSelfEvent]: $eventSelfValue},
+        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
             .flatMap((item) => {
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
@@ -1300,9 +1401,7 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
     } = dependencies;
     const {createElement} = method;
     // If Child is a `data-view` don't traverse it twice.
-    const toChild = (child) => {
-        return typeof child === "string" ? child : toElement(child);
-    };
+    const toChild = (child) => typeof child === "string" ? child : toElement(child);
     const toElement = (type = "", props = {}, ...children) => {
         // Support single, exclusive routes like a Switch component, e.g., /login, /:route.
         // Would the useSelector hook work in a non-component function used in the provider?
@@ -1359,23 +1458,23 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
     return toElement;
 };
 
-export const storeFromInitialAppState = ({
-                                             $actions = {}, $composers = {}, $settings = {"debug": false, "mock": false},
-                                             $events = {}, $requests = {}, $responses = {}, $route = {}, $schemas = {},
-                                             $states = {}, $styles = {}, $views = {}, $view = [], $state = {
-                                                 $actions, $composers, $settings, $events, $requests, $responses, $route,
-                                                 $schemas, $states, $styles, $views, $view
-                                             }
-                                         },
-                                         middleware = [],
-                                         enhancers = [],
-                                         composer = composeEnhancers,
-                                         dependencies = {
-                                             createStore, applyMiddleware, reducerFromState
-                                         }) => {
-    const {createStore, applyMiddleware, reducerFromState} = dependencies;
+export const storeFromConfiguration = (config = {},
+                                       dependencies = {
+                                           applyMiddleware, composeEnhancers, createStore, dispatchRouteToStore,
+                                           reducerFromState
+                                       }) => {
+    const {applyMiddleware, composeEnhancers, createStore, dispatchRouteToStore, reducerFromState} = dependencies;
+    const {state = {}, middleware = [], enhancers = [], composer = composeEnhancers, route = {}} = config;
+    const {
+        $settings = {}, $actions = {}, $composers = {}, $events = {}, $requests = {}, $responses = {}, $route = {},
+        $schemas = {}, $states = {}, $styles = {}, $views = {}, $view = []
+    } = state;
+    const $state = {$settings, $actions, $composers, $events, $requests, $responses, $route, $schemas, $states, $styles, $views, $view};
+    const store = createStore(reducerFromState($state), $state, composer(applyMiddleware(...middleware), ...enhancers));
 
-    return createStore(reducerFromState($state), $state, composer(applyMiddleware(...middleware), ...enhancers));
+    dispatchRouteToStore(route, store);
+
+    return store;
 };
 
 export const View = () => {
