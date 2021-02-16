@@ -1,2 +1,0 @@
-# Discuss Events
-# Discuss Actions

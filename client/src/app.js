@@ -1,60 +1,159 @@
 /* eslint-disable no-use-before-define,no-unused-vars,no-fallthrough */
-import React, {createElement} from "react";
+import React, {Component, createElement, Fragment, isValidElement} from "react";
 import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
-import jsonpath from "jsonpath/jsonpath.min";
+import {JSONPath} from "jsonpath-plus";
 import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
+import * as mathjs from "mathjs";
 
-import {
-    action,
-    app,
-    asyncAction,
-    client,
-    declarativeComposer,
-    domEvent,
-    functionalComposer,
-    headers,
-    request,
-    response,
-    settings,
-    state,
-    store,
-    syncAction
-} from "./types.js";
-import {
-    actionFromActions,
-    actionIdentifierFromAction,
-    actionsFromAppState,
-    appStateFromStates,
-    appStateFromStore,
-    areDataProps,
-    clientFromDomEvent,
-    composerDefaultFromComposer,
-    composerFromComposers,
-    composerIdentifierFromComposer,
-    composersFromAppState,
-    eventFromAction,
-    eventFromEvents,
-    eventIdentifierFromDomEvent,
-    eventIdentifierFromEvent,
-    eventsFromAppState,
-    eventsFromAsyncAction,
-    eventTypeFromDomEvent,
-    getType,
-    isElement,
-    requestFromAsyncAction,
-    requestIdentifierFromRequest,
-    responseFromAsyncAction,
-    responseIdentifierFromResponse,
-    responsesFromAsyncAction,
-    schemaIdentifierFromSchema,
-    statesFromAction,
-    valueFromAction,
-    viewFromAppState
-} from "./dependencies.js";
+// Types ---------------------------------------------------------------------------------------------------------------
+
+export const headers = {"content-type": ""};
+
+export const request = {
+    "$request": "", "$method": "GET", "$uri": "/", "$headers": headers, "$body": "", "$username": "", "$password": "",
+    "$withCredentials": "false"
+};
+
+export const response = {"$response": "", "$status": 0, "$headers": headers, "$body": ""};
+
+export const client = {"getAllResponseHeaders": () => "", "status": 0, "responseText": "", "dataset": {"event": ""}};
+
+export const node = {"value": "", "dataset": {"event": "", "stateType": "string"}};
+
+export const domEvent = {"preventDefault": () => undefined, "type": "", "target": {...client, ...node}};
+
+export const syncAction = {"$action": "", "$path": "", "$value": undefined, "$if": undefined, "$unless": undefined};
+
+export const asyncAction = {"$action": "", "$request": {"$uri": ""}, "$responses": [], "$response": {"$status": 0}, "$events": {}};
+
+export const settings = {"mock": false, "debug": false};
+
+export const app = {
+    "$actions": {}, "$composers": {}, "$events": {}, "$schemas": {}, "$settings": settings, "$states": {}, "$styles": {},
+    "$views": {}, "$view": []
+};
+
+export const state = {
+    app, "composed": undefined, "input": {}, "view": {}, "response": {"status": 0, headers, "body": ""},
+    "item": {
+        "value": undefined, "index": 0, "array": [],
+        "one": {"value": undefined, "index": 0, "array": []},
+        "two": {"value": undefined, "index": 0, "array": []}
+    }
+};
+
+export const event = [];
+
+export const action = {"$domEvent": domEvent, "$event": event, "$states": state};
+
+export const store = {"getState": () => app, "dispatch": (action) => action, "subscribe": () => (() => undefined)};
+
+export const schema = {"$schema": "http://json-schema.org/draft-07/schema#"};
+
+export const functionalComposer = ({composed = undefined} = state) => composed;
+
+export const declarativeComposer = {"$compose": "", "$type": "", "$value": undefined, "$default": undefined, "$state": state};
+
+export const reducers = {};
+
+export const reducer = () => app;
+
+export const enhancer = (createStore) => createStore
+
+export const element = {"type": "", "props": {"children": []}};
+
+// Dependencies --------------------------------------------------------------------------------------------------------
+
+export const appStateFromStore = (store = store) => store.getState() || {};
+
+export const viewFromAppState = ({$view = []} = app) => $view;
+
+export const isDataProp = (prop = "") => /^data[-]/.test(prop);
+
+export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
+    const {isDataProp} = dependencies;
+
+    return props !== null && typeof props === "object" && Object.keys(props).filter(isDataProp).length;
+};
+
+export const isFragment = (fragment = Fragment) => fragment === Fragment;
+
+export const isComponent = (component = Component) => typeof component === "function";
+
+export const isElementLike = (element = element) => (typeof element === "object" && element !== null && typeof element.$$typeof === "undefined");
+
+export const isElement = (element = element, dependencies = {isElementLike, isValidElement}) => {
+    const {isElementLike, isValidElement} = dependencies;
+
+    return isElementLike(element) || isValidElement(element);
+};
+
+export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElement}) => {
+    const {isFragment, isComponent, isElement} = dependencies;
+    const $components = {...components, "": Fragment, Fragment};
+
+    return isElement(type) || isFragment(type) || isComponent(type)
+        ? type
+        : $components[type] || type || Fragment;
+};
+
+// Composers
+
+export const appStateFromStates = ({app = app} = state) => app;
+
+export const viewStateFromStates = ({view = {}} = state) => view;
+
+export const composersFromAppState = ({$composers = {}} = app) => $composers;
+
+export const composerIdentifierFromComposer = ({"$compose": id = ""} = declarativeComposer) => id;
+
+export const composerDefaultFromComposer = ({$default = undefined} = declarativeComposer) => $default;
+
+export const composerFromComposers = (composers = {}, identifier = "") => composers[identifier];
+
+export const schemaIdentifierFromSchema = ({"$schema": id = ""} = schema) => id;
+
+// Actions
+
+export const clientFromDomEvent = ({target = client} = domEvent) => target;
+
+export const requestFromAsyncAction = ({$request = {}} = asyncAction) => $request;
+
+export const responsesFromAsyncAction = ({$responses = []} = asyncAction) => $responses;
+
+export const responseFromAsyncAction = ({$response = {}} = asyncAction) => $response;
+
+export const eventsFromAsyncAction = ({$events = {}} = asyncAction) => $events;
+
+export const eventFromAction = ({$event} = action) => $event;
+
+export const statesFromAction = ({$states = state} = action) => $states;
+
+export const valueFromAction = ({value} = syncAction) => value;
+
+export const requestIdentifierFromRequest = ({"$request": id = ""} = request) => id;
+
+export const responseIdentifierFromResponse = ({"$response": id = ""} = response) => id;
+
+export const actionIdentifierFromAction = ({"$action": id = ""} = syncAction) => id;
+
+export const actionsFromAppState = ({$actions = {}} = app) => $actions;
+
+export const actionFromActions = (actions = {}, identifier = "") => actions[identifier];
+
+export const eventsFromAppState = ({$events = {}} = app) => $events;
+
+export const eventFromEvents = (events = {}, identifier = "") => events[identifier];
+
+export const eventTypeFromDomEvent = ({type = ""} = domEvent) => type;
+
+export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
+
+export const eventIdentifierFromEvent = ({"$event": id = ""} = {"$event": ""}) => id;
 
 // Reducers ------------------------------------------------------------------------------------------------------------
 
@@ -192,7 +291,7 @@ export const isComposer = (composer = functionalComposer) => {
     return (
         typeof composer === "function"
         || (composer !== null && typeof composer === "object" && typeof composer.$compose === "string")
-        || (Array.isArray(composer) && composer.every(isComposer))
+        || (Array.isArray(composer) && composer.length > 1 && composer.every(isComposer))
     );
 };
 
@@ -214,11 +313,13 @@ export const create = ({$value = undefined, $state = state},
     );
 };
 
+// TODO: Make CRUD composers based on CRUD reducers.
 export const spread = (composer, dependencies = {create}) => {
     const {create} = dependencies;
     const {$state: {composed} = state} = composer;
 
     return Array.isArray(composed)
+        // ? composed.concat(create(composer))
         ? [...composed, ...create(composer)]
         : {...composed, ...create(composer)};
 };
@@ -232,22 +333,108 @@ export const readRegularExpression = ({$value: $regular_expression = "", $state:
     return new RegExp($regular_expression).exec(composed) || [];
 };
 
-export const readJsonPath = ({$value: $json_path = "", $state = state}) => {
-    return jsonpath.value($state, $json_path);
+export const jsonpath = new JSONPath({"wrap": false, "autostart": false});
+
+export const readJsonPath = ({$value: $json_path = "", $state = state}, path = jsonpath) => {
+    return path.evaluate({"path": $json_path, "json": $state});
+};
+
+export const math = ({$value: $expression = "", $state: {composed} = state}, expression = mathjs) => {
+    return expression.evaluate($expression, composed);
+};
+
+export const snakeToCamelCase = (string = "", config = {}) => {
+    const {expression = /[-_]([^-_])/g, withValue = (_, lowercase) => lowercase.toUpperCase()} = config;
+    return string.replace(expression, withValue);
+};
+
+export const fold = (composer = {}, dependencies = {composeFromValue, isComposer, snakeToCamelCase}) => {
+    const {composeFromValue, isComposer, snakeToCamelCase} = dependencies;
+    const {$type = "reduce", $value = {"$compose": "read", "$value": "$.composed"}, $state = state, $default = undefined} = composer;
+    const {composed} = $state;
+    const type = snakeToCamelCase($type);
+    const compose = ({composed, value, index, array, composer = $value, state = $state} = {}) => {
+        return composeFromValue(composer, {...state, composed, "item": {value, index, array}});
+    };
+    switch ($type) {
+        // case "flat":
+        case "every":
+        case "filter":
+        case "find":
+        case "flat_map":
+        case "map":
+        case "some":
+            return composed[type]((value, index, array) => compose({value, index, array}));
+        // Implement a map and compare object.
+        case "sort":
+            const {
+                "$map": map = {"$compose": "read", "$value": "$.item.value"},
+                "$compare": compare = {"$compose": "compare", "$default": 0}
+            } = isComposer($value) ? {"$map": undefined, "$compare": $value} : $value;
+            return composed
+                .map((value, index, array) => ({"value": compose({value, index, array, "composer": map}), index, array}))
+                .sort((one, two) => composeFromValue(compare, {...$state, "item": {one, two}}))
+                .map(({index}) => composed[index]);
+        case "reduce_right":
+        case "reduce":
+        default: {
+            const initial = composeFromValue($default, {...$state, "composed": undefined});
+            const reduced = composed[type]((composed, value, index, array) => compose({composed, value, index, array}), initial);
+            return reduced !== undefined ? reduced : null;
+        }
+    }
+};
+
+export const compare = (composer = {}, dependencies = {create, toNormalizedJson, toType}) => {
+    // If either operand evaluates to an object, then that object is converted to a primitive value.
+    // If both operands are strings, the two strings are compared.
+    // If at least one operand is not a string, both operands are converted to numbers and compared numerically.
+    const {create, toNormalizedJson, toType} = dependencies;
+    const {$type = "lexical", $value = undefined, $state = state} = composer;
+    const {composed} = $state;
+    const {
+        $one = {"$compose": "read", "$value": "$.item.one.value"},
+        $two = {"$compose": "read", "$value": "$.item.two.value"},
+        $order = "ascending"
+    } = $value || composed;
+    const composedOne = toNormalizedJson(create({"$value": $one, $state}));
+    const composedTwo = toNormalizedJson(create({"$value": $two, $state}));
+    const oneType = toType(composedOne);
+    const twoType = toType(composedTwo);
+    const oneIsObject = oneType === "array" || oneType === "object";
+    const twoIsObject = twoType === "array" || twoType === "object";
+    const oneIsDate = oneType === "string" && $type === "date";
+    const twoIsDate = twoType === "string" && $type === "date";
+    const shouldCompareLocaleSensitively = oneType === "string" && twoType === "string" && $type === "locale";
+    const onValue = (key, value) => toNormalizedJson(value);
+    const one = oneIsObject ? JSON.stringify(composedOne, onValue) : oneIsDate ? Date.parse(composedOne) : composedOne;
+    const two = twoIsObject ? JSON.stringify(composedTwo, onValue) : twoIsDate ? Date.parse(composedTwo) : composedTwo;
+    const compareLexicographically = (one, two) => one < two ? -1 : one > two ? +1 : 0;
+
+    switch ($order) {
+        case "descending":
+            return shouldCompareLocaleSensitively ? two.localeCompare(one) : compareLexicographically(two, one);
+        case "ascending":
+        default:
+            return shouldCompareLocaleSensitively ? one.localeCompare(two) : compareLexicographically(one, two);
+    }
 };
 
 export const matchPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
     return !!match($path_template, {"decode": decodeURIComponent})(composed);
 };
 
+export const jsonschema = new Ajv();
+
 export const matchJsonSchema = ({
                                     $value: $json_schema = {"$schema": "http://json-schema.org/draft-07/schema#"},
                                     $state = state,
                                 },
+                                schema = jsonschema,
                                 dependencies = {toDereferencedSchema}) => {
     const {toDereferencedSchema} = dependencies;
     const {composed} = $state;
-    return new Ajv().validate(toDereferencedSchema($json_schema, $state), composed);
+    return schema.validate(toDereferencedSchema($json_schema, $state), composed);
 };
 
 export const matchRegularExpression = ({$value: $regular_expression = "", $state: {composed} = state}) => {
@@ -269,6 +456,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
     const {matchObjects} = dependencies;
 
     switch (type) {
+        case "object":
+            return one === two || matchObjects(one, two);
         case "bigint":
         case "boolean":
         case "function":
@@ -277,9 +466,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
         case "string":
         case "symbol":
         case "undefined":
+        default:
             return one === two;
-        case "object":
-            return one === two || matchObjects(one, two);
     }
 };
 
@@ -307,11 +495,20 @@ export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed
     return new URITemplate($uri_template).expand(composed);
 };
 
-export const expandTemplate = (composer, dependencies = {create}) => {
-    const {create} = dependencies;
+export const expandTemplate = (composer, dependencies = {create, toNormalizedJson}) => {
+    const {create, toNormalizedJson} = dependencies;
     const {$state: {composed} = state} = composer;
-    const expression = /{([^{}]*)}/g;
-    const withValue = (match, param) => typeof composed[param] !== "undefined" ? String(composed[param]) : match;
+    const expression = /[{(]([^{}()]*)[)}]/g;
+    const withValue = (match, param) => {
+        const value = composed[param];
+        const type = value === null ? "null" : typeof value;
+
+        return type === "object"
+            ? JSON.stringify(value, (key, value) => toNormalizedJson(value), 2)
+            : type !== "undefined"
+                ? String(composed[param])
+                : match;
+    };
 
     return create(composer).replace(expression, withValue);
 };
@@ -343,15 +540,23 @@ export const decodeJson = ({$value = undefined, $state: {composed} = state}) => 
 
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
-export const compose = ({$compose = "", $type = "", $default = undefined, ...$composer},
-                        dependencies = {
-                            create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-                            matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
-                        }) => {
+export const compose = ($composer, dependencies = {
+    compare, create, decodeJson, encodeJson,
+    encodeUri, expandPathTemplate, expandTemplate,
+    expandUriTemplate, fold, matchJsonSchema,
+    matchPathTemplate, matchPrimitive, matchRegularExpression,
+    math, readJsonPath, readPathTemplate,
+    readRegularExpression, spread, valueOrDefault
+}) => {
     const {
-        create, spread, readPathTemplate, readRegularExpression, readJsonPath, matchPathTemplate, matchJsonSchema, matchRegularExpression,
-        matchPrimitive, expandPathTemplate, expandUriTemplate, expandTemplate, encodeJson, encodeUri, decodeJson, valueOrDefault
+        compare, create, decodeJson, encodeJson,
+        encodeUri, expandPathTemplate, expandTemplate,
+        expandUriTemplate, fold, matchJsonSchema,
+        matchPathTemplate, matchPrimitive, matchRegularExpression,
+        math, readJsonPath, readPathTemplate,
+        readRegularExpression, spread, valueOrDefault
     } = dependencies;
+    const {$compose = "", $type = "", $default = undefined} = $composer;
 
     switch ($compose) {
         case "create":
@@ -368,6 +573,12 @@ export const compose = ({$compose = "", $type = "", $default = undefined, ...$co
                 default:
                     return valueOrDefault(readJsonPath($composer), $default);
             }
+        case "math":
+            return valueOrDefault(math($composer), $default);
+        case "fold":
+            return valueOrDefault(fold($composer), $default);
+        case "compare":
+            return valueOrDefault(compare($composer), $default);
         case "match":
             switch ($type) {
                 case "path_template":
@@ -479,73 +690,61 @@ export const composeFromValue = (composer = functionalComposer, states = state,
     return value;
 };
 
-export const composeFromIdentifier = (identifier = "", states = state, type = `$states`,
+// TODO: Refactor the parameters across all usages of the function.
+export const composeFromIdentifier = (identifier = "", states = state, type = `$states`, defaultValue = undefined,
                                       dependencies = {composeFromValue}) => {
     const {composeFromValue} = dependencies;
 
     return composeFromValue(
         {
-            "$comment": "Dereference Composer.",
-            "$compose": identifier,
+            "$comment": "Dereference Composer.", "$compose": identifier,
             "$default": {
                 "$comment": "Dereference State.",
-                "$compose": "read",
-                "$type": "json_path",
-                "$value": `$["app"]["${type}"]["${identifier}"]`,
-                "$default": undefined
+                "$compose": "read", "$type": "json_path", "$value": `$.app.${type}.${identifier}`, "$default": defaultValue
             }
         },
         states
     );
 };
 
-export const compositionForPathFromRoute = () => {
-    return [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$.app['$route'].pathname",
-            "$default": "/"
-        }
-    ];
-};
-
+// TODO: Rename this.
 export const composeFromPathTemplate = (template = "", states = state, type = "path_template",
-                                        dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                        dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
     // Compare Path + Query + Fragment, or just Path?
     // Query and Fragment are Order-Dependent so comparisons with Path Template and RegExp could easily fail.
-    return composeFromValue(
-        [
-            ...compositionForPathFromRoute(),
-            {
-                "$compose": "match",
-                "$type": type,
-                "$value": template,
-                "$default": false
-            }
-        ],
-        states
-    );
+    return composeFromValue([
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
+        {"$compose": "match", "$type": type, "$value": template, "$default": false}
+    ], states);
 };
 
 export const composeParametersFromPathTemplate = (template = "", states = state, type = "path_template",
-                                                  dependencies = {composeFromValue, compositionForPathFromRoute}) => {
-    const {composeFromValue, compositionForPathFromRoute} = dependencies;
+                                                  dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
 
-    return composeFromValue(
-        [
-            ...compositionForPathFromRoute(),
-            {
-                "$compose": "read",
-                "$type": type,
-                "$value": template,
-                "$default": {}
-            }
-        ],
-        states
-    );
+    return composeFromValue([
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathname", "$default": "/"},
+        {"$compose": "read", "$type": type, "$value": template, "$default": {}}
+    ], states);
+};
+
+export const composeStringFromTemplate = (template = "", params = {}, states = state,
+                                          dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
+
+    return composeFromValue([
+        {"$compose": "create", "$value": params, "$default": {}},
+        {"$compose": "expand", "$type": "template", "$value": template, "$default": template}
+    ], states)
+};
+
+export const composeValueFromPath = (path = "", defaultValue = undefined, states = state,
+                                     dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
+
+    return composeFromValue({"$compose": "read", "$type": "json_path", "$value": path, "$default": defaultValue}, states);
 };
 
 // Actions -------------------------------------------------------------------------------------------------------------
@@ -684,15 +883,16 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
                                                settingsFromAppState, toDereferencedRequest, toDereferencedResponse,
                                                appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
                                                dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-                                               dispatchSyncActionToStore
+                                               dispatchSyncActionToStore, viewStateFromStates
                                            }) => {
     const {
         getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
         eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
         mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-        dispatchSyncActionToStore
+        dispatchSyncActionToStore, viewStateFromStates
     } = dependencies;
     const app = appStateFromStates(states) || app;
+    const view = viewStateFromStates(states) || {};
     const settings = settingsFromAppState(app) || {};
     const mock = mockSettingFromSettings(settings) || false;
     const request = toDereferencedRequest(requestFromAsyncAction(action), states) || {};
@@ -700,7 +900,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
     const response = toDereferencedResponse(mockResponseFromResponses(responses), states) || {};
     const events = eventsFromAsyncAction(action) || {};
     const event = mockEventFromEvents(events) || {};
-    const dispatch = eventDispatcherForStore(store) || ((event = domEvent) => undefined);
+    const dispatch = eventDispatcherForStore(store, view) || ((event = domEvent) => undefined);
     const {
         $method = "GET",
         $uri = "/",
@@ -727,7 +927,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
     Object
         .keys(events)
         .map(($fromEvent = "") => {
-            const {$event: $toEvent = ""} = events[$fromEvent];
+            const {"$event": $toEvent = ""} = events[$fromEvent];
 
             return {$fromEvent, $toEvent};
         })
@@ -740,7 +940,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
 
     client.addEventListener("load", (event = domEvent) => {
         const {status = 0} = responseStateFromDomEvent(event);
-        const {$event: $toEvent = ""} = events[`${status}`] || {}
+        const {"$event": $toEvent = ""} = events[`${status}`] || {};
         event.target.dataset = {"event": $toEvent};
         return $toEvent && dispatch(event, states);
     });
@@ -767,8 +967,9 @@ export const dispatchSyncActionToStore = (action = syncAction, states, store = s
 
     return store.dispatch({
         ...action,
-        type: $action !== undefined && composeFromValue($action, states),
-        value: $value !== undefined && composeFromValue($value, states),
+        "$states": states,
+        "type": $action !== undefined && composeFromValue($action, states),
+        "value": $value !== undefined && composeFromValue($value, states),
     });
 }
 
@@ -894,44 +1095,19 @@ export const dispatchRoutePathParamsToStore = (pathParams = {}, states = state, 
                                                dependencies = {dispatchEventToStore}) => {
     const {dispatchEventToStore} = dependencies;
     const spreadRoutePathParams = [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$.app['$route'].pathParams",
-            "$default": {}
-        },
-        {
-            "$compose": "spread",
-            "$value": pathParams,
-            "default": {}
-        }
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathParams", "$default": {}},
+        {"$compose": "spread", "$value": pathParams, "default": {}}
     ];
     const routePathParamsDidNotChange = [
-        {
-            "$compose": "read",
-            "$type": "json_path",
-            "$value": "$.app['$route'].pathParams",
-            "$default": {}
-        },
-        {
-            "$compose": "match",
-            "$type": "primitive",
-            "$value": spreadRoutePathParams,
-            "$default": false
-        }
+        {"$compose": "read", "$type": "json_path", "$value": "$.app.$route.pathParams", "$default": {}},
+        {"$compose": "match", "$type": "primitive", "$value": spreadRoutePathParams, "$default": false}
     ];
 
     return dispatchEventToStore(
-        [
-            {
-                "$action": "update_$route_item",
-                "$value": {
-                    "key": "pathParams",
-                    "item": spreadRoutePathParams
-                },
-                "$unless": routePathParamsDidNotChange
-            }
-        ],
+        [{
+            "$action": "update_$route_item", "$value": {"key": "pathParams", "item": spreadRoutePathParams},
+            "$unless": routePathParamsDidNotChange
+        }],
         states,
         store
     );
@@ -1013,7 +1189,7 @@ export const responseStateFromDomEvent = (event = domEvent, dependencies = {clie
     return getResponse(client);
 };
 
-export const viewStateFromDomEvent = (event = domEvent, dependencies = {mapChildrenToState}) => {
+export const inputStateFromDomEvent = (event = domEvent, dependencies = {mapChildrenToState}) => {
     const {mapChildrenToState} = dependencies;
     const {target} = event;
     const {value = "", "dataset": {"stateType": type = "string"}} = target;
@@ -1043,80 +1219,177 @@ export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}
     const {eventTypeFromDomEvent} = dependencies;
     const type = eventTypeFromDomEvent(event) || "";
 
-    return ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type)
+    return event.target instanceof XMLHttpRequest
+        && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
 };
 
 export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
     const {eventTypeFromDomEvent} = dependencies;
     const type = eventTypeFromDomEvent(event) || "";
 
-    return ["change", "input", "submit"].includes(type)
+    return ["change", "input", "submit"].includes(type);
 };
 
-export const eventDispatcherForStore = (store = store,
+export const eventDispatcherForStore = (store = store, view = {},
                                         dependencies = {
-                                            appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent,
+                                            appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent,
                                             eventIdentifierFromDomEvent, eventsFromAppState, eventFromEvents,
                                             isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
                                             eventTypeFromDomEvent
                                         }) => {
     const {
-        appStateFromStore, viewStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
+        appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
         eventsFromAppState, eventFromEvents, isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
         eventTypeFromDomEvent
     } = dependencies;
 
     return (event, states = {}) => {
-        const {view: previousView = {}, response: previousResponse = {}} = states;
+        const {input: previousInput = {}, response: previousResponse = {}} = states;
         const app = appStateFromStore(store) || {};
-        const view = isDomFormEvent(event) ? viewStateFromDomEvent(event) : previousView;
+        const input = isDomFormEvent(event) ? inputStateFromDomEvent(event) : previousInput;
         const response = isDomProgressEvent(event) ? responseStateFromDomEvent(event) : previousResponse;
-        const $states = {app, view, response};
+        const $states = {app, input, response, view};
         const $event = toDereferencedEvent(event, $states);
 
-        event.preventDefault();
-        return store.dispatch({$event, $states, type: eventTypeFromDomEvent(event)});
+        typeof event.preventDefault === "function" && event.preventDefault();
+        return store.dispatch({$event, $states, "type": eventTypeFromDomEvent(event)});
     };
 };
 
 // App -----------------------------------------------------------------------------------------------------------------
 
-export const mapCustomPropsToReactProps = (props = {}, store = {getState: () => ({"$styles": {}})},
-                                           dependencies = {appStateFromStore, composeFromIdentifier, eventDispatcherForStore}) => {
-    const {appStateFromStore, composeFromIdentifier, eventDispatcherForStore} = dependencies;
-    const app = appStateFromStore(store) || {};
-    const dispatch = eventDispatcherForStore(store);
-    /**
-     * Select state using basic id selectors, and select state using complex state composers.
-     * Does the hollistic app structure need significant keys like $styles, $states, etc?
-     */
-    const {
-        "data-style": $style = "",
-        "data-state": $state = "",
-        "data-event": $event = "",
-        "data-style-value": $styleValue = $style && composeFromIdentifier($style, {app}, "$styles"),
-        "data-state-value": $stateValue = $state && composeFromIdentifier($state, {app}, "$states"),
-        "data-event-value": $eventValue = $event && ((event) => dispatch(event)),
-        "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
-        "data-bind-state": $bindState = $stateValue ? "children" : "data-bind-state",
-        "data-bind-event": $bindEvent = "data-bind-event",
-    } = props;
+export const toType = (value) => Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
 
-    return {
-        ...props,
-        [$bindStyle]: $styleValue,
-        [$bindState]: $stateValue,
-        [$bindEvent]: $eventValue
-    };
+export const toNormalizedJson = (value, dependencies = {toType}) => {
+    const {toType} = dependencies;
+
+    switch (toType(value)) {
+        case "bigint":
+            return Number(value);
+        case "object":
+            return Object.keys(value).sort().reduce((map, key) => {
+                map[key] = value[key];
+                return map;
+            }, {});
+        case "symbol":
+            return Symbol.keyFor(value);
+        case "array":
+        case "boolean":
+        case "number":
+        case "string":
+            return value;
+        case "function":
+        case "null":
+        case "undefined":
+        default:
+            return null;
+    }
 };
 
-export const toReactProps = (props = {}, store = {}, dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
+export const bindEvent = (config = {}, dependencies = {eventDispatcherForStore, viewStateFromStates}) => {
+    const {eventDispatcherForStore, viewStateFromStates} = dependencies;
+    const {$target = "self", $from = "", $to = "", $states = state, $store = store} = config;
+    const view = viewStateFromStates($states) || {};
+    const dispatch = eventDispatcherForStore($store, view) || ((event = domEvent) => undefined);
+
+    switch ($target) {
+        case "window":
+        case "document":
+            // Do we need to check if an event listener exists before adding a new one?
+            window[$target].addEventListener($from, (event) => {
+                event.target.dataset = {"event": $to};
+                return dispatch(event, $states);
+            });
+            return {"$bindEvent": undefined, "$eventValue": undefined};
+        case "self":
+        default:
+            // Can I get a reference to the element from within the createElement method to avoid setting the prop?
+            return {"$bindEvent": $from, "$eventValue": $to ? (event) => dispatch(event, $states) : undefined};
+    }
+};
+
+export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
+                                           dependencies = {
+                                               appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate,
+                                               composeValueFromPath, toNormalizedJson
+                                           }) => {
+    const {appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath, toNormalizedJson} = dependencies;
+    const app = appStateFromStore(store) || {};
+    const $states = {app, view};
+    const {"data-current-depth": $currentDepth = 0} = view;
+    const {
+        // Did switching from "" to undefined impact rendering speed?
+        "data-state": $state = undefined,
+        "data-state-repeat": $stateRepeat = undefined,
+        "data-state-repeat-depth": $stateRepeatDepth = "0",
+        "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
+        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $currentDepth,
+        "data-state-repeat-key": $stateRepeatKey = "item",
+        "data-state-default": $stateDefault = undefined,
+        "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, $states, "$states"),
+        "data-state-path": $statePath = undefined,
+        "data-state-path-value": $statePathValue = $statePath && composeValueFromPath($statePath, $stateDefaultValue, $states),
+        "data-state-value": $stateValue = $statePath ? $statePathValue : $state
+            ? composeFromIdentifier($state, $states, "$states", $stateDefaultValue)
+            : $stateDefaultValue,
+        "data-state-type": $stateType = $stateValue === null ? "null" : typeof $stateValue,
+        "data-state-params": $stateParams = $stateType === "object" ? $stateValue : {[$state]: toNormalizedJson($stateValue)},
+        // TODO: Support binding state to multiple props.
+        "data-bind-state": $bindState = $stateType !== "undefined" ? "children" : "data-bind-state",
+        "data-should-bind-template": $shouldBindTemplate = $bindState === "children" && children.length === 0,
+        "data-bind-template": $bindTemplate = !$shouldBindTemplate ? "" : $stateType === "object"
+            // TODO: Consolidate the JSON.stringifys.
+            ? JSON.stringify($stateValue, (key, value) => toNormalizedJson(value), 2)
+            : `(${$state})`,
+        "data-style": $style = undefined,
+        "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),
+        "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
+        "data-event": $to = undefined,
+        "data-event-target": $target = "self",
+        "data-bind-event": $from = "data-bind-event",
+        "data-bind-event-value": $bindEventValue = bindEvent({$target, $from, $to, $states, "$store": store})
+    } = props;
+    const {$bindEvent = "data-bind-event", $eventValue = undefined} = $bindEventValue;
+
+    $state && (view[$state] = $stateValue);
+
+    const reactProps = {
+        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
+        "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
+            .flatMap((item) => {
+                $shouldStateRepeat && (view[$stateRepeatKey] = item);
+                $shouldStateRepeat && (view["data-current-depth"]++);
+
+                const elements = ($shouldBindTemplate ? [$bindTemplate] : children)
+                    .map((child) => {
+                        return typeof child === "string"
+                            ? composeStringFromTemplate(child, $stateParams, {app, view})
+                            : $shouldStateRepeat
+                                ? React.createElement(child)
+                                : child;
+                    });
+
+                $shouldStateRepeat && (view["data-current-depth"]--);
+                $shouldStateRepeat && (view[$stateRepeatKey] = undefined);
+
+                return elements;
+            })
+    };
+
+    $state && (view[$state] = undefined);
+
+    return reactProps;
+};
+
+export const toReactProps = (props = {}, children = [], store = {}, view = {},
+                             dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
     const {areDataProps, mapCustomPropsToReactProps} = dependencies;
 
-    return areDataProps(props) ? mapCustomPropsToReactProps(props, store) : props;
+    // areDataProps(props) && console.log("toReactProps", props, {...view});
+    return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view) : {props, children};
 };
 
-export const createElementWithCustomDataProps = (method = {createElement}, store = store,
+export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {"data-current-depth": 0},
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
@@ -1127,6 +1400,7 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         composeParametersFromPathTemplate, dispatchRoutePathParamsToStore, toReactProps, getType, isElement
     } = dependencies;
     const {createElement} = method;
+    // If Child is a `data-view` don't traverse it twice.
     const toChild = (child) => typeof child === "string" ? child : toElement(child);
     const toElement = (type = "", props = {}, ...children) => {
         // Support single, exclusive routes like a Switch component, e.g., /login, /:route.
@@ -1139,30 +1413,28 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         const components = composersFromAppState(app) || {};
         const {
             "data-if": $if = "",
-            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app}, "$states"),
+            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app, view}, "$states"),
             "data-unless": $unless = "",
-            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app}, "$states"),
+            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app, view}, "$states"),
             "data-path-type": $pathType = "path_template",
             "data-if-path": $ifPath = "",
-            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app}, $pathType),
+            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app, view}, $pathType),
             "data-unless-path": $unlessPath = "",
-            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app}, $pathType),
+            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app, view}, $pathType),
             "data-should": $should = ($if === "" && $unless === "" && $ifPath === "" && $unlessPath === "")
                 || $ifValue === true
                 || $unlessValue === true
                 || $ifPathValue === true
                 || $unlessPathValue === true,
             "data-path": $path = $ifPath || $unlessPath || "",
-            "data-path-params": $pathParams = (
-                $path && $should && composeParametersFromPathTemplate($path, {app}, $pathType)
-            ) || {},
+            "data-path-params": $pathParams = ($path && $should && composeParametersFromPathTemplate($path, {app, view}, $pathType)) || {},
             "data-view": $view = "",
-            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app}, "$views"),
+            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app, view}, "$views"),
             ...$props
         } = props;
         const $element = $viewValue || type;
 
-        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app}, store);
+        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app, view}, store);
 
         // $view && $should && console.group("View:", $viewValue);
         // $view && !$should && console.group("Suppressing View:", $view);
@@ -1175,29 +1447,34 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
             return toElement($type, {...props, ...$props}, ...$children);
         }
 
-        return createElement(type, toReactProps(props, store), ...children);
+        const {
+            "props": reactProps,
+            "children": reactChildren
+        } = toReactProps(props, children, store, view);
+
+        return createElement(type, reactProps, ...reactChildren);
     };
 
     return toElement;
 };
 
-export const storeFromInitialAppState = ({
-                                             $actions = {}, $composers = {}, $settings = {"debug": false, "mock": false},
-                                             $events = {}, $requests = {}, $responses = {}, $route = {}, $schemas = {},
-                                             $states = {}, $styles = {}, $views = {}, $view = [], $state = {
-                                                 $actions, $composers, $settings, $events, $requests, $responses, $route,
-                                                 $schemas, $states, $styles, $views, $view
-                                             }
-                                         },
-                                         middleware = [],
-                                         enhancers = [],
-                                         composer = composeEnhancers,
-                                         dependencies = {
-                                             createStore, applyMiddleware, reducerFromState
-                                         }) => {
-    const {createStore, applyMiddleware, reducerFromState} = dependencies;
+export const storeFromConfiguration = (config = {},
+                                       dependencies = {
+                                           applyMiddleware, composeEnhancers, createStore, dispatchRouteToStore,
+                                           reducerFromState
+                                       }) => {
+    const {applyMiddleware, composeEnhancers, createStore, dispatchRouteToStore, reducerFromState} = dependencies;
+    const {state = {}, middleware = [], enhancers = [], composer = composeEnhancers, route = {}} = config;
+    const {
+        $settings = {}, $actions = {}, $composers = {}, $events = {}, $requests = {}, $responses = {}, $route = {},
+        $schemas = {}, $states = {}, $styles = {}, $views = {}, $view = []
+    } = state;
+    const $state = {$settings, $actions, $composers, $events, $requests, $responses, $route, $schemas, $states, $styles, $views, $view};
+    const store = createStore(reducerFromState($state), $state, composer(applyMiddleware(...middleware), ...enhancers));
 
-    return createStore(reducerFromState($state), $state, composer(applyMiddleware(...middleware), ...enhancers));
+    dispatchRouteToStore(route, store);
+
+    return store;
 };
 
 export const View = () => {
