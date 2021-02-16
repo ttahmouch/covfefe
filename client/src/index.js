@@ -2,17 +2,17 @@ import React, {createElement} from "react";
 import ReactDOM from "react-dom";
 import {composeWithDevTools} from "redux-devtools-extension";
 import {createBrowserHistory} from "history";
-// import state from "./declarative/app.js";
-import state from "./declarative/netflux.js";
+// import state from "./declarative/08-05-20-app.js";
+// import state from "./netflux.js";
+import state from "./netflux.json";
 import {
     App,
     createElementWithCustomDataProps,
     createEventMiddleware,
     createLogMiddleware,
     createRouteMiddleware,
-    dispatchRouteToStore,
     storeFromConfiguration
-} from "./imperative/app.js";
+} from "./app.js";
 
 // const history = createMemoryHistory();
 const history = createBrowserHistory();

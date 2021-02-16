@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define,no-unused-vars,no-fallthrough */
-import React, {createElement} from "react";
+import React, {Component, createElement, Fragment, isValidElement} from "react";
 import {applyMiddleware, combineReducers, compose as composeEnhancers, createStore} from "redux";
 import {Provider, useSelector} from "react-redux";
 // Composers
@@ -8,54 +8,152 @@ import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
 import * as mathjs from "mathjs";
-import {
-    action,
-    app,
-    asyncAction,
-    client,
-    declarativeComposer,
-    domEvent,
-    functionalComposer,
-    headers,
-    request,
-    response,
-    settings,
-    state,
-    store,
-    syncAction
-} from "./types.js";
-import {
-    actionFromActions,
-    actionIdentifierFromAction,
-    actionsFromAppState,
-    appStateFromStates,
-    appStateFromStore,
-    areDataProps,
-    clientFromDomEvent,
-    composerDefaultFromComposer,
-    composerFromComposers,
-    composerIdentifierFromComposer,
-    composersFromAppState,
-    eventFromAction,
-    eventFromEvents,
-    eventIdentifierFromDomEvent,
-    eventIdentifierFromEvent,
-    eventsFromAppState,
-    eventsFromAsyncAction,
-    eventTypeFromDomEvent,
-    getType,
-    isElement,
-    requestFromAsyncAction,
-    requestIdentifierFromRequest,
-    responseFromAsyncAction,
-    responseIdentifierFromResponse,
-    responsesFromAsyncAction,
-    schemaIdentifierFromSchema,
-    statesFromAction,
-    valueFromAction,
-    viewFromAppState,
-    viewStateFromStates
-} from "./dependencies.js";
+
+// Types ---------------------------------------------------------------------------------------------------------------
+
+export const headers = {"content-type": ""};
+
+export const request = {
+    "$request": "", "$method": "GET", "$uri": "/", "$headers": headers, "$body": "", "$username": "", "$password": "",
+    "$withCredentials": "false"
+};
+
+export const response = {"$response": "", "$status": 0, "$headers": headers, "$body": ""};
+
+export const client = {"getAllResponseHeaders": () => "", "status": 0, "responseText": "", "dataset": {"event": ""}};
+
+export const node = {"value": "", "dataset": {"event": "", "stateType": "string"}};
+
+export const domEvent = {"preventDefault": () => undefined, "type": "", "target": {...client, ...node}};
+
+export const syncAction = {"$action": "", "$path": "", "$value": undefined, "$if": undefined, "$unless": undefined};
+
+export const asyncAction = {"$action": "", "$request": {"$uri": ""}, "$responses": [], "$response": {"$status": 0}, "$events": {}};
+
+export const settings = {"mock": false, "debug": false};
+
+export const app = {
+    "$actions": {}, "$composers": {}, "$events": {}, "$schemas": {}, "$settings": settings, "$states": {}, "$styles": {},
+    "$views": {}, "$view": []
+};
+
+export const state = {
+    app, "composed": undefined, "input": {}, "view": {}, "response": {"status": 0, headers, "body": ""},
+    "item": {
+        "value": undefined, "index": 0, "array": [],
+        "one": {"value": undefined, "index": 0, "array": []},
+        "two": {"value": undefined, "index": 0, "array": []}
+    }
+};
+
+export const event = [];
+
+export const action = {"$domEvent": domEvent, "$event": event, "$states": state};
+
+export const store = {"getState": () => app, "dispatch": (action) => action, "subscribe": () => (() => undefined)};
+
+export const schema = {"$schema": "http://json-schema.org/draft-07/schema#"};
+
+export const functionalComposer = ({composed = undefined} = state) => composed;
+
+export const declarativeComposer = {"$compose": "", "$type": "", "$value": undefined, "$default": undefined, "$state": state};
+
+export const reducers = {};
+
+export const reducer = () => app;
+
+export const enhancer = (createStore) => createStore
+
+export const element = {"type": "", "props": {"children": []}};
+
+// Dependencies --------------------------------------------------------------------------------------------------------
+
+export const appStateFromStore = (store = store) => store.getState() || {};
+
+export const viewFromAppState = ({$view = []} = app) => $view;
+
+export const isDataProp = (prop = "") => /^data[-]/.test(prop);
+
+export const areDataProps = (props = {}, dependencies = {isDataProp}) => {
+    const {isDataProp} = dependencies;
+
+    return props !== null && typeof props === "object" && Object.keys(props).filter(isDataProp).length;
+};
+
+export const isFragment = (fragment = Fragment) => fragment === Fragment;
+
+export const isComponent = (component = Component) => typeof component === "function";
+
+export const isElementLike = (element = element) => (typeof element === "object" && element !== null && typeof element.$$typeof === "undefined");
+
+export const isElement = (element = element, dependencies = {isElementLike, isValidElement}) => {
+    const {isElementLike, isValidElement} = dependencies;
+
+    return isElementLike(element) || isValidElement(element);
+};
+
+export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElement}) => {
+    const {isFragment, isComponent, isElement} = dependencies;
+    const $components = {...components, "": Fragment, Fragment};
+
+    return isElement(type) || isFragment(type) || isComponent(type)
+        ? type
+        : $components[type] || type || Fragment;
+};
+
+// Composers
+
+export const appStateFromStates = ({app = app} = state) => app;
+
+export const viewStateFromStates = ({view = {}} = state) => view;
+
+export const composersFromAppState = ({$composers = {}} = app) => $composers;
+
+export const composerIdentifierFromComposer = ({"$compose": id = ""} = declarativeComposer) => id;
+
+export const composerDefaultFromComposer = ({$default = undefined} = declarativeComposer) => $default;
+
+export const composerFromComposers = (composers = {}, identifier = "") => composers[identifier];
+
+export const schemaIdentifierFromSchema = ({"$schema": id = ""} = schema) => id;
+
+// Actions
+
+export const clientFromDomEvent = ({target = client} = domEvent) => target;
+
+export const requestFromAsyncAction = ({$request = {}} = asyncAction) => $request;
+
+export const responsesFromAsyncAction = ({$responses = []} = asyncAction) => $responses;
+
+export const responseFromAsyncAction = ({$response = {}} = asyncAction) => $response;
+
+export const eventsFromAsyncAction = ({$events = {}} = asyncAction) => $events;
+
+export const eventFromAction = ({$event} = action) => $event;
+
+export const statesFromAction = ({$states = state} = action) => $states;
+
+export const valueFromAction = ({value} = syncAction) => value;
+
+export const requestIdentifierFromRequest = ({"$request": id = ""} = request) => id;
+
+export const responseIdentifierFromResponse = ({"$response": id = ""} = response) => id;
+
+export const actionIdentifierFromAction = ({"$action": id = ""} = syncAction) => id;
+
+export const actionsFromAppState = ({$actions = {}} = app) => $actions;
+
+export const actionFromActions = (actions = {}, identifier = "") => actions[identifier];
+
+export const eventsFromAppState = ({$events = {}} = app) => $events;
+
+export const eventFromEvents = (events = {}, identifier = "") => events[identifier];
+
+export const eventTypeFromDomEvent = ({type = ""} = domEvent) => type;
+
+export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
+
+export const eventIdentifierFromEvent = ({"$event": id = ""} = {"$event": ""}) => id;
 
 // Reducers ------------------------------------------------------------------------------------------------------------
 
@@ -358,6 +456,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
     const {matchObjects} = dependencies;
 
     switch (type) {
+        case "object":
+            return one === two || matchObjects(one, two);
         case "bigint":
         case "boolean":
         case "function":
@@ -366,9 +466,8 @@ export const matchSameType = (one = undefined, two = undefined, type = "undefine
         case "string":
         case "symbol":
         case "undefined":
+        default:
             return one === two;
-        case "object":
-            return one === two || matchObjects(one, two);
     }
 };
 
@@ -1168,7 +1267,10 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
         case "bigint":
             return Number(value);
         case "object":
-            return Object.keys(value).sort().reduce((map, key) => (map[key] = value[key], map), {});
+            return Object.keys(value).sort().reduce((map, key) => {
+                map[key] = value[key];
+                return map;
+            }, {});
         case "symbol":
             return Symbol.keyFor(value);
         case "array":
@@ -1179,6 +1281,7 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
         case "function":
         case "null":
         case "undefined":
+        default:
             return null;
     }
 };
@@ -1193,7 +1296,10 @@ export const bindEvent = (config = {}, dependencies = {eventDispatcherForStore, 
         case "window":
         case "document":
             // Do we need to check if an event listener exists before adding a new one?
-            window[$target].addEventListener($from, (event) => (event.target.dataset = {"event": $to}, dispatch(event, $states)));
+            window[$target].addEventListener($from, (event) => {
+                event.target.dataset = {"event": $to};
+                return dispatch(event, $states);
+            });
             return {"$bindEvent": undefined, "$eventValue": undefined};
         case "self":
         default:
