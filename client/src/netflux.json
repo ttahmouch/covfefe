@@ -164,7 +164,7 @@
             }
         },
         "is_title": [
-            {"$compose": "read", "$value": "$.input", "$default": ""},
+            {"$compose": "read", "$value": "$.title", "$default": ""},
             {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "title_schema"}, "$default": false}
         ],
         "is_movie": [
@@ -335,7 +335,41 @@
                 },
                 "$default": []
             }
-        ]
+        ],
+        "navigation_bar_style": {
+            "$compose": "create",
+            "$value": {
+                "backgroundColor": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "alpha": [
+                                {
+                                    "$compose": "create",
+                                    "$value": {
+                                        "scrollY": {
+                                            "$compose": "read",
+                                            "$value": "$.app.$states.scrollY",
+                                            "$default": 0
+                                        }
+                                    }
+                                },
+                                {
+                                    "$compose": "math",
+                                    "$value": "tanh(scrollY) * .7",
+                                    "$default": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "$compose": "expand",
+                        "$value": "rgba(17, 17, 17, {alpha})",
+                        "$default": "rgba(17, 17, 17, .7)"
+                    }
+                ]
+            }
+        }
     },
     "$requests": {
         "request_movie": {
@@ -1581,7 +1615,12 @@
                 ]
             },
             "$responses": [{"$mock": false, "$response": "request_movie_success"}],
-            "$events": {"200": {"$event": "on_request_movie_success"}}
+            "$events": {
+                "200": {
+                    "data-event": "on_request_movie_success",
+                    "data-event-delay-type": "debounce"
+                }
+            }
         },
         "request_tv": {
             "$action": "request_tv",
@@ -1603,7 +1642,12 @@
                 ]
             },
             "$responses": [{"$mock": false, "$response": "request_tv_success"}],
-            "$events": {"200": {"$event": "on_request_tv_success"}}
+            "$events": {
+                "200": {
+                    "data-event": "on_request_tv_success",
+                    "data-event-delay-type": "throttle"
+                }
+            }
         },
         "request_netflix_originals": {
             "$action": "request_netflix_originals",
@@ -1622,7 +1666,12 @@
                 ]
             },
             "$responses": [{"$mock": false, "$response": "request_netflix_originals_success"}],
-            "$events": {"200": {"$event": "on_request_netflix_originals_success"}}
+            "$events": {
+                "200": {
+                    "data-event": "on_request_netflix_originals_success",
+                    "data-event-delay-type": "timeout"
+                }
+            }
         },
         "request_trending": {
             "$action": "request_trending",
@@ -1641,7 +1690,12 @@
                 ]
             },
             "$responses": [{"$mock": false, "$response": "request_trending_success"}],
-            "$events": {"200": {"$event": "on_request_trending_success"}}
+            "$events": {
+                "200": {
+                    "data-event": "on_request_trending_success",
+                    "data-event-delay-type": "execute"
+                }
+            }
         },
         "request_search": {
             "$action": "request_search",
@@ -1663,7 +1717,14 @@
                 ]
             },
             "$responses": [{"$mock": false, "$response": "request_search_success"}],
-            "$events": {"200": {"$event": "on_request_search_success"}}
+            "$events": {
+                "200": {
+                    "data-event": "on_request_search_success",
+                    "data-event-state": "status",
+                    "data-event-state-path": "$.event.currentTarget[status,responseText]",
+                    "data-event-delay-type": "debounce"
+                }
+            }
         }
     },
     "$events": {
@@ -1781,15 +1842,45 @@
                 ]
             }
         ],
-        "on_logo_click": [
+        "on_load": [
             {"$action": "request_netflix_originals"},
-            {"$action": "request_trending"},
+            {"$action": "request_trending"}
+        ],
+        "on_logo_click": [
+            {"$event": "on_load"},
             {"$action": "route_replace", "$value": {"uri": {"pathname": "/"}}}
+        ],
+        "on_scroll": [
+            {
+                "$action": "create_$states_items",
+                "$value": {
+                    "items": {
+                        "scrollY": {"$compose": "read", "$value": "$.scrollY", "$default": 0},
+                        "isScrolling": [
+                            {
+                                "$compose": "create",
+                                "$value": {
+                                    "scrollY": {
+                                        "$compose": "read",
+                                        "$value": "$.scrollY",
+                                        "$default": 0
+                                    }
+                                }
+                            },
+                            {
+                                "$compose": "math",
+                                "$value": "scrollY > 0",
+                                "$default": false
+                            }
+                        ]
+                    }
+                }
+            }
         ],
         "on_change_title": [
             {
                 "$action": "create_$states_items",
-                "$value": {"items": {"title": {"$compose": "read", "$value": "$.input", "$default": ""}}}
+                "$value": {"items": {"title": {"$compose": "read", "$value": "$.event.currentTarget.value", "$default": ""}}}
             },
             {
                 "$action": "route_replace",
@@ -2994,7 +3085,15 @@
         "navigation_bar": {
             "type": "nav",
             "props": {
-                "className": "navigation", "data-bind-event": "DOMContentLoaded", "data-event": "on_logo_click", "data-event-target": "window",
+                "className": "navigation",
+                "data-style": "navigation_bar_style",
+                "data-bind-event": "scroll",
+                "data-event": "on_scroll",
+                "data-event-target": "window",
+                "data-event-state": "scrollY",
+                "data-event-state-path": "$.event.currentTarget.scrollY",
+                "data-event-delay": "0",
+                "data-event-delay-type": "debounce",
                 "children": {
                     "type": "ul",
                     "props": {
@@ -3022,9 +3121,18 @@
                                         {
                                             "type": "input",
                                             "props": {
-                                                "className": "navigation__container--left__input", "name": "title", "type": "text",
-                                                "data-bind-state": "value", "data-state": "title", "data-bind-event": "onChange",
-                                                "data-event": "on_change_title", "placeholder": "Title, Genres, People"
+                                                "className": "navigation__container--left__input",
+                                                "name": "title",
+                                                "type": "text",
+                                                "defaultValue": "",
+                                                "placeholder": "Title, Genres, People",
+                                                "data-bind-event": "onKeyUp",
+                                                "data-event": "on_change_title",
+                                                "data-event-state": "title",
+                                                "data-event-state-path": "$.event.currentTarget.value",
+                                                "data-event-state-default-value": "",
+                                                "data-event-delay": "1000",
+                                                "data-event-delay-type": "debounce"
                                             }
                                         }
                                     ]
@@ -3042,7 +3150,11 @@
         }
     },
     "$view": {
+        "type": "div",
         "props": {
+            "data-bind-event": "DOMContentLoaded",
+            "data-event": "on_load",
+            "data-event-target": "window",
             "children": [
                 {"type": "div", "props": {"data-view": "navigation_bar"}},
                 {"type": "div", "props": {"data-if-path": "/", "data-view": "home"}},

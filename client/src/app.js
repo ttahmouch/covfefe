@@ -24,7 +24,9 @@ export const client = {"getAllResponseHeaders": () => "", "status": 0, "response
 
 export const node = {"value": "", "dataset": {"event": "", "stateType": "string"}};
 
-export const domEvent = {"preventDefault": () => undefined, "type": "", "target": {...client, ...node}};
+export const target = {...client, ...node};
+
+export const domEvent = {"preventDefault": () => undefined, "type": "", "currentTarget": target, target};
 
 export const syncAction = {"$action": "", "$path": "", "$value": undefined, "$if": undefined, "$unless": undefined};
 
@@ -37,13 +39,16 @@ export const app = {
     "$views": {}, "$view": []
 };
 
+export const view = {"data-depth": 0, "data-dispatchers": []};
+
 export const state = {
-    app, "composed": undefined, "input": {}, "view": {}, "response": {"status": 0, headers, "body": ""},
+    app, "composed": undefined, "input": {}, view, "response": {"status": 0, headers, "body": ""},
     "item": {
         "value": undefined, "index": 0, "array": [],
         "one": {"value": undefined, "index": 0, "array": []},
         "two": {"value": undefined, "index": 0, "array": []}
-    }
+    },
+    "event": domEvent
 };
 
 export const event = [];
@@ -101,6 +106,19 @@ export const getType = (components = {}, type = "", dependencies = {isFragment, 
         : $components[type] || type || Fragment;
 };
 
+export const snakeToCamelCase = (string = "", config = {}) => {
+    const {expression = /[-_]([^-_])/g, withValue = (_, lowercase) => lowercase.toUpperCase()} = config;
+    return string.replace(expression, withValue);
+};
+
+export const datasetFromProps = (props = {}, dependencies = {snakeToCamelCase}) => {
+    const {snakeToCamelCase} = dependencies;
+    const prefix = /^data[-]/;
+    return Object.keys(props)
+        .filter((prop) => prefix.test(prop))
+        .reduce((dataset, prop) => ({...dataset, [snakeToCamelCase(prop.replace(prefix, ''))]: props[prop]}), {});
+};
+
 // Composers
 
 export const appStateFromStates = ({app = app} = state) => app;
@@ -119,7 +137,8 @@ export const schemaIdentifierFromSchema = ({"$schema": id = ""} = schema) => id;
 
 // Actions
 
-export const clientFromDomEvent = ({target = client} = domEvent) => target;
+// currentTargetFromDomEvent?
+export const clientFromDomEvent = ({currentTarget = client} = domEvent) => currentTarget;
 
 export const requestFromAsyncAction = ({$request = {}} = asyncAction) => $request;
 
@@ -151,7 +170,7 @@ export const eventFromEvents = (events = {}, identifier = "") => events[identifi
 
 export const eventTypeFromDomEvent = ({type = ""} = domEvent) => type;
 
-export const eventIdentifierFromDomEvent = ({"target": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
+export const eventIdentifierFromDomEvent = ({"currentTarget": {"dataset": {"event": id = ""} = {}} = {}} = domEvent) => id;
 
 export const eventIdentifierFromEvent = ({"$event": id = ""} = {"$event": ""}) => id;
 
@@ -341,11 +360,6 @@ export const readJsonPath = ({$value: $json_path = "", $state = state}, path = j
 
 export const math = ({$value: $expression = "", $state: {composed} = state}, expression = mathjs) => {
     return expression.evaluate($expression, composed);
-};
-
-export const snakeToCamelCase = (string = "", config = {}) => {
-    const {expression = /[-_]([^-_])/g, withValue = (_, lowercase) => lowercase.toUpperCase()} = config;
-    return string.replace(expression, withValue);
 };
 
 export const fold = (composer = {}, dependencies = {composeFromValue, isComposer, snakeToCamelCase}) => {
@@ -847,8 +861,8 @@ export const mockResponse = (client = client, response) => {
     });
 };
 
-export const toDomProgressEvent = (event = {}, dependencies = {isNaN}) => {
-    const {isNaN} = dependencies;
+export const toDomProgressEvent = (event = {}, dependencies = {eventIdentifierFromEvent, "isNaN": Number.isNaN}) => {
+    const {eventIdentifierFromEvent, isNaN} = dependencies;
     const identifier = eventIdentifierFromEvent(event) || "";
     const $event = isNaN(identifier) ? identifier : "load";
 
@@ -883,13 +897,14 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
                                                settingsFromAppState, toDereferencedRequest, toDereferencedResponse,
                                                appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
                                                dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-                                               dispatchSyncActionToStore, viewStateFromStates
+                                               dispatchSyncActionToStore, viewStateFromStates, responseStateFromDomEvent,
+                                               datasetFromProps
                                            }) => {
     const {
         getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
         eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
         mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-        dispatchSyncActionToStore, viewStateFromStates
+        dispatchSyncActionToStore, viewStateFromStates, responseStateFromDomEvent, datasetFromProps
     } = dependencies;
     const app = appStateFromStates(states) || app;
     const view = viewStateFromStates(states) || {};
@@ -924,25 +939,25 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
     client.responseType = $responseType;
     client.timeout = $timeout;
 
+    // Select state from XHR Events.
     Object
         .keys(events)
-        .map(($fromEvent = "") => {
-            const {"$event": $toEvent = ""} = events[$fromEvent];
-
-            return {$fromEvent, $toEvent};
-        })
-        .forEach(({$fromEvent = "", $toEvent = ""}) => {
-            return client.addEventListener($fromEvent, (event = domEvent) => {
-                event.target.dataset = {"event": $toEvent};
+        .filter((from) => Number.isNaN(Number(from)))
+        .map((from = "") => ({from, "dataset": datasetFromProps(events[from] || {})}))
+        .forEach(({from = "", dataset = {}}) => {
+            return client.addEventListener(from, (event = domEvent) => {
+                event.currentTarget.dataset = dataset;
                 return dispatch(event, states);
             });
         });
 
     client.addEventListener("load", (event = domEvent) => {
         const {status = 0} = responseStateFromDomEvent(event);
-        const {"$event": $toEvent = ""} = events[`${status}`] || {};
-        event.target.dataset = {"event": $toEvent};
-        return $toEvent && dispatch(event, states);
+        const from = `${status}`;
+        const dataset = datasetFromProps(events[from] || {});
+        Object.defineProperty(event, "type", {"value": from});
+        event.currentTarget.dataset = dataset;
+        return dispatch(event, states);
     });
 
     // console.group("Async Action:", action);
@@ -960,10 +975,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
 };
 
 export const dispatchSyncActionToStore = (action = syncAction, states, store = store) => {
-    const {
-        $action = undefined,
-        $value = undefined
-    } = action;
+    const {$action = undefined, $value = undefined} = action;
 
     return store.dispatch({
         ...action,
@@ -980,8 +992,11 @@ export const isAsyncAction = (action = asyncAction) => (
 );
 
 export const dispatchActionToStore = (action = syncAction, states, store = store,
-                                      dependencies = {isAsyncAction, dispatchAsyncActionToStore, dispatchSyncActionToStore}) => {
-    const {isAsyncAction, dispatchAsyncActionToStore, dispatchSyncActionToStore} = dependencies;
+                                      dependencies = {
+                                          appStateFromStore, isAsyncAction, dispatchAsyncActionToStore,
+                                          dispatchSyncActionToStore
+                                      }) => {
+    const {appStateFromStore, isAsyncAction, dispatchAsyncActionToStore, dispatchSyncActionToStore} = dependencies;
     const app = appStateFromStore(store) || {};
     const $states = {...states, app};
 
@@ -1123,10 +1138,7 @@ export const dispatchRouteToStore = (route = {"pathname": "/", "search": "", "ha
     } = route;
 
     // dispatchEventToStore?
-    return store.dispatch({
-        "type": "update_$route",
-        "value": {pathname, search, hash, pathParams, searchParams, fragment}
-    });
+    return store.dispatch({"type": "update_$route", "value": {pathname, search, hash, pathParams, searchParams, fragment}});
 };
 
 export const createRouteMiddleware = (history, dependencies = {dispatchRouteToStore}) => {
@@ -1184,14 +1196,17 @@ export const mapChildrenToState = (children = [], stateType = "string", state = 
 
 export const responseStateFromDomEvent = (event = domEvent, dependencies = {clientFromDomEvent, getResponse}) => {
     const {clientFromDomEvent, getResponse} = dependencies;
+    // targetFromDomEvent?
     const client = clientFromDomEvent(event) || client;
 
     return getResponse(client);
 };
 
-export const inputStateFromDomEvent = (event = domEvent, dependencies = {mapChildrenToState}) => {
-    const {mapChildrenToState} = dependencies;
-    const {target} = event;
+export const inputStateFromDomEvent = (event = domEvent, dependencies = {currentTargetFromDomEvent, mapChildrenToState}) => {
+    const {currentTargetFromDomEvent, mapChildrenToState} = dependencies;
+    // targetFromDomEvent?
+    // const {target} = event;
+    const target = currentTargetFromDomEvent(event) || {};
     const {value = "", "dataset": {"stateType": type = "string"}} = target;
     const children = Array.from(target);
 
@@ -1215,13 +1230,15 @@ export const isEvent = (event, dependencies = {isAction, isEventReference}) => {
 
 export const isDomEvent = (event) => (typeof event === "object" && event !== null && typeof event.type === "string");
 
-export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
-    const {eventTypeFromDomEvent} = dependencies;
-    const type = eventTypeFromDomEvent(event) || "";
+// export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
+//     const {eventTypeFromDomEvent} = dependencies;
+//     const type = eventTypeFromDomEvent(event) || "";
+//
+//     return event.currentTarget instanceof XMLHttpRequest
+//         && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
+// };
 
-    return event.target instanceof XMLHttpRequest
-        && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
-};
+export const isDomProgressEvent = (event) => event instanceof ProgressEvent;
 
 export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
     const {eventTypeFromDomEvent} = dependencies;
@@ -1230,29 +1247,161 @@ export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) =>
     return ["change", "input", "submit"].includes(type);
 };
 
+export const enumerableObject = (source = {}) => {
+    const target = {};
+    for (const property in source) {
+        try {
+            target[property] = source[property];
+        } catch (e) {
+            // console.error(e);
+        }
+    }
+    return target;
+};
+
+// The target may or may not be useless for most use cases. Will the user ever need state from the nested element that was
+// actually clicked instead of the parent element that was targeted?
+export const targetFromDomEvent = ({target = {}} = domEvent) => target;
+
+export const currentTargetFromDomEvent = ({currentTarget = {}} = domEvent) => currentTarget;
+
+export const datasetFromDomEvent = ({"currentTarget": {dataset = {}} = {}} = domEvent) => dataset;
+
+export const isSelectableDomEvent = (event = domEvent, dependencies = {datasetFromDomEvent}) => {
+    const {datasetFromDomEvent} = dependencies;
+    const dataset = datasetFromDomEvent(event);
+    const {eventState = undefined, eventStateDefault = undefined, eventStatePath = undefined} = dataset;
+    return eventState || eventStateDefault || eventStatePath;
+};
+
+export const enumerableDomEvent = (event = domEvent,
+                                   dependencies = {currentTargetFromDomEvent, enumerableObject, targetFromDomEvent}) => {
+    const {currentTargetFromDomEvent, enumerableObject, targetFromDomEvent} = dependencies;
+    const enumerableEvent = enumerableObject(event);
+    const target = enumerableObject(targetFromDomEvent(event));
+    const currentTarget = enumerableObject(currentTargetFromDomEvent(event));
+
+    return {...enumerableEvent, currentTarget, target};
+};
+
+export const debounce = (dependencies = {clearTimeout, setTimeout}) => {
+    const {clearTimeout, setTimeout} = dependencies;
+    let id;
+
+    return (config = {}) => {
+        const {callback = () => undefined, delay = 0, rest = []} = config;
+        clearTimeout(id);
+        id = setTimeout(callback, delay, ...rest);
+    };
+};
+
+export const throttle = (dependencies = {setTimeout}) => {
+    const {setTimeout} = dependencies;
+    let timeout = false;
+
+    return (config = {}) => {
+        const {callback = () => undefined, delay = 0, rest = []} = config;
+        !timeout && callback(...rest);
+        !timeout && setTimeout(() => (timeout = false), delay);
+        timeout = true;
+    };
+};
+
+export const timeout = (dependencies = {setTimeout}) => {
+    const {setTimeout} = dependencies;
+
+    return (config = {}) => {
+        const {callback = () => undefined, delay = 0, rest = []} = config;
+        return setTimeout(callback, delay, ...rest);
+    };
+};
+
+export const execute = () => {
+    return (config = {}) => {
+        const {callback = () => undefined, rest = []} = config;
+        return callback(...rest);
+    };
+};
+
+export const delay = (dependencies = {debounce, execute, throttle, timeout}) => {
+    const {debounce, execute, throttle, timeout} = dependencies;
+    const debouncer = debounce();
+    const throttler = throttle();
+    const timer = timeout();
+    const executor = execute();
+
+    return (config = {}) => {
+        const {type = "execute"} = config;
+        switch (type) {
+            case "throttle":
+                return throttler(config);
+            case "debounce":
+                return debouncer(config);
+            case "timeout":
+                return timer(config);
+            case "execute":
+            default:
+                return executor(config);
+        }
+    };
+};
+
+export const stateFromDomEvent = (states = state,
+                                  dependencies = {composeFromIdentifier, composeValueFromPath, datasetFromDomEvent}) => {
+    const {composeFromIdentifier, composeValueFromPath, datasetFromDomEvent} = dependencies;
+    const {event = domEvent} = states;
+    const dataset = datasetFromDomEvent(event) || {};
+    const {eventState = undefined, eventStateDefault = undefined, eventStatePath = undefined} = dataset;
+    const {
+        eventStateDefaultValue = eventStateDefault && composeFromIdentifier(eventStateDefault, states, "$states"),
+        eventStatePathValue = eventStatePath && composeValueFromPath(eventStatePath, eventStateDefaultValue, states),
+        eventStateValue = eventStatePath ? eventStatePathValue : eventState
+            ? composeFromIdentifier(eventState, states, "$states", eventStateDefaultValue)
+            : eventStateDefaultValue || event,
+    } = dataset;
+
+    // console.log({states, eventState, eventStateDefault, eventStatePath, eventStateValue, eventStateDefaultValue, eventStatePathValue});
+
+    return {...states, [eventState || "event"]: eventStateValue};
+};
+
 export const eventDispatcherForStore = (store = store, view = {},
                                         dependencies = {
-                                            appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent,
-                                            eventIdentifierFromDomEvent, eventsFromAppState, eventFromEvents,
-                                            isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
-                                            eventTypeFromDomEvent
+                                            appStateFromStore, datasetFromDomEvent, delay, enumerableDomEvent, eventFromEvents,
+                                            eventIdentifierFromDomEvent, eventTypeFromDomEvent, eventsFromAppState,
+                                            inputStateFromDomEvent, isDomEvent, isDomFormEvent, isDomProgressEvent, isSelectableDomEvent,
+                                            responseStateFromDomEvent, stateFromDomEvent, toDereferencedEvent,
                                         }) => {
     const {
-        appStateFromStore, inputStateFromDomEvent, responseStateFromDomEvent, eventIdentifierFromDomEvent,
-        eventsFromAppState, eventFromEvents, isDomProgressEvent, isDomFormEvent, isDomEvent, toDereferencedEvent,
-        eventTypeFromDomEvent
+        appStateFromStore, datasetFromDomEvent, delay, enumerableDomEvent, eventFromEvents,
+        eventIdentifierFromDomEvent, eventTypeFromDomEvent, eventsFromAppState,
+        inputStateFromDomEvent, isDomEvent, isDomFormEvent, isDomProgressEvent, isSelectableDomEvent,
+        responseStateFromDomEvent, stateFromDomEvent, toDereferencedEvent,
     } = dependencies;
-
+    const delayer = delay();
     return (event, states = {}) => {
-        const {input: previousInput = {}, response: previousResponse = {}} = states;
-        const app = appStateFromStore(store) || {};
-        const input = isDomFormEvent(event) ? inputStateFromDomEvent(event) : previousInput;
-        const response = isDomProgressEvent(event) ? responseStateFromDomEvent(event) : previousResponse;
-        const $states = {app, input, response, view};
+        const {"input": previousInput = {}, "response": previousResponse = {}} = states;
+        const dataset = datasetFromDomEvent(event) || {};
+        const {"eventDelay": delay = 0, eventDelayType = "execute"} = dataset;
+        // console.log(delay, eventDelayType);
+        const $states = stateFromDomEvent({
+            "app": appStateFromStore(store) || {},
+            // Input state doesn't seem truly necessary anymore. Response state would be difficult to do manually because
+            // of the nature of XHR, e.g., header splitting, body parsing, etc.
+            "input": isDomFormEvent(event) ? inputStateFromDomEvent(event) : previousInput,
+            "response": isDomProgressEvent(event) ? responseStateFromDomEvent(event) : previousResponse,
+            "event": isSelectableDomEvent(event) ? enumerableDomEvent(event) : {},
+            view
+        }) || {};
         const $event = toDereferencedEvent(event, $states);
+        const eventType = eventTypeFromDomEvent(event);
+        const callback = () => store.dispatch({$event, $states, "type": eventType});
+        console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
 
         typeof event.preventDefault === "function" && event.preventDefault();
-        return store.dispatch({$event, $states, "type": eventTypeFromDomEvent(event)});
+        // Explicitly type coerce delay to a number.
+        // ⚠️️⚠️️⚠️️⚠️️⚠️️
+        return delayer({"type": eventDelayType, delay, callback});
     };
 };
 
@@ -1286,20 +1435,23 @@ export const toNormalizedJson = (value, dependencies = {toType}) => {
     }
 };
 
-export const bindEvent = (config = {}, dependencies = {eventDispatcherForStore, viewStateFromStates}) => {
-    const {eventDispatcherForStore, viewStateFromStates} = dependencies;
-    const {$target = "self", $from = "", $to = "", $states = state, $store = store} = config;
+export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDispatcherForStore, viewStateFromStates}) => {
+    const {datasetFromProps, eventDispatcherForStore, viewStateFromStates} = dependencies;
+    const {$states = state, $store = store, $props = {}} = config;
     const view = viewStateFromStates($states) || {};
     const dispatch = eventDispatcherForStore($store, view) || ((event = domEvent) => undefined);
+    const {"data-event": $to = undefined, "data-event-target": $target = "self", "data-bind-event": $from = "data-bind-event"} = $props;
 
     switch ($target) {
         case "window":
         case "document":
-            // Do we need to check if an event listener exists before adding a new one?
-            window[$target].addEventListener($from, (event) => {
-                event.target.dataset = {"event": $to};
+            const dataset = datasetFromProps($props) || {};
+            const $dispatcher = (event) => {
+                event.currentTarget.dataset = dataset;
                 return dispatch(event, $states);
-            });
+            };
+            view["data-dispatchers"] = [...view["data-dispatchers"], {$target, $from, $dispatcher}];
+            window[$target].addEventListener($from, $dispatcher);
             return {"$bindEvent": undefined, "$eventValue": undefined};
         case "self":
         default:
@@ -1316,14 +1468,14 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
     const {appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath, toNormalizedJson} = dependencies;
     const app = appStateFromStore(store) || {};
     const $states = {app, view};
-    const {"data-current-depth": $currentDepth = 0} = view;
+    const {"data-depth": $depth = 0} = view;
     const {
         // Did switching from "" to undefined impact rendering speed?
         "data-state": $state = undefined,
         "data-state-repeat": $stateRepeat = undefined,
         "data-state-repeat-depth": $stateRepeatDepth = "0",
         "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
-        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $currentDepth,
+        "data-should-state-repeat": $shouldStateRepeat = $stateRepeat === "true" && $stateRepeatDepthValue === $depth,
         "data-state-repeat-key": $stateRepeatKey = "item",
         "data-state-default": $stateDefault = undefined,
         "data-state-default-value": $stateDefaultValue = $stateDefault && composeFromIdentifier($stateDefault, $states, "$states"),
@@ -1344,10 +1496,7 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-style": $style = undefined,
         "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
-        "data-event": $to = undefined,
-        "data-event-target": $target = "self",
-        "data-bind-event": $from = "data-bind-event",
-        "data-bind-event-value": $bindEventValue = bindEvent({$target, $from, $to, $states, "$store": store})
+        "data-bind-event-value": $bindEventValue = bindEvent({$states, "$store": store, "$props": props})
     } = props;
     const {$bindEvent = "data-bind-event", $eventValue = undefined} = $bindEventValue;
 
@@ -1358,18 +1507,18 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
             .flatMap((item) => {
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
-                $shouldStateRepeat && (view["data-current-depth"]++);
+                $shouldStateRepeat && (view["data-depth"]++);
 
                 const elements = ($shouldBindTemplate ? [$bindTemplate] : children)
                     .map((child) => {
                         return typeof child === "string"
-                            ? composeStringFromTemplate(child, $stateParams, {app, view})
+                            ? composeStringFromTemplate(child, $stateParams, $states)
                             : $shouldStateRepeat
                                 ? React.createElement(child)
                                 : child;
                     });
 
-                $shouldStateRepeat && (view["data-current-depth"]--);
+                $shouldStateRepeat && (view["data-depth"]--);
                 $shouldStateRepeat && (view[$stateRepeatKey] = undefined);
 
                 return elements;
@@ -1389,7 +1538,7 @@ export const toReactProps = (props = {}, children = [], store = {}, view = {},
     return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view) : {props, children};
 };
 
-export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = {"data-current-depth": 0},
+export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = view,
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
@@ -1411,46 +1560,44 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // be composed dynamically. Are JSON composers in place of JS Component functions really worth it?
         const app = appStateFromStore(store) || {};
         const components = composersFromAppState(app) || {};
+        const $states = {app, view};
         const {
             "data-if": $if = "",
-            "data-if-value": $ifValue = $if && composeFromIdentifier($if, {app, view}, "$states"),
+            "data-if-value": $ifValue = $if && composeFromIdentifier($if, $states, "$states"),
             "data-unless": $unless = "",
-            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, {app, view}, "$states"),
+            "data-unless-value": $unlessValue = $unless && !composeFromIdentifier($unless, $states, "$states"),
             "data-path-type": $pathType = "path_template",
             "data-if-path": $ifPath = "",
-            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, {app, view}, $pathType),
+            "data-if-path-value": $ifPathValue = $ifPath && composeFromPathTemplate($ifPath, $states, $pathType),
             "data-unless-path": $unlessPath = "",
-            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, {app, view}, $pathType),
+            "data-unless-path-value": $unlessPathValue = $unlessPath && !composeFromPathTemplate($unlessPath, $states, $pathType),
             "data-should": $should = ($if === "" && $unless === "" && $ifPath === "" && $unlessPath === "")
                 || $ifValue === true
                 || $unlessValue === true
                 || $ifPathValue === true
                 || $unlessPathValue === true,
             "data-path": $path = $ifPath || $unlessPath || "",
-            "data-path-params": $pathParams = ($path && $should && composeParametersFromPathTemplate($path, {app, view}, $pathType)) || {},
+            "data-path-params": $pathParams = ($path && $should && composeParametersFromPathTemplate($path, $states, $pathType)) || {},
             "data-view": $view = "",
-            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, {app, view}, "$views"),
+            "data-view-value": $viewValue = $view && $should && composeFromIdentifier($view, $states, "$views"),
             ...$props
         } = props;
         const $element = $viewValue || type;
 
-        $path && $should && dispatchRoutePathParamsToStore($pathParams, {app, view}, store);
+        $path && $should && dispatchRoutePathParamsToStore($pathParams, $states, store);
 
         // $view && $should && console.group("View:", $viewValue);
         // $view && !$should && console.group("Suppressing View:", $view);
         // $view && console.groupEnd();
 
         if (isElement($element)) {
-            const {type = "", props: {children = [], ...props} = {}} = $element;
+            const {type = "", "props": {children = [], ...props} = {}} = $element;
             const $type = getType(components, type);
             const $children = [].concat(children).map(toChild);
             return toElement($type, {...props, ...$props}, ...$children);
         }
 
-        const {
-            "props": reactProps,
-            "children": reactChildren
-        } = toReactProps(props, children, store, view);
+        const {"props": reactProps, "children": reactChildren} = toReactProps(props, children, store, view);
 
         return createElement(type, reactProps, ...reactChildren);
     };
@@ -1477,16 +1624,20 @@ export const storeFromConfiguration = (config = {},
     return store;
 };
 
-export const View = () => {
+export const View = ({view = view}) => {
     console.time("Render");
+    view["data-depth"] = 0;
+    view["data-dispatchers"] = view["data-dispatchers"] || [];
+    view["data-dispatchers"].forEach(({$target, $from, $dispatcher} = {}) => window[$target].removeEventListener($from, $dispatcher));
+    view["data-dispatchers"] = [];
     const element = React.createElement(viewFromAppState(useSelector((state) => state)));
     console.timeEnd("Render");
 
     return element;
 }
 
-export const App = ({store = store}) => (
+export const App = ({store = store, view = view}) => (
     <Provider store={store}>
-        <View/>
+        <View view={view}/>
     </Provider>
 );

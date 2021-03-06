@@ -17,9 +17,17 @@
 + ✅ Implement math composer;
 + ✅ Support Array Higher-Order Folding Functions in Composers.
 + ✅ Add map, reduce, filter, etc. to composers.
-+ ❌ Support `onLoad` event binding.
++ ✅ Support `onLoad` event binding.
++ ✅ Support onScroll, onRender (DOMContentLoaded, onLoad), etc.
++ ✅ Animate the navigation bar on scroll to show it as an example.
++ ✅ Detect onScroll and hide/show the navigation bar background.
++ ✅ Implement the same `data-*` props in the HTTP cases since those are not DOM nodes.
++ ✅ Debounce or throttle all events by default, and make it optional to avoid.
++ ✅ Utilize the JSONPath selectors instead of having custom code for selecting input `onChange` of text.
 + ❌ Support data-event="onLayout".
-+ ❌ Support onScroll, onLayout, onRender, etc.
++ ❌ Support multi-prop state binding for `data-style`, `data-state`, `data-event`.
++ ❌ Support data-state-* for multiple state bindings on one element.
++ ❌ Support data-event-* for multiple event bindings on one element.
 
 ## Important
 
@@ -33,8 +41,6 @@
      Derive it from the documentation. Discuss things like functional core; imperative shell, state management, no state mutation, etc.
 + ❌ Extract library to NPM to get people using it.
 
-+ ❌ Debounce or throttle all events by default, and make it optional to avoid.
-+ ❌ Support multi-prop state binding for `data-style`, `data-state`, `data-event`.
 + ❌ Support accessibility with multi-prop `data-state` for aria props and `aria` or `i18n` declarations.
 + ❌ Support internationalization with multi-prop `data-state` for state props and `i18n` declarations.
 + ❌ Support Binding Multiple Props From State, e.g., children and value.
@@ -48,13 +54,11 @@
 + ❌ Return app JSON from a server and reduce it in the client.
 + ❌ Implement CRUD reducers as composers;
 + ❌ Implement JS Object methods from snake to camel case for all methods, e.g., String.prototype.includes, etc.
-+ ❌ Support data-state-* for multiple state bindings on one element.
-+ ❌ Support data-event-* for multiple event bindings on one element.
 + ❌ Support create composer in all the other composers for the value property to make them more useful.
 + ❌ Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
-+ ❌ Detect onScroll and hide/show the navigation bar background.
 + ❌ Support Array Higher-Order Folding Functions in Reducers.
 + ❌ Add map, reduce, filter, etc. to reducers.
++ ❌ Support conditional from events for cases like response status codes where you don't know what you're expecting, e.g., `500`.
 
 ## Not Important
 

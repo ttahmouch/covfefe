@@ -18,8 +18,9 @@ import {
 const history = createBrowserHistory();
 const {"location": route = {}} = history;
 const middleware = [createLogMiddleware(), createEventMiddleware(), createRouteMiddleware(history)];
-const composer = composeWithDevTools({"trace": false});
+const composer = composeWithDevTools({"trace": false, "maxAge": 1000});
 const store = storeFromConfiguration({state, middleware, composer, route});
+const view = {};
 
-React.createElement = createElementWithCustomDataProps({createElement}, store);
-ReactDOM.render(<App store={store}/>, document.getElementById("root"));
+React.createElement = createElementWithCustomDataProps({createElement}, store, view);
+ReactDOM.render(<App store={store} view={view}/>, document.getElementById("root"));
