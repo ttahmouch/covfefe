@@ -243,7 +243,11 @@
                         "$default": [],
                         "$value": [
                             {"$compose": "read", "$value": "$.composed", "$default": []},
-                            {"$compose": "spread", "$value": [{"$compose": "read", "$value": "$.item.value.title", "$default": ""}], "$default": []}
+                            {
+                                "$compose": "spread",
+                                "$value": [{"$compose": "read", "$value": "$.item.value.title", "$default": ""}],
+                                "$default": []
+                            }
                         ]
                     }
                 ],
@@ -1901,7 +1905,7 @@
     },
     "$route": {},
     "$states": {
-        "api_key": "6eef0740d3ea72e3ca8701f8207cac60",
+        "api_key": "44b0414e4f652e8e3cba518ddf5a534e",
         "user_one": "Laura",
         "user_two": "Tony",
         "user_three": "Joey",

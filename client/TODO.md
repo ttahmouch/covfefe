@@ -24,10 +24,19 @@
 + ✅ Implement the same `data-*` props in the HTTP cases since those are not DOM nodes.
 + ✅ Debounce or throttle all events by default, and make it optional to avoid.
 + ✅ Utilize the JSONPath selectors instead of having custom code for selecting input `onChange` of text.
++ ✅ Support create composer in all the other composers for the value property to make them more useful.
++ ✅ Support default composed values in case someone tried to compose an undefined incoming value.
++ ❌ Compose the `data-event-delay[-type]`.
++ ❌ Wrap all composers in a try/catch just in case some of the dependencies of the composers throw unexpected exceptions, e.g., URITemplate/Path Template.
++ ❌ Support literal create composer type to support arrays that are not compositions.
 + ❌ Support data-event="onLayout".
 + ❌ Support multi-prop state binding for `data-style`, `data-state`, `data-event`.
 + ❌ Support data-state-* for multiple state bindings on one element.
 + ❌ Support data-event-* for multiple event bindings on one element.
++ ❌ Compose conditional expressions, i.e., match, AND, OR, XOR, etc., and return a value from the condition.
++ ❌ Leverage the conditional composers for things like the nav bar alpha.
++ ❌ Implement conditional composer;
++ ❌ Conditional Compositions, i.e., AND, OR, XOR, ...
 
 ## Important
 
@@ -45,8 +54,6 @@
 + ❌ Support internationalization with multi-prop `data-state` for state props and `i18n` declarations.
 + ❌ Support Binding Multiple Props From State, e.g., children and value.
 + ❌ Allow `data-multi-state` to bind `{"value": "User Input", "placeholder": "Movie Title,..."}` without a single `data-bind="value"`?
-+ ❌ Implement conditional composer;
-+ ❌ Conditional Compositions, i.e., AND, OR, XOR, ...
 + ❌ Support Expanding Templates For Props Other Than Children, e.g., data-state-template.
 + ❌ Support Encoding JSON Values From State.
 + ❌ Thunks (Arbitrary Asynchronous Actions, i.e., not HTTP)
@@ -54,7 +61,6 @@
 + ❌ Return app JSON from a server and reduce it in the client.
 + ❌ Implement CRUD reducers as composers;
 + ❌ Implement JS Object methods from snake to camel case for all methods, e.g., String.prototype.includes, etc.
-+ ❌ Support create composer in all the other composers for the value property to make them more useful.
 + ❌ Support reducing sub-level state, e.g., "movie": {"id": 0, "title": "title"}.
 + ❌ Support Array Higher-Order Folding Functions in Reducers.
 + ❌ Add map, reduce, filter, etc. to reducers.
