@@ -166,6 +166,17 @@ export const serializeJson = (value = undefined, dependencies = {toNormalizedJso
     }
 };
 
+export const deserializeUrl = (config = {}, dependencies = {URL}) => {
+    const {URL} = dependencies;
+    const {url = "https://hostname", base = undefined} = config;
+    try {
+        return new URL(url, base);
+    } catch (error) {
+        console.error(error);
+        return new URL("https://hostname");
+    }
+};
+
 export const enumerableObject = (source = {}) => {
     const target = {};
     for (const property in source) {
@@ -406,8 +417,13 @@ export const readPathTemplate = (composer = {}, dependencies = {create, decodeUR
     const {create, "decodeURIComponent": decode, match} = dependencies;
     const {"$state": {composed = "/"} = state} = composer;
     const path = create(composer) || "";
-    const {params = {}} = match(path, {decode})(composed) || {};
-    return {...params};
+    try {
+        const {params = {}} = match(path, {decode})(composed) || {};
+        return {...params};
+    } catch (error) {
+        console.error(error);
+        return {};
+    }
 };
 
 export const readRegularExpression = (composer = {}, dependencies = {create}) => {
@@ -423,14 +439,24 @@ export const readJsonPath = (composer = {}, dependencies = {create, jsonpath}) =
     const {create, jsonpath} = dependencies;
     const {"$state": json = state} = composer;
     const path = create(composer) || "$.composed";
-    return jsonpath.evaluate({path, json});
+    try {
+        return jsonpath.evaluate({path, json});
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
 };
 
 export const math = (composer = {}, dependencies = {create, mathjs}) => {
     const {create, mathjs} = dependencies;
     const {"$state": {composed = {}} = state} = composer;
     const expression = create(composer) || "";
-    return mathjs.evaluate(expression, composed);
+    try {
+        return mathjs.evaluate(expression, composed);
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
 };
 
 export const fold = (composer = {}, dependencies = {composeFromValue, isComposer, snakeToCamelCase}) => {
@@ -508,7 +534,12 @@ export const matchPathTemplate = (composer = {}, dependencies = {create, decodeU
     const {create, "decodeURIComponent": decode, match} = dependencies;
     const {"$state": {composed = "/"} = state} = composer;
     const path = create(composer) || "";
-    return !!match(path, {decode})(composed);
+    try {
+        return !!match(path, {decode})(composed);
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
 export const jsonschema = new Ajv();
@@ -518,7 +549,12 @@ export const matchJsonSchema = (composer = {}, dependencies = {create, jsonschem
     const {$state = state} = composer;
     const {composed = undefined} = $state;
     const schema = create(composer) || {};
-    return jsonschema.validate(toDereferencedSchema(schema, $state), composed);
+    try {
+        return jsonschema.validate(toDereferencedSchema(schema, $state), composed);
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
 export const matchRegularExpression = (composer = {}, dependencies = {create}) => {
@@ -579,14 +615,24 @@ export const expandPathTemplate = (composer = {}, dependencies = {compile, creat
     const {compile, create, "encodeURIComponent": encode} = dependencies;
     const {"$state": {composed = {}} = state} = composer;
     const path = create(composer) || "";
-    return compile(path, {encode})(composed);
+    try {
+        return compile(path, {encode})(composed);
+    } catch (error) {
+        console.error(error);
+        return path;
+    }
 };
 
 export const expandUriTemplate = (composer = {}, dependencies = {create, URITemplate}) => {
     const {create, URITemplate} = dependencies;
     const {"$state": {composed = {}} = state} = composer;
     const template = create(composer) || "";
-    return new URITemplate(template).expand(composed);
+    try {
+        return new URITemplate(template).expand(composed);
+    } catch (error) {
+        console.error(error);
+        return template;
+    }
 };
 
 export const expandTemplate = (composer = {}, dependencies = {create, serializeJson}) => {
@@ -610,17 +656,16 @@ export const encodeJson = (composer = {}, dependencies = {create, serializeJson}
     return serializeJson(value);
 };
 
-export const encodeUri = (composer = {}, dependencies = {create, URL}) => {
-    const {create, URL} = dependencies;
+export const encodeUri = (composer = {}, dependencies = {create, deserializeUrl, URLSearchParams}) => {
+    const {create, deserializeUrl, URLSearchParams} = dependencies;
     const {"$state": {composed = {}} = state, $value = composed} = composer;
-    const base = typeof window !== "undefined" ? window.location : "protocol://hostname";
-    const url = new URL(base);
     const {
-        href = "", host = "", protocol = "", username = "", password = "",
-        hostname = "", port = "", pathname = "/", search = "", hash = "",
-        "searchParams": params = {}
-    } = create({...composer, $value});
-    const searchParams = new URLSearchParams(params);
+        href = "", host = "", protocol = "", username = "", password = "", hostname = "", port = "",
+        pathname = "/", search = "", hash = "", "searchParams": params = {}
+    } = create({...composer, $value}) || {};
+    const base = typeof window !== "undefined" ? window.location.toString() : "https://hostname";
+    const url = deserializeUrl({"url": base});
+    const searchParams = new URLSearchParams(params).toString();
 
     href && (url.href = href);
     host && (url.host = host);
@@ -630,7 +675,7 @@ export const encodeUri = (composer = {}, dependencies = {create, URL}) => {
     hostname && (url.hostname = hostname);
     port && (url.port = port);
     pathname && (url.pathname = pathname);
-    url.search = searchParams.toString() || search;
+    url.search = searchParams || search;
     hash && (url.hash = hash);
     return url.toString();
 };
@@ -642,15 +687,15 @@ export const decodeJson = (composer = {}, dependencies = {create, deserializeJso
     return deserializeJson(value);
 };
 
-export const decodeUri = (composer = {}, dependencies = {create, enumerableObject, URL, URLSearchParams}) => {
-    const {create, enumerableObject, URL, URLSearchParams} = dependencies;
+export const decodeUri = (composer = {}, dependencies = {create, deserializeUrl, URLSearchParams}) => {
+    const {create, deserializeUrl, URLSearchParams} = dependencies;
     const {"$state": {composed = ""} = state, $value = composed} = composer;
-    const base = typeof window !== "undefined" ? window.location : "protocol://hostname";
+    const base = typeof window !== "undefined" ? window.location.toString() : "https://hostname";
+    const url = create({...composer, $value}) || "https://hostname";
     const {
-        href = "", host = "", origin = "", protocol = "", username = "", password = "",
-        hostname = "", port = "", pathname = "/", search = "", hash = "",
-        "searchParams": params = new URLSearchParams(search)
-    } = new URL(create({...composer, $value}), base);
+        href = "", host = "", origin = "", protocol = "", username = "", password = "", hostname = "", port = "",
+        pathname = "/", search = "", hash = "", "searchParams": params = new URLSearchParams(search)
+    } = deserializeUrl({url, base});
     const searchParams = Object.fromEntries(params);
     return {href, host, origin, protocol, username, password, hostname, port, pathname, search, hash, searchParams};
 };
@@ -760,6 +805,7 @@ export const toDereferencedComposer = (composer = declarativeComposer, states = 
 
     return composerFromComposers(composers, identifier)
         || ((states) => {
+            // Does this need to be wrapped in a try block? I wrapped every specific composer that could throw.
             const value = compose({"$state": states, ...composer});
             return value !== undefined ? value : composeFromValue(composerDefaultFromComposer(composer), states);
         });
@@ -1380,9 +1426,9 @@ export const debounce = (dependencies = {clearTimeout, setTimeout}) => {
     let id;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
+        const {callback = () => undefined, delay = "0", rest = []} = config;
         clearTimeout(id);
-        id = setTimeout(callback, delay, ...rest);
+        id = setTimeout(callback, Number(delay), ...rest);
     };
 };
 
@@ -1391,9 +1437,9 @@ export const throttle = (dependencies = {setTimeout}) => {
     let timeout = false;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
+        const {callback = () => undefined, delay = "0", rest = []} = config;
         !timeout && callback(...rest);
-        !timeout && setTimeout(() => (timeout = false), delay);
+        !timeout && setTimeout(() => (timeout = false), Number(delay));
         timeout = true;
     };
 };
@@ -1402,8 +1448,8 @@ export const timeout = (dependencies = {setTimeout}) => {
     const {setTimeout} = dependencies;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
-        return setTimeout(callback, delay, ...rest);
+        const {callback = () => undefined, delay = "0", rest = []} = config;
+        return setTimeout(callback, Number(delay), ...rest);
     };
 };
 
@@ -1473,7 +1519,8 @@ export const eventDispatcherForStore = (store = store, view = {},
     return (event, states = {}) => {
         const {"input": previousInput = {}, "response": previousResponse = {}} = states;
         const dataset = datasetFromDomEvent(event) || {};
-        const {"eventDelay": delay = 0, eventDelayType = "execute"} = dataset;
+        // Compose these?
+        const {"eventDelay": delay = "0", eventDelayType = "execute"} = dataset;
         // console.log(delay, eventDelayType);
         const $states = stateFromDomEvent({
             "app": appStateFromStore(store) || {},
@@ -1490,8 +1537,6 @@ export const eventDispatcherForStore = (store = store, view = {},
         console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
 
         typeof event.preventDefault === "function" && event.preventDefault();
-        // Explicitly type coerce delay to a number.
-        // ⚠️️⚠️️⚠️️⚠️️⚠️️
         return delayer({"type": eventDelayType, delay, callback});
     };
 };

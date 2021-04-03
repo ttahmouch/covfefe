@@ -1539,6 +1539,15 @@ console.log(composeFromValue([
     ]
 ]));
 
+console.log(serializeJson(composeFromValue([{"$compose": "read", "$value": "@throw()"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "read", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "math", "$value": "throw", "$default": 0}])));
+console.log(serializeJson(composeFromValue([{"$compose": "match", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "match", "$type": "json_schema", "$value": {"type": "throw"}}])));
+console.log(serializeJson(composeFromValue([{"$compose": "expand", "$type": "uri_template", "$value": "{throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "expand", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "decode", "$type": "json", "$value": "throw"}])));
+
 console.assert(composeFromValue({"$compose": "create"}) === undefined);
 console.assert(Object.keys(composeFromValue({"$compose": "spread"})).length === 0);
 console.assert(composeFromValue({"$compose": "read"}) === undefined);
