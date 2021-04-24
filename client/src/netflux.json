@@ -3,150 +3,29 @@
         "debug": true,
         "mock": false
     },
-    "$schemas": {
-        "request_movie_success_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["status", "headers", "body"],
-            "properties": {
-                "status": {"type": "integer", "const": 200},
-                "headers": {
-                    "type": "object",
-                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
-                },
-                "body": {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "required": [],
-                    "properties": {
-                        "id": {"type": "number"},
-                        "title": {"type": "string"},
-                        "overview": {"type": "string"},
-                        "runtime": {"type": "number"},
-                        "vote_average": {"type": "number"},
-                        "release_date": {"type": "string"},
-                        "backdrop_path": {"type": ["string", "null"]}
-                    }
-                }
-            }
-        },
-        "request_tv_success_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["status", "headers", "body"],
-            "properties": {
-                "status": {"type": "integer", "const": 200},
-                "headers": {
-                    "type": "object",
-                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
-                },
-                "body": {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "required": [],
-                    "properties": {
-                        "id": {"type": "number"},
-                        "name": {"type": "string"},
-                        "overview": {"type": "string"},
-                        "episode_run_time": {"type": "array", "items": {"type": "number"}},
-                        "vote_average": {"type": "number"},
-                        "first_air_date": {"type": "string"},
-                        "backdrop_path": {"type": ["string", "null"]}
-                    }
-                }
-            }
-        },
-        "request_netflix_originals_success_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["status", "headers", "body"],
-            "properties": {
-                "status": {"type": "integer", "const": 200},
-                "headers": {
-                    "type": "object",
-                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
-                },
-                "body": {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "required": [],
-                    "properties": {"results": {"type": "array"}}
-                }
-            }
-        },
-        "request_trending_success_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["status", "headers", "body"],
-            "properties": {
-                "status": {"type": "integer", "const": 200},
-                "headers": {
-                    "type": "object",
-                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
-                },
-                "body": {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "required": [],
-                    "properties": {"results": {"type": "array"}}
-                }
-            }
-        },
-        "request_search_success_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["status", "headers", "body"],
-            "properties": {
-                "status": {"type": "integer", "const": 200},
-                "headers": {
-                    "type": "object",
-                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
-                },
-                "body": {
-                    "$schema": "http://json-schema.org/schema#",
-                    "type": "object",
-                    "required": [],
-                    "properties": {"results": {"type": "array"}}
-                }
-            }
-        },
-        "title_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "string",
-            "pattern": "^.+$"
-        },
-        "search_no_results_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "array",
-            "maxItems": 0
-        },
-        "search_result_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "required": ["poster_path", "media_type", "vote_average"],
-            "properties": {
-                "poster_path": {"type": "string", "minLength": 1},
-                "media_type": {"type": "string", "pattern": "^(?:tv|movie)$"},
-                "vote_average": {"type": "number"}
-            }
-        }
-    },
     "$composers": {
-        "movie_background_image": [
-            {
-                "$compose": "create",
-                "$value": {
-                    "background_image": {
-                        "$compose": "read", "$value": "$.app.$states.movie.background_image",
-                        "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+        "movie_background_image": {
+            "$compose": "encode", "$type": "uri",
+            "$value": {
+                "href": "https://image.tmdb.org",
+                "pathname": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "background_image": {
+                                "$compose": "read", "$value": "$.app.$states.movie.background_image",
+                                "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+                            }
+                        }
+                    },
+                    {
+                        "$compose": "expand", "$value": "/t/p/original{background_image}",
+                        "$default": "/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
                     }
-                }
+                ]
             },
-            {
-                "$compose": "expand", "$value": "https://image.tmdb.org/t/p/original{background_image}",
-                "$default": "https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
-            }
-        ],
+            "$default": "https://image.tmdb.org/t/p/original/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+        },
         "movie_background_image_style": {
             "$compose": "create",
             "$value": {
@@ -163,6 +42,7 @@
                 ]
             }
         },
+        "is_scrolling": {"$compose": "read", "$value": "$.app.$states.isScrolling", "$default": false},
         "is_title": [
             {"$compose": "read", "$value": "$.title", "$default": ""},
             {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "title_schema"}, "$default": false}
@@ -175,34 +55,50 @@
             {"$compose": "read", "$value": "$.app.$states.query", "$default": []},
             {"$compose": "match", "$type": "json_schema", "$value": {"$schema": "search_no_results_schema"}, "$default": false}
         ],
-        "show_poster_image": [
-            {
-                "$compose": "create",
-                "$value": {
-                    "poster_path": {
-                        "$compose": "read", "$value": "$.view.show.poster_path", "$default": "/78lPtwv72eTNqFW9COBYI0dWDJa.jpg"
+        "show_poster_image": {
+            "$compose": "encode", "$type": "uri",
+            "$value": {
+                "href": "https://image.tmdb.org",
+                "pathname": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "poster_path": {
+                                "$compose": "read", "$value": "$.view.show.poster_path",
+                                "$default": "/78lPtwv72eTNqFW9COBYI0dWDJa.jpg"
+                            }
+                        }
+                    },
+                    {
+                        "$compose": "expand", "$value": "/t/p/w500{poster_path}",
+                        "$default": "/t/p/w500/78lPtwv72eTNqFW9COBYI0dWDJa.jpg"
                     }
-                }
+                ]
             },
-            {
-                "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{poster_path}",
-                "$default": "https://image.tmdb.org/t/p/w500{poster_path}"
-            }
-        ],
-        "show_backdrop_image": [
-            {
-                "$compose": "create",
-                "$value": {
-                    "backdrop_path": {
-                        "$compose": "read", "$value": "$.view.show.backdrop_path", "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+            "$default": "https://image.tmdb.org/t/p/w500/78lPtwv72eTNqFW9COBYI0dWDJa.jpg"
+        },
+        "show_backdrop_image": {
+            "$compose": "encode", "$type": "uri",
+            "$value": {
+                "href": "https://image.tmdb.org",
+                "pathname": [
+                    {
+                        "$compose": "create",
+                        "$value": {
+                            "backdrop_path": {
+                                "$compose": "read", "$value": "$.view.show.backdrop_path",
+                                "$default": "/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+                            }
+                        }
+                    },
+                    {
+                        "$compose": "expand", "$value": "/t/p/w500{backdrop_path}",
+                        "$default": "/t/p/w500/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
                     }
-                }
+                ]
             },
-            {
-                "$compose": "expand", "$value": "https://image.tmdb.org/t/p/w500{backdrop_path}",
-                "$default": "https://image.tmdb.org/t/p/w500/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
-            }
-        ],
+            "$default": "https://image.tmdb.org/t/p/w500/vbY95t58MDArtyUXUIb8Fx1dCry.jpg"
+        },
         "folds": {
             "$compose": "create",
             "$value": {
@@ -348,30 +244,150 @@
                         "$compose": "create",
                         "$value": {
                             "alpha": [
-                                {
-                                    "$compose": "create",
-                                    "$value": {
-                                        "scrollY": {
-                                            "$compose": "read",
-                                            "$value": "$.app.$states.scrollY",
-                                            "$default": 0
-                                        }
-                                    }
-                                },
-                                {
-                                    "$compose": "math",
-                                    "$value": "tanh(scrollY) * .7",
-                                    "$default": 0
-                                }
+                                {"$compose": "create", "$value": {"scrollY": {"$compose": "read", "$value": "$.app.$states.scrollY", "$default": 0}}},
+                                {"$compose": "math", "$value": "tanh(scrollY) * .7", "$default": 0}
                             ]
                         }
                     },
-                    {
-                        "$compose": "expand",
-                        "$value": "rgba(17, 17, 17, {alpha})",
-                        "$default": "rgba(17, 17, 17, .7)"
-                    }
+                    {"$compose": "expand", "$value": "rgba(17, 17, 17, {alpha})", "$default": "rgba(17, 17, 17, .7)"}
                 ]
+            }
+        },
+        "conditional_navigation_bar_style": {
+            "$compose": "create",
+            "$value": {
+                "backgroundColor": [
+                    {"$compose": "create", "$value": "rgba(17, 17, 17, 0.7)", "$if": {"$compose": "is_scrolling"}},
+                    {"$compose": "create", "$value": "rgba(17, 17, 17, 0.0)", "$unless": {"$compose": "is_scrolling"}}
+                ]
+            }
+        }
+    },
+    "$schemas": {
+        "request_movie_success_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {"type": "integer", "const": 200},
+                "headers": {
+                    "type": "object",
+                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "required": [],
+                    "properties": {
+                        "id": {"type": "number"},
+                        "title": {"type": "string"},
+                        "overview": {"type": "string"},
+                        "runtime": {"type": "number"},
+                        "vote_average": {"type": "number"},
+                        "release_date": {"type": "string"},
+                        "backdrop_path": {"type": ["string", "null"]}
+                    }
+                }
+            }
+        },
+        "request_tv_success_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {"type": "integer", "const": 200},
+                "headers": {
+                    "type": "object",
+                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "required": [],
+                    "properties": {
+                        "id": {"type": "number"},
+                        "name": {"type": "string"},
+                        "overview": {"type": "string"},
+                        "episode_run_time": {"type": "array", "items": {"type": "number"}},
+                        "vote_average": {"type": "number"},
+                        "first_air_date": {"type": "string"},
+                        "backdrop_path": {"type": ["string", "null"]}
+                    }
+                }
+            }
+        },
+        "request_netflix_originals_success_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {"type": "integer", "const": 200},
+                "headers": {
+                    "type": "object",
+                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "required": [],
+                    "properties": {"results": {"type": "array"}}
+                }
+            }
+        },
+        "request_trending_success_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {"type": "integer", "const": 200},
+                "headers": {
+                    "type": "object",
+                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "required": [],
+                    "properties": {"results": {"type": "array"}}
+                }
+            }
+        },
+        "request_search_success_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["status", "headers", "body"],
+            "properties": {
+                "status": {"type": "integer", "const": 200},
+                "headers": {
+                    "type": "object",
+                    "properties": {"content-type": {"type": "string", "pattern": "application[/]json"}}
+                },
+                "body": {
+                    "$schema": "http://json-schema.org/schema#",
+                    "type": "object",
+                    "required": [],
+                    "properties": {"results": {"type": "array"}}
+                }
+            }
+        },
+        "title_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "string",
+            "pattern": "^.+$"
+        },
+        "search_no_results_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "array",
+            "maxItems": 0
+        },
+        "search_result_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "required": ["poster_path", "media_type", "vote_average"],
+            "properties": {
+                "poster_path": {"type": "string", "minLength": 1},
+                "media_type": {"type": "string", "pattern": "^(?:tv|movie)$"},
+                "vote_average": {"type": "number"}
             }
         }
     },
@@ -1603,20 +1619,17 @@
             "$action": "request_movie",
             "$request": {
                 "$request": "request_movie",
-                "$uri": [
-                    {
-                        "$compose": "create",
-                        "$value": {
-                            "id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0},
-                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}
-                        }
-                    },
-                    {
-                        "$compose": "expand", "$type": "uri_template",
-                        "$value": "https://api.themoviedb.org/3/movie/{id}?api_key={api_key}",
-                        "$default": "https://api.themoviedb.org/3/movie/{id}?api_key={api_key}"
+                "$uri": {
+                    "$compose": "encode", "$type": "uri",
+                    "$value": {
+                        "href": "https://api.themoviedb.org",
+                        "pathname": [
+                            {"$compose": "create", "$value": {"id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0}}},
+                            {"$compose": "expand", "$type": "uri_template", "$value": "/3/movie/{id}", "$default": "/3/movie/{id}"}
+                        ],
+                        "searchParams": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
                     }
-                ]
+                }
             },
             "$responses": [{"$mock": false, "$response": "request_movie_success"}],
             "$events": {
@@ -1630,20 +1643,17 @@
             "$action": "request_tv",
             "$request": {
                 "$request": "request_tv",
-                "$uri": [
-                    {
-                        "$compose": "create",
-                        "$value": {
-                            "id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0},
-                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}
-                        }
-                    },
-                    {
-                        "$compose": "expand", "$type": "uri_template",
-                        "$value": "https://api.themoviedb.org/3/tv/{id}?api_key={api_key}",
-                        "$default": "https://api.themoviedb.org/3/tv/{id}?api_key={api_key}"
+                "$uri": {
+                    "$compose": "encode", "$type": "uri",
+                    "$value": {
+                        "href": "https://api.themoviedb.org",
+                        "pathname": [
+                            {"$compose": "create", "$value": {"id": {"$compose": "read", "$value": "$.app.$states.movie.id", "$default": 0}}},
+                            {"$compose": "expand", "$type": "uri_template", "$value": "/3/tv/{id}", "$default": "/3/tv/{id}"}
+                        ],
+                        "searchParams": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
                     }
-                ]
+                }
             },
             "$responses": [{"$mock": false, "$response": "request_tv_success"}],
             "$events": {
@@ -1657,17 +1667,16 @@
             "$action": "request_netflix_originals",
             "$request": {
                 "$request": "request_netflix_originals",
-                "$uri": [
-                    {
-                        "$compose": "create",
-                        "$value": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
-                    },
-                    {
-                        "$compose": "expand", "$type": "uri_template",
-                        "$value": "https://api.themoviedb.org/3/discover/tv?with_networks=213&api_key={api_key}",
-                        "$default": "https://api.themoviedb.org/3/discover/tv?with_networks=213&api_key={api_key}"
+                "$uri": {
+                    "$compose": "encode", "$type": "uri",
+                    "$value": {
+                        "href": "https://api.themoviedb.org", "pathname": "/3/discover/tv",
+                        "searchParams": {
+                            "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""},
+                            "with_networks": "213"
+                        }
                     }
-                ]
+                }
             },
             "$responses": [{"$mock": false, "$response": "request_netflix_originals_success"}],
             "$events": {
@@ -1681,17 +1690,13 @@
             "$action": "request_trending",
             "$request": {
                 "$request": "request_trending",
-                "$uri": [
-                    {
-                        "$compose": "create",
-                        "$value": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
-                    },
-                    {
-                        "$compose": "expand", "$type": "uri_template",
-                        "$value": "https://api.themoviedb.org/3/trending/all/week?api_key={api_key}",
-                        "$default": "https://api.themoviedb.org/3/trending/all/week?api_key={api_key}"
+                "$uri": {
+                    "$compose": "encode", "$type": "uri",
+                    "$value": {
+                        "href": "https://api.themoviedb.org", "pathname": "/3/trending/all/week",
+                        "searchParams": {"api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""}}
                     }
-                ]
+                }
             },
             "$responses": [{"$mock": false, "$response": "request_trending_success"}],
             "$events": {
@@ -1705,20 +1710,16 @@
             "$action": "request_search",
             "$request": {
                 "$request": "request_search",
-                "$uri": [
-                    {
-                        "$compose": "create",
-                        "$value": {
+                "$uri": {
+                    "$compose": "encode", "$type": "uri",
+                    "$value": {
+                        "href": "https://api.themoviedb.org", "pathname": "/3/search/multi",
+                        "searchParams": {
                             "api_key": {"$compose": "read", "$value": "$.app.$states.api_key", "$default": ""},
                             "query": {"$compose": "read", "$value": "$.app.$states.title", "$default": ""}
                         }
-                    },
-                    {
-                        "$compose": "expand", "$type": "uri_template",
-                        "$value": "https://api.themoviedb.org/3/search/multi?query={query}&api_key={api_key}",
-                        "$default": "https://api.themoviedb.org/3/search/multi?query={query}&api_key={api_key}"
                     }
-                ]
+                }
             },
             "$responses": [{"$mock": false, "$response": "request_search_success"}],
             "$events": {
@@ -3090,7 +3091,7 @@
             "type": "nav",
             "props": {
                 "className": "navigation",
-                "data-style": "navigation_bar_style",
+                "data-style": "conditional_navigation_bar_style",
                 "data-bind-event": "scroll",
                 "data-event": "on_scroll",
                 "data-event-target": "window",
