@@ -3,8 +3,8 @@ import ReactDOM from "react-dom";
 import {composeWithDevTools} from "redux-devtools-extension";
 import {createBrowserHistory} from "history";
 // import state from "./declarative/08-05-20-app.js";
-// import state from "./netflux.js";
-import state from "./netflux.json";
+import state from "./netflux.js";
+// import state from "./netflux.json";
 import {
     App,
     createElementWithCustomDataProps,
