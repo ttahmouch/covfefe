@@ -119,6 +119,76 @@ export const datasetFromProps = (props = {}, dependencies = {snakeToCamelCase}) 
         .reduce((dataset, prop) => ({...dataset, [snakeToCamelCase(prop.replace(prefix, ''))]: props[prop]}), {});
 };
 
+export const toType = (value) => Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+
+export const toNormalizedJson = (value, dependencies = {toType}) => {
+    const {toType} = dependencies;
+
+    switch (toType(value)) {
+        case "bigint":
+            return Number(value);
+        case "object":
+            return Object.keys(value).sort().reduce((map, key) => {
+                map[key] = value[key];
+                return map;
+            }, {});
+        case "symbol":
+            return Symbol.keyFor(value);
+        case "array":
+        case "boolean":
+        case "number":
+        case "string":
+            return value;
+        case "function":
+        case "null":
+        case "undefined":
+        default:
+            return null;
+    }
+};
+
+export const deserializeJson = (value = "") => {
+    try {
+        return typeof value === "string" && value ? JSON.parse(value) : null;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+};
+
+export const serializeJson = (value = undefined, dependencies = {toNormalizedJson}) => {
+    const {toNormalizedJson} = dependencies;
+    try {
+        return JSON.stringify(value, (key, value) => toNormalizedJson(value));
+    } catch (error) {
+        console.error(error);
+        return "";
+    }
+};
+
+export const deserializeUrl = (config = {}, dependencies = {URL}) => {
+    const {URL} = dependencies;
+    const {url = "https://hostname", base = undefined} = config;
+    try {
+        return new URL(url, base);
+    } catch (error) {
+        console.error(error);
+        return new URL("https://hostname");
+    }
+};
+
+export const enumerableObject = (source = {}) => {
+    const target = {};
+    for (const property in source) {
+        try {
+            target[property] = source[property];
+        } catch (e) {
+            // console.error(e);
+        }
+    }
+    return target;
+};
+
 // Composers
 
 export const appStateFromStates = ({app = app} = state) => app;
@@ -315,10 +385,10 @@ export const isComposer = (composer = functionalComposer) => {
 };
 
 // Add implicit create compositions in all other composers to make nesting compositions easier?
-export const create = ({$value = undefined, $state = state},
-                       dependencies = {isComposer, composeFromValue}) => {
+export const create = (composer = {}, dependencies = {isComposer, composeFromValue}) => {
     const {isComposer, composeFromValue} = dependencies;
-    const toComposedValue = ($value) => create({$value, $state: {...$state, "composed": undefined}});
+    const {$value = undefined, $state = state} = composer;
+    const toComposedValue = ($value) => create({$value, "$state": {...$state, "composed": undefined}});
     const toComposedObject = ($value, key) => ({...$value, [key]: toComposedValue($value[key])});
 
     return (
@@ -333,9 +403,9 @@ export const create = ({$value = undefined, $state = state},
 };
 
 // TODO: Make CRUD composers based on CRUD reducers.
-export const spread = (composer, dependencies = {create}) => {
+export const spread = (composer = {}, dependencies = {create}) => {
     const {create} = dependencies;
-    const {$state: {composed} = state} = composer;
+    const {"$state": {composed} = state} = composer;
 
     return Array.isArray(composed)
         // ? composed.concat(create(composer))
@@ -343,29 +413,56 @@ export const spread = (composer, dependencies = {create}) => {
         : {...composed, ...create(composer)};
 };
 
-export const readPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
-    const {params = {}} = match($path_template, {"decode": decodeURIComponent})(composed) || {};
-    return {...params};
+export const readPathTemplate = (composer = {}, dependencies = {create, decodeURIComponent, match}) => {
+    const {create, "decodeURIComponent": decode, match} = dependencies;
+    const {"$state": {composed = "/"} = state} = composer;
+    const path = create(composer) || "";
+    try {
+        const {params = {}} = match(path, {decode})(composed) || {};
+        return {...params};
+    } catch (error) {
+        console.error(error);
+        return {};
+    }
 };
 
-export const readRegularExpression = ({$value: $regular_expression = "", $state: {composed} = state}) => {
-    return new RegExp($regular_expression).exec(composed) || [];
+export const readRegularExpression = (composer = {}, dependencies = {create}) => {
+    const {create} = dependencies;
+    const {"$state": {composed = ""} = state} = composer;
+    const pattern = create(composer) || ".*";
+    return new RegExp(pattern).exec(composed) || [];
 };
 
 export const jsonpath = new JSONPath({"wrap": false, "autostart": false});
 
-export const readJsonPath = ({$value: $json_path = "", $state = state}, path = jsonpath) => {
-    return path.evaluate({"path": $json_path, "json": $state});
+export const readJsonPath = (composer = {}, dependencies = {create, jsonpath}) => {
+    const {create, jsonpath} = dependencies;
+    const {"$state": json = state} = composer;
+    const path = create(composer) || "$.composed";
+    try {
+        return jsonpath.evaluate({path, json});
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
 };
 
-export const math = ({$value: $expression = "", $state: {composed} = state}, expression = mathjs) => {
-    return expression.evaluate($expression, composed);
+export const math = (composer = {}, dependencies = {create, mathjs}) => {
+    const {create, mathjs} = dependencies;
+    const {"$state": {composed = {}} = state} = composer;
+    const expression = create(composer) || "";
+    try {
+        return mathjs.evaluate(expression, composed);
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
 };
 
 export const fold = (composer = {}, dependencies = {composeFromValue, isComposer, snakeToCamelCase}) => {
     const {composeFromValue, isComposer, snakeToCamelCase} = dependencies;
     const {$type = "reduce", $value = {"$compose": "read", "$value": "$.composed"}, $state = state, $default = undefined} = composer;
-    const {composed} = $state;
+    const {composed = []} = $state;
     const type = snakeToCamelCase($type);
     const compose = ({composed, value, index, array, composer = $value, state = $state} = {}) => {
         return composeFromValue(composer, {...state, composed, "item": {value, index, array}});
@@ -399,18 +496,18 @@ export const fold = (composer = {}, dependencies = {composeFromValue, isComposer
     }
 };
 
-export const compare = (composer = {}, dependencies = {create, toNormalizedJson, toType}) => {
+export const compare = (composer = {}, dependencies = {create, serializeJson, toNormalizedJson, toType}) => {
     // If either operand evaluates to an object, then that object is converted to a primitive value.
     // If both operands are strings, the two strings are compared.
     // If at least one operand is not a string, both operands are converted to numbers and compared numerically.
-    const {create, toNormalizedJson, toType} = dependencies;
+    const {create, serializeJson, toNormalizedJson, toType} = dependencies;
     const {$type = "lexical", $value = undefined, $state = state} = composer;
     const {composed} = $state;
     const {
         $one = {"$compose": "read", "$value": "$.item.one.value"},
         $two = {"$compose": "read", "$value": "$.item.two.value"},
         $order = "ascending"
-    } = $value || composed;
+    } = $value || composed || {};
     const composedOne = toNormalizedJson(create({"$value": $one, $state}));
     const composedTwo = toNormalizedJson(create({"$value": $two, $state}));
     const oneType = toType(composedOne);
@@ -420,9 +517,8 @@ export const compare = (composer = {}, dependencies = {create, toNormalizedJson,
     const oneIsDate = oneType === "string" && $type === "date";
     const twoIsDate = twoType === "string" && $type === "date";
     const shouldCompareLocaleSensitively = oneType === "string" && twoType === "string" && $type === "locale";
-    const onValue = (key, value) => toNormalizedJson(value);
-    const one = oneIsObject ? JSON.stringify(composedOne, onValue) : oneIsDate ? Date.parse(composedOne) : composedOne;
-    const two = twoIsObject ? JSON.stringify(composedTwo, onValue) : twoIsDate ? Date.parse(composedTwo) : composedTwo;
+    const one = oneIsObject ? serializeJson(composedOne) : oneIsDate ? Date.parse(composedOne) : composedOne;
+    const two = twoIsObject ? serializeJson(composedTwo) : twoIsDate ? Date.parse(composedTwo) : composedTwo;
     const compareLexicographically = (one, two) => one < two ? -1 : one > two ? +1 : 0;
 
     switch ($order) {
@@ -434,25 +530,38 @@ export const compare = (composer = {}, dependencies = {create, toNormalizedJson,
     }
 };
 
-export const matchPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
-    return !!match($path_template, {"decode": decodeURIComponent})(composed);
+export const matchPathTemplate = (composer = {}, dependencies = {create, decodeURIComponent, match}) => {
+    const {create, "decodeURIComponent": decode, match} = dependencies;
+    const {"$state": {composed = "/"} = state} = composer;
+    const path = create(composer) || "";
+    try {
+        return !!match(path, {decode})(composed);
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
 export const jsonschema = new Ajv();
 
-export const matchJsonSchema = ({
-                                    $value: $json_schema = {"$schema": "http://json-schema.org/draft-07/schema#"},
-                                    $state = state,
-                                },
-                                schema = jsonschema,
-                                dependencies = {toDereferencedSchema}) => {
-    const {toDereferencedSchema} = dependencies;
-    const {composed} = $state;
-    return schema.validate(toDereferencedSchema($json_schema, $state), composed);
+export const matchJsonSchema = (composer = {}, dependencies = {create, jsonschema, toDereferencedSchema}) => {
+    const {create, jsonschema, toDereferencedSchema} = dependencies;
+    const {$state = state} = composer;
+    const {composed = undefined} = $state;
+    const schema = create(composer) || {};
+    try {
+        return jsonschema.validate(toDereferencedSchema(schema, $state), composed);
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
-export const matchRegularExpression = ({$value: $regular_expression = "", $state: {composed} = state}) => {
-    return new RegExp($regular_expression).test(composed);
+export const matchRegularExpression = (composer = {}, dependencies = {create}) => {
+    const {create} = dependencies;
+    const {"$state": {composed = ""} = state} = composer;
+    const pattern = create(composer) || ".*";
+    return new RegExp(pattern).test(composed);
 };
 
 export const matchObjects = (one = {}, two = {}, dependencies = {matchValues}) => {
@@ -494,68 +603,107 @@ export const matchValues = (one = undefined, two = undefined, dependencies = {ma
 };
 
 // Support matching subsets.
-export const matchPrimitive = (composer, dependencies = {create}) => {
-    const {create} = dependencies;
-    const {$state: {composed} = state} = composer;
+export const matchPrimitive = (composer = {}, dependencies = {create, matchValues}) => {
+    const {create, matchValues} = dependencies;
+    const {"$state": {composed = undefined} = state} = composer;
+    const value = create(composer) || undefined;
 
-    return matchValues(create(composer), composed);
+    return matchValues(value, composed);
 };
 
-export const expandPathTemplate = ({$value: $path_template = "", $state: {composed} = state}) => {
-    return compile($path_template, {"encode": encodeURIComponent})(composed);
+export const expandPathTemplate = (composer = {}, dependencies = {compile, create, encodeURIComponent}) => {
+    const {compile, create, "encodeURIComponent": encode} = dependencies;
+    const {"$state": {composed = {}} = state} = composer;
+    const path = create(composer) || "";
+    try {
+        return compile(path, {encode})(composed);
+    } catch (error) {
+        console.error(error);
+        return path;
+    }
 };
 
-export const expandUriTemplate = ({$value: $uri_template = "", $state: {composed} = state}) => {
-    return new URITemplate($uri_template).expand(composed);
+export const expandUriTemplate = (composer = {}, dependencies = {create, URITemplate}) => {
+    const {create, URITemplate} = dependencies;
+    const {"$state": {composed = {}} = state} = composer;
+    const template = create(composer) || "";
+    try {
+        return new URITemplate(template).expand(composed);
+    } catch (error) {
+        console.error(error);
+        return template;
+    }
 };
 
-export const expandTemplate = (composer, dependencies = {create, toNormalizedJson}) => {
-    const {create, toNormalizedJson} = dependencies;
-    const {$state: {composed} = state} = composer;
+export const expandTemplate = (composer = {}, dependencies = {create, serializeJson}) => {
+    const {create, serializeJson} = dependencies;
+    const {"$state": {composed = {}} = state} = composer;
+    const template = create(composer) || "";
     const expression = /[{(]([^{}()]*)[)}]/g;
     const withValue = (match, param) => {
         const value = composed[param];
         const type = value === null ? "null" : typeof value;
-
-        return type === "object"
-            ? JSON.stringify(value, (key, value) => toNormalizedJson(value), 2)
-            : type !== "undefined"
-                ? String(composed[param])
-                : match;
+        return type === "object" ? serializeJson(value) : type !== "undefined" ? String(composed[param]) : match;
     };
 
-    return create(composer).replace(expression, withValue);
+    return template.replace(expression, withValue);
 };
 
-export const encodeJson = ({$value = undefined, $state: {composed} = state}) => {
-    return JSON.stringify($value || composed);
+export const encodeJson = (composer = {}, dependencies = {create, serializeJson}) => {
+    const {create, serializeJson} = dependencies;
+    const {"$state": {composed = undefined} = state, $value = composed} = composer;
+    const value = create({...composer, $value}) || undefined;
+    return serializeJson(value);
 };
 
-export const encodeUri = ({$value, $state: {composed} = state}) => {
-    const url = new URL(typeof window !== "undefined" ? window.location : "protocol://hostname");
+export const encodeUri = (composer = {}, dependencies = {create, deserializeUrl, URLSearchParams}) => {
+    const {create, deserializeUrl, URLSearchParams} = dependencies;
+    const {"$state": {composed = {}} = state, $value = composed} = composer;
     const {
-        protocol = "", username = "", password = "", hostname = "", port = "", pathname = "/", search = "", hash = ""
-    } = $value || composed;
+        href = "", host = "", protocol = "", username = "", password = "", hostname = "", port = "",
+        pathname = "/", search = "", hash = "", "searchParams": params = {}
+    } = create({...composer, $value}) || {};
+    const base = typeof window !== "undefined" ? window.location.toString() : "https://hostname";
+    const url = deserializeUrl({"url": base});
+    const searchParams = new URLSearchParams(params).toString();
 
-    url.protocol = protocol;
-    url.username = username;
-    url.password = password;
-    url.hostname = hostname;
-    url.port = port;
-    url.pathname = pathname;
-    url.search = search;
-    url.hash = hash;
+    href && (url.href = href);
+    host && (url.host = host);
+    protocol && (url.protocol = protocol);
+    username && (url.username = username);
+    password && (url.password = password);
+    hostname && (url.hostname = hostname);
+    port && (url.port = port);
+    pathname && (url.pathname = pathname);
+    url.search = searchParams || search;
+    hash && (url.hash = hash);
     return url.toString();
 };
 
-export const decodeJson = ({$value = undefined, $state: {composed} = state}) => {
-    return JSON.parse($value || composed);
+export const decodeJson = (composer = {}, dependencies = {create, deserializeJson}) => {
+    const {create, deserializeJson} = dependencies;
+    const {"$state": {composed = ""} = state, $value = composed} = composer;
+    const value = create({...composer, $value}) || "";
+    return deserializeJson(value);
+};
+
+export const decodeUri = (composer = {}, dependencies = {create, deserializeUrl, URLSearchParams}) => {
+    const {create, deserializeUrl, URLSearchParams} = dependencies;
+    const {"$state": {composed = ""} = state, $value = composed} = composer;
+    const base = typeof window !== "undefined" ? window.location.toString() : "https://hostname";
+    const url = create({...composer, $value}) || "https://hostname";
+    const {
+        href = "", host = "", origin = "", protocol = "", username = "", password = "", hostname = "", port = "",
+        pathname = "/", search = "", hash = "", "searchParams": params = new URLSearchParams(search)
+    } = deserializeUrl({url, base});
+    const searchParams = Object.fromEntries(params);
+    return {href, host, origin, protocol, username, password, hostname, port, pathname, search, hash, searchParams};
 };
 
 export const valueOrDefault = (value = undefined, $default = undefined) => value !== undefined ? value : $default;
 
 export const compose = ($composer, dependencies = {
-    compare, create, decodeJson, encodeJson,
+    compare, create, decodeJson, decodeUri, encodeJson,
     encodeUri, expandPathTemplate, expandTemplate,
     expandUriTemplate, fold, matchJsonSchema,
     matchPathTemplate, matchPrimitive, matchRegularExpression,
@@ -563,7 +711,7 @@ export const compose = ($composer, dependencies = {
     readRegularExpression, spread, valueOrDefault
 }) => {
     const {
-        compare, create, decodeJson, encodeJson,
+        compare, create, decodeJson, decodeUri, encodeJson,
         encodeUri, expandPathTemplate, expandTemplate,
         expandUriTemplate, fold, matchJsonSchema,
         matchPathTemplate, matchPrimitive, matchRegularExpression,
@@ -626,6 +774,7 @@ export const compose = ($composer, dependencies = {
         case "decode":
             switch ($type) {
                 case "uri":
+                    return valueOrDefault(decodeUri($composer), $default);
                 case "json":
                 default:
                     return valueOrDefault(decodeJson($composer), $default);
@@ -656,6 +805,7 @@ export const toDereferencedComposer = (composer = declarativeComposer, states = 
 
     return composerFromComposers(composers, identifier)
         || ((states) => {
+            // Does this need to be wrapped in a try block? I wrapped every specific composer that could throw.
             const value = compose({"$state": states, ...composer});
             return value !== undefined ? value : composeFromValue(composerDefaultFromComposer(composer), states);
         });
@@ -677,12 +827,13 @@ export const toComposedState = (states = state, composer = functionalComposer) =
 };
 
 export const composeFromValue = (composer = functionalComposer, states = state,
-                                 dependencies = {isComposer, toFunctionalComposer, toComposedState}) => {
-    const {isComposer, toFunctionalComposer, toComposedState} = dependencies;
+                                 dependencies = {isComposer, isEnabled, toFunctionalComposer, toComposedState}) => {
+    const {isComposer, isEnabled, toFunctionalComposer, toComposedState} = dependencies;
     // console.group("Compose:", composer);
     const value = isComposer(composer)
         ? []
             .concat(composer)
+            .filter((composer) => isEnabled(composer, states))
             .map((composer) => toFunctionalComposer(composer, states))
             .reduce((states, composer) => {
                 const composed = toComposedState(states, composer);
@@ -702,6 +853,20 @@ export const composeFromValue = (composer = functionalComposer, states = state,
     // console.groupEnd()
 
     return value;
+};
+
+export const isEnabled = (item = {}, states = state, dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
+    const {
+        $if = undefined,
+        $unless = undefined,
+        $ifValue = $if !== undefined && composeFromValue($if, states),
+        $unlessValue = $unless !== undefined && !composeFromValue($unless, states),
+        $should = ($if === undefined && $unless === undefined) || $ifValue === true || $unlessValue === true
+    } = item;
+    // $if && console.log($if, $ifValue, $should);
+    // $unless && console.log($unless, $unlessValue, $should);
+    return $should;
 };
 
 // TODO: Refactor the parameters across all usages of the function.
@@ -791,10 +956,11 @@ export const toDereferencedResponse = (response = response, states = state,
     return composeFromValue({...reference, ...response}, states) || {};
 };
 
-export const getResponseBody = (headers = headers, body = "") => {
+export const getResponseBody = (headers = headers, body = "", dependencies = {deserializeJson}) => {
+    const {deserializeJson} = dependencies;
     const {"content-type": type = ""} = headers;
 
-    return type.includes("application/json") ? JSON.parse(body) : body;
+    return type.includes("application/json") ? deserializeJson(body) : body;
 };
 
 export const getResponseHeaders = (client = client) => {
@@ -815,10 +981,11 @@ export const getResponse = (client = client, dependencies = {getResponseHeaders,
     return {status, headers, body};
 };
 
-export const getRequestBody = (headers = headers, body = "") => {
+export const getRequestBody = (headers = headers, body = "", dependencies = {serializeJson}) => {
+    const {serializeJson} = dependencies;
     const {"content-type": type = ""} = headers;
 
-    return type.includes("application/json") ? JSON.stringify(body) : body;
+    return type.includes("application/json") ? serializeJson(body) : body;
 };
 
 export const settingsFromAppState = ({$settings = {}} = app) => $settings;
@@ -840,19 +1007,16 @@ export const mockEventFromEvents = (events = {}) => (
     || {"$event": ""}
 );
 
-export const mockResponse = (client = client, response) => {
-    const {
-        $status = 0,
-        $headers = {},
-        $body = ""
-    } = response;
+export const mockResponse = (client = client, response, dependencies = {serializeJson}) => {
+    const {serializeJson} = dependencies;
+    const {$status = 0, $headers = {}, $body = ""} = response;
     const {"content-type": type = ""} = $headers;
     const getAllResponseHeaders = () => (
         Object
             .keys($headers)
             .reduce((string, header) => `${string}${header}: ${$headers[header]}\r\n`, "")
     );
-    const responseText = type.includes("application/json") ? JSON.stringify($body) : $body;
+    const responseText = type.includes("application/json") ? serializeJson($body) : $body;
 
     return Object.defineProperties(client, {
         "status": {"value": $status},
@@ -1026,11 +1190,13 @@ export const toDereferencedAction = (action, states = state, dependencies = {
     return composeFromIdentifier(identifier, states, "$actions") || action;
 };
 
-export const dispatchEventToStore = (event, states, store = store, dependencies = {
-    composeFromValue, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction, dispatchActionToStore
-}) => {
+export const dispatchEventToStore = (event, states, store = store,
+                                     dependencies = {
+                                         composeFromValue, isEnabled, isEvent, isEventReference,
+                                         toDereferencedEvent, isAction, toDereferencedAction, dispatchActionToStore
+                                     }) => {
     const {
-        composeFromValue, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction,
+        composeFromValue, isEnabled, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction,
         dispatchActionToStore
     } = dependencies;
     // If the event is an [{}], then enumerate each possible action.
@@ -1045,28 +1211,17 @@ export const dispatchEventToStore = (event, states, store = store, dependencies 
 
     return []
         .concat(event)
+        .filter((item) => isEnabled(item, states))
         .forEach((item) => {
-            const {
-                $if = undefined,
-                $ifValue = $if !== undefined && composeFromValue($if, states),
-                $unless = undefined,
-                $unlessValue = $unless !== undefined && !composeFromValue($unless, states),
-                $should = ($if === undefined && $unless === undefined)
-                    || $ifValue === true
-                    || $unlessValue === true
-            } = item;
-
             // !$should && console.group("Suppressing Action:", item)
             // !$should && console.groupEnd();
 
-            if ($should) {
-                return isEvent(item)
-                    ? dispatchEventToStore(item, states, store)
-                    : isEventReference(item)
-                        ? dispatchEventToStore(toDereferencedEvent(item, states), states, store)
-                        // store.getState between actions in case they changed the store state synchronously.
-                        : dispatchActionToStore(toDereferencedAction(item, states), states, store)
-            }
+            return isEvent(item)
+                ? dispatchEventToStore(item, states, store)
+                : isEventReference(item)
+                    ? dispatchEventToStore(toDereferencedEvent(item, states), states, store)
+                    // store.getState between actions in case they changed the store state synchronously.
+                    : dispatchActionToStore(toDereferencedAction(item, states), states, store)
         });
 };
 
@@ -1247,18 +1402,6 @@ export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) =>
     return ["change", "input", "submit"].includes(type);
 };
 
-export const enumerableObject = (source = {}) => {
-    const target = {};
-    for (const property in source) {
-        try {
-            target[property] = source[property];
-        } catch (e) {
-            // console.error(e);
-        }
-    }
-    return target;
-};
-
 // The target may or may not be useless for most use cases. Will the user ever need state from the nested element that was
 // actually clicked instead of the parent element that was targeted?
 export const targetFromDomEvent = ({target = {}} = domEvent) => target;
@@ -1289,9 +1432,9 @@ export const debounce = (dependencies = {clearTimeout, setTimeout}) => {
     let id;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
+        const {callback = () => undefined, delay = "0", rest = []} = config;
         clearTimeout(id);
-        id = setTimeout(callback, delay, ...rest);
+        id = setTimeout(callback, Number(delay), ...rest);
     };
 };
 
@@ -1300,9 +1443,9 @@ export const throttle = (dependencies = {setTimeout}) => {
     let timeout = false;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
+        const {callback = () => undefined, delay = "0", rest = []} = config;
         !timeout && callback(...rest);
-        !timeout && setTimeout(() => (timeout = false), delay);
+        !timeout && setTimeout(() => (timeout = false), Number(delay));
         timeout = true;
     };
 };
@@ -1311,8 +1454,8 @@ export const timeout = (dependencies = {setTimeout}) => {
     const {setTimeout} = dependencies;
 
     return (config = {}) => {
-        const {callback = () => undefined, delay = 0, rest = []} = config;
-        return setTimeout(callback, delay, ...rest);
+        const {callback = () => undefined, delay = "0", rest = []} = config;
+        return setTimeout(callback, Number(delay), ...rest);
     };
 };
 
@@ -1382,7 +1525,8 @@ export const eventDispatcherForStore = (store = store, view = {},
     return (event, states = {}) => {
         const {"input": previousInput = {}, "response": previousResponse = {}} = states;
         const dataset = datasetFromDomEvent(event) || {};
-        const {"eventDelay": delay = 0, eventDelayType = "execute"} = dataset;
+        // Compose these?
+        const {"eventDelay": delay = "0", eventDelayType = "execute"} = dataset;
         // console.log(delay, eventDelayType);
         const $states = stateFromDomEvent({
             "app": appStateFromStore(store) || {},
@@ -1396,44 +1540,14 @@ export const eventDispatcherForStore = (store = store, view = {},
         const $event = toDereferencedEvent(event, $states);
         const eventType = eventTypeFromDomEvent(event);
         const callback = () => store.dispatch({$event, $states, "type": eventType});
-        console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
+        // console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
 
         typeof event.preventDefault === "function" && event.preventDefault();
-        // Explicitly type coerce delay to a number.
-        // ⚠️️⚠️️⚠️️⚠️️⚠️️
         return delayer({"type": eventDelayType, delay, callback});
     };
 };
 
 // App -----------------------------------------------------------------------------------------------------------------
-
-export const toType = (value) => Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
-
-export const toNormalizedJson = (value, dependencies = {toType}) => {
-    const {toType} = dependencies;
-
-    switch (toType(value)) {
-        case "bigint":
-            return Number(value);
-        case "object":
-            return Object.keys(value).sort().reduce((map, key) => {
-                map[key] = value[key];
-                return map;
-            }, {});
-        case "symbol":
-            return Symbol.keyFor(value);
-        case "array":
-        case "boolean":
-        case "number":
-        case "string":
-            return value;
-        case "function":
-        case "null":
-        case "undefined":
-        default:
-            return null;
-    }
-};
 
 export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDispatcherForStore, viewStateFromStates}) => {
     const {datasetFromProps, eventDispatcherForStore, viewStateFromStates} = dependencies;
@@ -1463,9 +1577,12 @@ export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDi
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {
                                                appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate,
-                                               composeValueFromPath, toNormalizedJson
+                                               composeValueFromPath, serializeJson, toNormalizedJson
                                            }) => {
-    const {appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath, toNormalizedJson} = dependencies;
+    const {
+        appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath,
+        serializeJson, toNormalizedJson
+    } = dependencies;
     const app = appStateFromStore(store) || {};
     const $states = {app, view};
     const {"data-depth": $depth = 0} = view;
@@ -1490,8 +1607,7 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-bind-state": $bindState = $stateType !== "undefined" ? "children" : "data-bind-state",
         "data-should-bind-template": $shouldBindTemplate = $bindState === "children" && children.length === 0,
         "data-bind-template": $bindTemplate = !$shouldBindTemplate ? "" : $stateType === "object"
-            // TODO: Consolidate the JSON.stringifys.
-            ? JSON.stringify($stateValue, (key, value) => toNormalizedJson(value), 2)
+            ? serializeJson($stateValue)
             : `(${$state})`,
         "data-style": $style = undefined,
         "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),

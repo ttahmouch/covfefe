@@ -1410,3 +1410,277 @@ export default {
 //         // Asynchronous action dereferenced, and conditionally dispatched.
 //     }
 // ];
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+console.log(serializeJson(composeFromValue([
+    {'$compose': 'create', '$value': {'$compose': 'create', '$value': {'one': 'ä'}}}
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': {'one': 'ä'}},
+        {'$compose': 'spread', '$value': {'two': 'z', 'three': {'$compose': 'create', '$value': 'ä'}}}
+    ]
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': "fuck"},
+        {"$compose": "read", "$value": {'$compose': 'create', '$value': "$.composed"}}
+    ]
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': "fuck"},
+        {"$compose": "read", "$type": "regular_expression", "$value": {'$compose': 'create', '$value': "^(fu).*$"}}
+    ]
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': "/fuck/fuck"},
+        {"$compose": "read", "$type": "path_template", "$value": {'$compose': 'create', '$value': "/:fuck1/:fuck2"}}
+    ]
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': {"one": 1, "two": 2}},
+        {"$compose": "math", "$value": {'$compose': 'create', '$value': "two + one"}, "$default": 0}
+    ]
+])));
+console.log(serializeJson(composeFromValue([
+    [
+        {'$compose': 'create', '$value': [0, 1, 2, 3, 4]},
+        {
+            "$compose": "fold", "$type": "flat_map", "$default": [],
+            "$value": [
+                {'$compose': 'create', '$value': {"item": {"$compose": "read", "$value": "$.item.value", "$default": 0}}},
+                {"$compose": "math", "$value": "item + 2", "$default": 0}
+            ]
+        }
+    ]
+])));
+console.log(serializeJson(composeFromValue([{
+    '$compose': 'compare',
+    '$type': 'date',
+    '$value': {
+        '$one': {'$compose': 'create', '$value': '2020-12-21T20:09:14.308Z'},
+        '$two': {'$compose': 'create', '$value': '2020-12-21T20:09:14.308Z'}
+    },
+    '$default': 0
+}])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": [{"vin": "1234567890", "account": {"id": "1"}}]},
+    {"$compose": "match", "$value": {"$compose": "create", "$value": [{"vin": "1234567890", "account": {"id": "0"}}]}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": "/fuck/fuck/fuck"},
+    {"$compose": "match", "$type": "path_template", "$value": {"$compose": "create", "$value": "/:fuck/:fuck"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": "/fuck/fuck/fuck"},
+    {"$compose": "match", "$type": "regular_expression", "$value": {"$compose": "create", "$value": "^[/]fuck[/]fuck[/]fuc$"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": "/fuck/fuck/fuck"},
+    {
+        "$compose": "match", "$type": "json_schema",
+        "$value": {"$compose": "create", "$value": {"type": "string", "pattern": "^[/]fuck[/]fuck[/]fuck$"}}
+    }
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": {"name": "tony", "surname": "tahmouch"}},
+    {"$compose": "expand", "$type": "template", "$value": {"$compose": "create", "$value": "{surname},{name}"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": {"name": "tony", "surname": "tahmouch"}},
+    {"$compose": "expand", "$type": "uri_template", "$value": {"$compose": "create", "$value": "/{surname}/{name}"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "create", "$value": {"name": "tony", "surname": "tahmouch"}},
+    {"$compose": "expand", "$type": "path_template", "$value": {"$compose": "create", "$value": "/:surname/:name"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "encode", "$type": "json", "$value": {"$compose": "create", "$value": {"name": "tony"}}}
+])));
+console.log(serializeJson(composeFromValue([{
+    "$compose": "encode", "$type": "uri",
+    "$value": {
+        "hash": {"$compose": "create", "$value": "#final"},
+        "host": "www.google.com:444",
+        "hostname": "www.final.com",
+        "password": "final",
+        "pathname": "/final",
+        "port": "777",
+        "protocol": "http:",
+        "search": "?fuck1=true&fuck2=false",
+        "searchParams": {"final1": "true", "final2": "false"},
+        "username": "final"
+    }
+}])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "decode", "$type": "json", "$value": {"$compose": "create", "$value": "{\"name\":\"tony\"}"}}
+])));
+console.log(serializeJson(composeFromValue([
+    {"$compose": "decode", "$type": "uri", "$value": {"$compose": "create", "$value": "https://user:pass@www.google.com:444/fuck?fuck1=true&fuck2=false#fuck"}}
+])));
+
+console.log(composeFromValue([
+    [
+        {"$compose": "create", "$value": "https://user:pass@www.google.com:444/fuck?fuck1=true&fuck2=false#fuck"},
+        {"$compose": "decode", "$type": "uri"},
+        {"$compose": "spread", "$value": {"pathname": "/shit/fuck/balls"}},
+        {"$compose": "encode", "$type": "uri"}
+    ]
+]));
+console.log(composeFromValue([
+    [
+        {"$compose": "decode", "$type": "uri", "$value": "/fuck?fuck1=true&fuck2=false#fuck"},
+        {"$compose": "spread", "$value": {"pathname": "/shit/fuck/balls"}},
+        {"$compose": "encode", "$type": "uri"}
+    ]
+]));
+
+console.log(serializeJson(composeFromValue([{"$compose": "read", "$value": "@throw()"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "read", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "math", "$value": "throw", "$default": 0}])));
+console.log(serializeJson(composeFromValue([{"$compose": "match", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "match", "$type": "json_schema", "$value": {"type": "throw"}}])));
+console.log(serializeJson(composeFromValue([{"$compose": "expand", "$type": "uri_template", "$value": "{throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "expand", "$type": "path_template", "$value": "?throw"}])));
+console.log(serializeJson(composeFromValue([{"$compose": "decode", "$type": "json", "$value": "throw"}])));
+
+console.assert(composeFromValue({"$compose": "create"}) === undefined);
+console.assert(Object.keys(composeFromValue({"$compose": "spread"})).length === 0);
+console.assert(composeFromValue({"$compose": "read"}) === undefined);
+console.assert(composeFromValue({"$compose": "read", "$type": "regular_expression"})[0] === "");
+console.assert(Object.keys(composeFromValue({"$compose": "read", "$type": "path_template"})).length === 0);
+console.assert(composeFromValue({"$compose": "math"}) === undefined);
+console.assert(composeFromValue({"$compose": "fold", "$type": "every"}) === true);
+console.assert(composeFromValue({"$compose": "fold", "$type": "filter"}).length === 0);
+console.assert(composeFromValue({"$compose": "fold", "$type": "find"}) === undefined);
+console.assert(composeFromValue({"$compose": "fold", "$type": "flat_map"}).length === 0);
+console.assert(composeFromValue({"$compose": "fold", "$type": "map"}).length === 0);
+console.assert(composeFromValue({"$compose": "fold", "$type": "some"}) === false);
+console.assert(composeFromValue({"$compose": "fold", "$type": "sort"}).length === 0);
+console.assert(composeFromValue({"$compose": "fold", "$type": "reduce_right"}) === null);
+console.assert(composeFromValue({"$compose": "fold", "$type": "reduce"}) === null);
+console.assert(composeFromValue({"$compose": "compare"}) === 0);
+console.assert(composeFromValue({"$compose": "compare", "$type": "date"}) === 0);
+console.assert(composeFromValue({"$compose": "compare", "$type": "locale"}) === 0);
+console.assert(composeFromValue({"$compose": "match"}) === true);
+console.assert(composeFromValue({"$compose": "match", "$type": "path_template"}) === true);
+console.assert(composeFromValue({"$compose": "match", "$type": "json_schema"}) === true);
+console.assert(composeFromValue({"$compose": "match", "$type": "regular_expression"}) === true);
+console.assert(composeFromValue({"$compose": "expand"}) === "");
+console.assert(composeFromValue({"$compose": "expand", "$type": "path_template"}) === "");
+console.assert(composeFromValue({"$compose": "expand", "$type": "uri_template"}) === "");
+console.assert(composeFromValue({"$compose": "decode", "$type": "uri"}).href === "http://localhost:3000/");
+console.assert(composeFromValue({"$compose": "decode"}) === null);
+console.assert(composeFromValue({"$compose": "encode", "$type": "uri"}) === "http://localhost:3000/");
+console.assert(composeFromValue({"$compose": "encode"}) === "null");
+
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "every", "$value": {"$compose": "create", "$value": false}}
+]) === false);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "filter", "$value": {"$compose": "create", "$value": true}}
+]).length === 1);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "find", "$value": {"$compose": "create", "$value": true}}
+]) === 0);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "flat_map", "$value": {"$compose": "create", "$value": true}}
+])[0] === true);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "map", "$value": {"$compose": "create", "$value": true}}
+])[0] === true);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "some", "$value": {"$compose": "create", "$value": true}}
+]));
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0, 1]},
+    {"$compose": "fold", "$type": "sort", "$value": {"$compose": "create", "$value": -1}}
+])[0] === 1);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "reduce_right", "$value": {"$compose": "create", "$value": 1337}}
+]) === 1337);
+console.assert(composeFromValue([
+    {"$compose": "create", "$value": [0]},
+    {"$compose": "fold", "$type": "reduce", "$value": {"$compose": "create", "$value": 1337}}
+]) === 1337);
+
+// case "create":✅
+// case "spread":✅
+// case "read":✅
+//  case "path_template":✅
+//  case "regular_expression":✅
+//  case "json_path":✅
+// case "math":✅
+// case "fold":✅
+//  case "every":✅
+//  case "filter":✅
+//  case "find":✅
+//  case "flat_map":✅
+//  case "map":✅
+//  case "some":✅
+//  case "sort":✅
+//  case "reduce_right":✅
+//  case "reduce":✅
+// case "compare":✅
+// case "match":✅
+//  case "path_template":✅
+//  case "json_schema":✅
+//  case "regular_expression":✅
+//  case "primitive":✅
+// case "expand":✅
+//  case "path_template":✅
+//  case "uri_template":✅
+//  case "template":✅
+// case "encode":✅
+//  case "uri":✅
+//  case "json":✅
+// case "decode":✅
+//  case "uri":✅
+//  case "json":✅
+
+
+/**
+ * Mutually exclusive
+ * Specificity
+ *
+ * # Single
+ * {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"} // 'rgba(0,0,0,0)' if scrolling; else undefined.
+ *
+ * {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"} // 'rgba(0,0,0,1)' if not scrolling; else undefined.
+ *
+ * # Multiple; Mutual Exclusion.
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"},
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)' if not scrolling.
+ *
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)'},
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)'
+ *
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)'},
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)'
+ *
+ * [
+ *   {$compose: "create", $value: 'black'},
+ *   {$compose: "create", $value: 'red', $if: "is_stopping"},
+ *   {$compose: "create", $value: 'yellow', $if: "is_slowing"},
+ *   {$compose: "create", $value: 'green', $if: "is_starting"}
+ * ] // is black by default; red is stopping; yellow if slowing; green if going;
+ * (Think Switch Cases; Specificity matters hence the default case being first
+ * otherwise it would always be black.)
+ */
