@@ -12,6 +12,11 @@
 + ❌ Make a shorthand notation for composers? `{$read:"$.state"}`
 + ❌ Make a shorthand notation for reading state into templates? `{$compose:"expand", $value:"/path/{$.state}"}`
 + ❌ Make a `$debug` property that can be added to any composable object to dynamically add a breakpoint to the runtime.
++ ❌ Make a way to handle Media Types and Media Features like CSS, but in the JSON declarative structure to add future support for RN.
+     (Consider that `onResize` may have to update redux state for the elements to re-render with correct styles applied.)
+     https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
+     https://medium.com/@wcandillon/responsive-uis-in-react-native-a406b5d6c36a
+     https://developer.mozilla.org/en-US/docs/Web/API/Window/resize_event
 
 + ❌ Support data-event="onLayout".
 + ❌ Wrap all composers in a general try/catch.

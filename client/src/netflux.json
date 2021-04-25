@@ -4764,11 +4764,7 @@
                 }
               },
               {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "home_title"
-                }
+                "type": "HomeButton"
               },
               {
                 "type": "div",
