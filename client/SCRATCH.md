@@ -1648,3 +1648,39 @@ console.assert(composeFromValue([
 // case "decode":✅
 //  case "uri":✅
 //  case "json":✅
+
+
+/**
+ * Mutually exclusive
+ * Specificity
+ *
+ * # Single
+ * {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"} // 'rgba(0,0,0,0)' if scrolling; else undefined.
+ *
+ * {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"} // 'rgba(0,0,0,1)' if not scrolling; else undefined.
+ *
+ * # Multiple; Mutual Exclusion.
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"},
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)' if not scrolling.
+ *
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)'},
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)', $unless: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)'
+ *
+ * [
+ *   {$compose: "create", $value: 'rgba(0,0,0,1)'},
+ *   {$compose: "create", $value: 'rgba(0,0,0,0)', $if: "is_scrolling"}
+ * ] // 'rgba(0,0,0,0)' if scrolling; else 'rgba(0,0,0,1)'
+ *
+ * [
+ *   {$compose: "create", $value: 'black'},
+ *   {$compose: "create", $value: 'red', $if: "is_stopping"},
+ *   {$compose: "create", $value: 'yellow', $if: "is_slowing"},
+ *   {$compose: "create", $value: 'green', $if: "is_starting"}
+ * ] // is black by default; red is stopping; yellow if slowing; green if going;
+ * (Think Switch Cases; Specificity matters hence the default case being first
+ * otherwise it would always be black.)
+ */

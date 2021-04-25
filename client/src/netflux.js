@@ -1,8 +1,31 @@
-import React from "react";
-import app from "./netflux.json";
+import React, {useEffect} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import app, {$composers, $views} from "./netflux.json";
+
+const HomeButton = () => {
+    const dispatch = useDispatch();
+    const state = useSelector(({"$states": {home_title = ""}}) => home_title);
+    useEffect(() => dispatch({"type": "RENDERED_HOME_BUTTON"}));
+
+    return (
+        <div className="navigation_bar_link pseudo-link">
+            {state}
+        </div>
+    );
+};
 
 export default {
     ...app,
+    "$view": (
+        <div data-bind-event="DOMContentLoaded"
+             data-event="on_load"
+             data-event-target="window">
+            <div data-view="navigation_bar"/>
+            <div data-if-path="/" data-view="home"/>
+            <div data-if-path="/search" data-view="search"/>
+            <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
+        </div>
+    ),
     "$views": {
         "search_icon": (
             <svg version="1.1" viewBox="0 0 251 251">
@@ -229,19 +252,19 @@ export default {
         "navigation_bar": (
             // Pull this up to root when we support binding multiple events.
             <nav className="navigation"
-                 data-style="navigation_bar_style"
+                 data-style="conditional_navigation_bar_style"
                  data-bind-event="scroll"
                  data-event="on_scroll"
                  data-event-target="window"
                  data-event-state="scrollY"
                  data-event-state-path="$.event.currentTarget.scrollY"
-                 data-event-delay="1000"
+                 data-event-delay="0"
                  data-event-delay-type="debounce">
                 <ul className="navigation__container">
                     <img className="navigation__container--logo" data-state="netflix_logo" data-bind-state="src"
                          data-bind-event="onClick" data-event="on_logo_click" alt=""/>
                     <div data-view="down_icon" className="navigation__container--downArrow-2"/>
-                    <div className="navigation_bar_link pseudo-link" data-state="home_title"/>
+                    <HomeButton/>
                     <div className="navigation_bar_link pseudo-link" data-state="shows_title"/>
                     <div className="navigation_bar_link pseudo-link" data-state="movies_title"/>
                     <div className="navigation_bar_link pseudo-link" data-state="recently_added_title"/>
@@ -269,15 +292,10 @@ export default {
                 </ul>
             </nav>
         ),
+        ...$views
     },
-    "$view": (
-        <div data-bind-event="DOMContentLoaded"
-             data-event="on_load"
-             data-event-target="window">
-            <div data-view="navigation_bar"/>
-            <div data-if-path="/" data-view="home"/>
-            <div data-if-path="/search" data-view="search"/>
-            <div data-unless-path="^/(?:search)?$" data-view="404" data-path-type="regular_expression"/>
-        </div>
-    )
+    "$composers": {
+        HomeButton,
+        ...$composers
+    }
 };

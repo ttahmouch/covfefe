@@ -827,12 +827,13 @@ export const toComposedState = (states = state, composer = functionalComposer) =
 };
 
 export const composeFromValue = (composer = functionalComposer, states = state,
-                                 dependencies = {isComposer, toFunctionalComposer, toComposedState}) => {
-    const {isComposer, toFunctionalComposer, toComposedState} = dependencies;
+                                 dependencies = {isComposer, isEnabled, toFunctionalComposer, toComposedState}) => {
+    const {isComposer, isEnabled, toFunctionalComposer, toComposedState} = dependencies;
     // console.group("Compose:", composer);
     const value = isComposer(composer)
         ? []
             .concat(composer)
+            .filter((composer) => isEnabled(composer, states))
             .map((composer) => toFunctionalComposer(composer, states))
             .reduce((states, composer) => {
                 const composed = toComposedState(states, composer);
@@ -852,6 +853,20 @@ export const composeFromValue = (composer = functionalComposer, states = state,
     // console.groupEnd()
 
     return value;
+};
+
+export const isEnabled = (item = {}, states = state, dependencies = {composeFromValue}) => {
+    const {composeFromValue} = dependencies;
+    const {
+        $if = undefined,
+        $unless = undefined,
+        $ifValue = $if !== undefined && composeFromValue($if, states),
+        $unlessValue = $unless !== undefined && !composeFromValue($unless, states),
+        $should = ($if === undefined && $unless === undefined) || $ifValue === true || $unlessValue === true
+    } = item;
+    // $if && console.log($if, $ifValue, $should);
+    // $unless && console.log($unless, $unlessValue, $should);
+    return $should;
 };
 
 // TODO: Refactor the parameters across all usages of the function.
@@ -1175,11 +1190,13 @@ export const toDereferencedAction = (action, states = state, dependencies = {
     return composeFromIdentifier(identifier, states, "$actions") || action;
 };
 
-export const dispatchEventToStore = (event, states, store = store, dependencies = {
-    composeFromValue, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction, dispatchActionToStore
-}) => {
+export const dispatchEventToStore = (event, states, store = store,
+                                     dependencies = {
+                                         composeFromValue, isEnabled, isEvent, isEventReference,
+                                         toDereferencedEvent, isAction, toDereferencedAction, dispatchActionToStore
+                                     }) => {
     const {
-        composeFromValue, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction,
+        composeFromValue, isEnabled, isEvent, isEventReference, toDereferencedEvent, isAction, toDereferencedAction,
         dispatchActionToStore
     } = dependencies;
     // If the event is an [{}], then enumerate each possible action.
@@ -1194,28 +1211,17 @@ export const dispatchEventToStore = (event, states, store = store, dependencies 
 
     return []
         .concat(event)
+        .filter((item) => isEnabled(item, states))
         .forEach((item) => {
-            const {
-                $if = undefined,
-                $ifValue = $if !== undefined && composeFromValue($if, states),
-                $unless = undefined,
-                $unlessValue = $unless !== undefined && !composeFromValue($unless, states),
-                $should = ($if === undefined && $unless === undefined)
-                    || $ifValue === true
-                    || $unlessValue === true
-            } = item;
-
             // !$should && console.group("Suppressing Action:", item)
             // !$should && console.groupEnd();
 
-            if ($should) {
-                return isEvent(item)
-                    ? dispatchEventToStore(item, states, store)
-                    : isEventReference(item)
-                        ? dispatchEventToStore(toDereferencedEvent(item, states), states, store)
-                        // store.getState between actions in case they changed the store state synchronously.
-                        : dispatchActionToStore(toDereferencedAction(item, states), states, store)
-            }
+            return isEvent(item)
+                ? dispatchEventToStore(item, states, store)
+                : isEventReference(item)
+                    ? dispatchEventToStore(toDereferencedEvent(item, states), states, store)
+                    // store.getState between actions in case they changed the store state synchronously.
+                    : dispatchActionToStore(toDereferencedAction(item, states), states, store)
         });
 };
 
@@ -1534,7 +1540,7 @@ export const eventDispatcherForStore = (store = store, view = {},
         const $event = toDereferencedEvent(event, $states);
         const eventType = eventTypeFromDomEvent(event);
         const callback = () => store.dispatch({$event, $states, "type": eventType});
-        console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
+        // console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
 
         typeof event.preventDefault === "function" && event.preventDefault();
         return delayer({"type": eventDelayType, delay, callback});
