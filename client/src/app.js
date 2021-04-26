@@ -1706,6 +1706,18 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // $view && !$should && console.group("Suppressing View:", $view);
         // $view && console.groupEnd();
 
+        // if (isElement($element)) {
+        //     const {type = "", "props": {children = [], ...props} = {}, ...flatProps} = $element;
+        //     const {"children": flatChildren = [], ...flatterProps} = flatProps;
+        //     const $type = getType(components, type);
+        //     const $children = [].concat(children).concat(flatChildren).map(toChild);
+        //     // isElementLike($element) && Object.keys(flatProps).length && console.log(flatChildren, flatterProps);
+        //     return toElement($type, {
+        //         ...(isElementLike($element) ? flatterProps : {}),
+        //         ...props,
+        //         ...$props
+        //     }, ...$children);
+        // }
         if (isElement($element)) {
             const {type = "", "props": {children = [], ...props} = {}} = $element;
             const $type = getType(components, type);
