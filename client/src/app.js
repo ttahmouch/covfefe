@@ -69,6 +69,8 @@ export const reducer = () => app;
 
 export const enhancer = (createStore) => createStore
 
+export const elementShorthand = {"$type": "", "$children": []};
+
 export const element = {"type": "", "props": {"children": []}};
 
 // Dependencies --------------------------------------------------------------------------------------------------------
@@ -89,19 +91,34 @@ export const isFragment = (fragment = Fragment) => fragment === Fragment;
 
 export const isComponent = (component = Component) => typeof component === "function";
 
-export const isElementLike = (element = element) => (typeof element === "object" && element !== null && typeof element.$$typeof === "undefined");
+export const isElementShorthand = (element = elementShorthand) => (
+    typeof element === "object" && element !== null && element.$$typeof === undefined
+    && (element.$type !== undefined || element.$children !== undefined)
+);
 
-export const isElement = (element = element, dependencies = {isElementLike, isValidElement}) => {
-    const {isElementLike, isValidElement} = dependencies;
+export const isElementLonghand = (element = element) => (
+    typeof element === "object" && element !== null && element.$$typeof === undefined
+);
 
-    return isElementLike(element) || isValidElement(element);
+export const isElementLike = (element = element, dependencies = {isElementShorthand, isElementLonghand, isValidElement}) => {
+    const {isElementShorthand, isElementLonghand, isValidElement} = dependencies;
+    return isElementShorthand(element) || isElementLonghand(element) || isValidElement(element);
 };
 
-export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElement}) => {
-    const {isFragment, isComponent, isElement} = dependencies;
+export const toElementLonghand = (element = elementShorthand, dependencies = {isElementShorthand}) => {
+    const {isElementShorthand} = dependencies;
+    if (isElementShorthand(element)) {
+        const {"$type": type = "", "$children": children = [], ...props} = element;
+        return {type, "props": {children, ...props}};
+    }
+    return element;
+};
+
+export const getType = (components = {}, type = "", dependencies = {isFragment, isComponent, isElementLike}) => {
+    const {isFragment, isComponent, isElementLike} = dependencies;
     const $components = {...components, "": Fragment, Fragment};
 
-    return isElement(type) || isFragment(type) || isComponent(type)
+    return isElementLike(type) || isFragment(type) || isComponent(type)
         ? type
         : $components[type] || type || Fragment;
 };
@@ -1658,11 +1675,13 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
                                                  dependencies = {
                                                      appStateFromStore, composersFromAppState, composeFromIdentifier,
                                                      composeFromPathTemplate, composeParametersFromPathTemplate,
-                                                     dispatchRoutePathParamsToStore, toReactProps, getType, isElement
+                                                     dispatchRoutePathParamsToStore, toReactProps, getType, isElementLike,
+                                                     toElementLonghand
                                                  }) => {
     const {
         appStateFromStore, composersFromAppState, composeFromIdentifier, composeFromPathTemplate,
-        composeParametersFromPathTemplate, dispatchRoutePathParamsToStore, toReactProps, getType, isElement
+        composeParametersFromPathTemplate, dispatchRoutePathParamsToStore, toReactProps, getType, isElementLike,
+        toElementLonghand
     } = dependencies;
     const {createElement} = method;
     // If Child is a `data-view` don't traverse it twice.
@@ -1706,23 +1725,12 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // $view && !$should && console.group("Suppressing View:", $view);
         // $view && console.groupEnd();
 
-        // if (isElement($element)) {
-        //     const {type = "", "props": {children = [], ...props} = {}, ...flatProps} = $element;
-        //     const {"children": flatChildren = [], ...flatterProps} = flatProps;
-        //     const $type = getType(components, type);
-        //     const $children = [].concat(children).concat(flatChildren).map(toChild);
-        //     // isElementLike($element) && Object.keys(flatProps).length && console.log(flatChildren, flatterProps);
-        //     return toElement($type, {
-        //         ...(isElementLike($element) ? flatterProps : {}),
-        //         ...props,
-        //         ...$props
-        //     }, ...$children);
-        // }
-        if (isElement($element)) {
-            const {type = "", "props": {children = [], ...props} = {}} = $element;
-            const $type = getType(components, type);
-            const $children = [].concat(children).map(toChild);
-            return toElement($type, {...props, ...$props}, ...$children);
+        if (isElementLike($element)) {
+            const {type = "", "props": {children = [], ...props} = {}} = toElementLonghand($element);
+            const _type = getType(components, type);
+            const _props = {...props, ...$props};
+            const _children = [].concat(children).map(toChild);
+            return toElement(_type, _props, ..._children);
         }
 
         const {"props": reactProps, "children": reactChildren} = toReactProps(props, children, store, view);

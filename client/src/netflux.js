@@ -1,17 +1,19 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import app, {$composers, $views} from "./netflux.json";
 
 const HomeButton = () => {
     const dispatch = useDispatch();
-    const state = useSelector(({"$states": {home_title = ""}}) => home_title);
-    useEffect(() => dispatch({"type": "RENDERED_HOME_BUTTON"}));
+    const title = useSelector(({"$states": {home_title = ""}}) => home_title);
+    const dispatched = useRef(false);
+    useEffect(() => {
+        if (!dispatched.current) {
+            dispatch({"type": "rendered_home_button"});
+            dispatched.current = true;
+        }
+    });
 
-    return (
-        <div className="navigation_bar_link pseudo-link">
-            {state}
-        </div>
-    );
+    return (<div className="navigation_bar_link pseudo-link">{title}</div>);
 };
 
 export default {
