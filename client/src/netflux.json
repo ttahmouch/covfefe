@@ -3883,1025 +3883,773 @@
   "$styles": {},
   "$views": {
     "404": {
-      "type": "div",
-      "props": {
-        "className": "no-results",
+      "$type": "div",
+      "className": "no-results",
+      "children": {
+        "$type": "div",
+        "className": "no-results__text",
         "children": {
-          "type": "div",
-          "props": {
-            "className": "no-results__text",
-            "children": {
-              "type": "p",
-              "props": {
-                "children": [
-                  "Lost your way?",
-                  {
-                    "type": "br"
-                  },
-                  {
-                    "type": "br"
-                  },
-                  "Sorry, we can't find that page. You'll find lots to explore on the home page.",
-                  {
-                    "type": "br"
-                  },
-                  {
-                    "type": "br"
-                  },
-                  "Error Code NSES-404"
-                ]
-              }
-            }
-          }
+          "$type": "p",
+          "children": [
+            "Lost your way?",
+            {
+              "$type": "br"
+            },
+            {
+              "$type": "br"
+            },
+            "Sorry, we can't find that page. You'll find lots to explore on the home page.",
+            {
+              "$type": "br"
+            },
+            {
+              "$type": "br"
+            },
+            "Error Code NSES-404"
+          ]
         }
       }
     },
     "search_icon": {
-      "type": "svg",
-      "props": {
-        "version": "1.1",
-        "viewBox": "0 0 251 251",
+      "$type": "svg",
+      "version": "1.1",
+      "viewBox": "0 0 251 251",
+      "children": {
+        "$type": "g",
+        "stroke": "none",
+        "strokeWidth": "1",
+        "fill": "none",
+        "fillRule": "evenodd",
         "children": {
-          "type": "g",
-          "props": {
-            "stroke": "none",
-            "strokeWidth": "1",
-            "fill": "none",
-            "fillRule": "evenodd",
-            "children": {
-              "type": "g",
-              "props": {
-                "fill": "#FFFFFF",
-                "fillRule": "nonzero",
-                "children": {
-                  "type": "path",
-                  "props": {
-                    "d": "M244.186,214.604 L189.807,160.226 C189.518,159.937 189.179,159.735 188.877,159.466 C199.577,143.235 205.822,123.806 205.822,102.912 C205.822,46.075 159.747,0 102.911,0 C46.075,0 0,46.075 0,102.911 C0,159.746 46.074,205.822 102.91,205.822 C123.805,205.822 143.233,199.577 159.464,188.877 C159.733,189.178 159.934,189.517 160.223,189.806 L214.603,244.186 C222.772,252.354 236.016,252.354 244.186,244.186 C252.354,236.017 252.354,222.773 244.186,214.604 Z M102.911,170.146 C65.777,170.146 35.675,140.044 35.675,102.911 C35.675,65.777 65.778,35.675 102.911,35.675 C140.043,35.675 170.146,65.778 170.146,102.911 C170.146,140.044 140.043,170.146 102.911,170.146 Z"
-                  }
-                }
-              }
-            }
+          "$type": "g",
+          "fill": "#FFFFFF",
+          "fillRule": "nonzero",
+          "children": {
+            "$type": "path",
+            "d": "M244.186,214.604 L189.807,160.226 C189.518,159.937 189.179,159.735 188.877,159.466 C199.577,143.235 205.822,123.806 205.822,102.912 C205.822,46.075 159.747,0 102.911,0 C46.075,0 0,46.075 0,102.911 C0,159.746 46.074,205.822 102.91,205.822 C123.805,205.822 143.233,199.577 159.464,188.877 C159.733,189.178 159.934,189.517 160.223,189.806 L214.603,244.186 C222.772,252.354 236.016,252.354 244.186,244.186 C252.354,236.017 252.354,222.773 244.186,214.604 Z M102.911,170.146 C65.777,170.146 35.675,140.044 35.675,102.911 C35.675,65.777 65.778,35.675 102.911,35.675 C140.043,35.675 170.146,65.778 170.146,102.911 C170.146,140.044 140.043,170.146 102.911,170.146 Z"
           }
         }
       }
     },
     "bell_icon": {
-      "type": "svg",
-      "props": {
-        "version": "1.1",
-        "viewBox": "0 0 512 512",
-        "children": [
-          {
-            "type": "path",
-            "props": {
-              "d": "M467.812,431.851l-36.629-61.056c-16.917-28.181-25.856-60.459-25.856-93.312V224c0-67.52-45.056-124.629-106.667-143.04 V42.667C298.66,19.136,279.524,0,255.993,0s-42.667,19.136-42.667,42.667V80.96C151.716,99.371,106.66,156.48,106.66,224v53.483 c0,32.853-8.939,65.109-25.835,93.291l-36.629,61.056c-1.984,3.307-2.027,7.403-0.128,10.752c1.899,3.349,5.419,5.419,9.259,5.419 H458.66c3.84,0,7.381-2.069,9.28-5.397C469.839,439.275,469.775,435.136,467.812,431.851z"
-            }
-          },
-          {
-            "type": "path",
-            "props": {
-              "d": "M188.815,469.333C200.847,494.464,226.319,512,255.993,512s55.147-17.536,67.179-42.667H188.815z"
-            }
-          }
-        ]
-      }
+      "$type": "svg",
+      "version": "1.1",
+      "viewBox": "0 0 512 512",
+      "children": [
+        {
+          "$type": "path",
+          "d": "M467.812,431.851l-36.629-61.056c-16.917-28.181-25.856-60.459-25.856-93.312V224c0-67.52-45.056-124.629-106.667-143.04 V42.667C298.66,19.136,279.524,0,255.993,0s-42.667,19.136-42.667,42.667V80.96C151.716,99.371,106.66,156.48,106.66,224v53.483 c0,32.853-8.939,65.109-25.835,93.291l-36.629,61.056c-1.984,3.307-2.027,7.403-0.128,10.752c1.899,3.349,5.419,5.419,9.259,5.419 H458.66c3.84,0,7.381-2.069,9.28-5.397C469.839,439.275,469.775,435.136,467.812,431.851z"
+        },
+        {
+          "$type": "path",
+          "d": "M188.815,469.333C200.847,494.464,226.319,512,255.993,512s55.147-17.536,67.179-42.667H188.815z"
+        }
+      ]
     },
     "add_icon": {
-      "type": "svg",
-      "props": {
-        "version": "1.1",
-        "viewBox": "0 0 492 492",
-        "children": {
-          "type": "path",
-          "props": {
-            "d": "M465.167,211.614H280.245V26.691c0-8.424-11.439-26.69-34.316-26.69s-34.316,18.267-34.316,26.69v184.924H26.69 C18.267,211.614,0,223.053,0,245.929s18.267,34.316,26.69,34.316h184.924v184.924c0,8.422,11.438,26.69,34.316,26.69 s34.316-18.268,34.316-26.69V280.245H465.17c8.422,0,26.69-11.438,26.69-34.316S473.59,211.614,465.167,211.614z"
-          }
-        }
+      "$type": "svg",
+      "version": "1.1",
+      "viewBox": "0 0 492 492",
+      "children": {
+        "$type": "path",
+        "d": "M465.167,211.614H280.245V26.691c0-8.424-11.439-26.69-34.316-26.69s-34.316,18.267-34.316,26.69v184.924H26.69 C18.267,211.614,0,223.053,0,245.929s18.267,34.316,26.69,34.316h184.924v184.924c0,8.422,11.438,26.69,34.316,26.69 s34.316-18.268,34.316-26.69V280.245H465.17c8.422,0,26.69-11.438,26.69-34.316S473.59,211.614,465.167,211.614z"
       }
     },
     "down_icon": {
-      "type": "svg",
-      "props": {
-        "version": "1.1",
-        "viewBox": "0 0 255 255",
-        "children": {
-          "type": "polygon",
-          "props": {
-            "points": "0,63.75 127.5,191.25 255,63.75"
-          }
-        }
+      "$type": "svg",
+      "version": "1.1",
+      "viewBox": "0 0 255 255",
+      "children": {
+        "$type": "polygon",
+        "points": "0,63.75 127.5,191.25 255,63.75"
       }
     },
     "play_icon": {
-      "type": "svg",
-      "props": {
-        "version": "1.1",
-        "viewBox": "0 0 42 42",
-        "children": {
-          "type": "path",
-          "props": {
-            "d": "M36.068,20.176l-29-20C6.761-0.035,6.363-0.057,6.035,0.114C5.706,0.287,5.5,0.627,5.5,0.999v40 c0,0.372,0.206,0.713,0.535,0.886c0.146,0.076,0.306,0.114,0.465,0.114c0.199,0,0.397-0.06,0.568-0.177l29-20 c0.271-0.187,0.432-0.494,0.432-0.823S36.338,20.363,36.068,20.176z"
-          }
-        }
+      "$type": "svg",
+      "version": "1.1",
+      "viewBox": "0 0 42 42",
+      "children": {
+        "$type": "path",
+        "d": "M36.068,20.176l-29-20C6.761-0.035,6.363-0.057,6.035,0.114C5.706,0.287,5.5,0.627,5.5,0.999v40 c0,0.372,0.206,0.713,0.535,0.886c0.146,0.076,0.306,0.114,0.465,0.114c0.199,0,0.397-0.06,0.568-0.177l29-20 c0.271-0.187,0.432-0.494,0.432-0.823S36.338,20.363,36.068,20.176z"
       }
     },
     "netflix_originals": {
-      "type": "div",
-      "props": {
-        "className": "showcase",
-        "data-state": "netflix_originals",
-        "data-state-repeat": "true",
-        "data-state-repeat-key": "show",
+      "$type": "div",
+      "className": "showcase",
+      "data-state": "netflix_originals",
+      "data-state-repeat": "true",
+      "data-state-repeat-key": "show",
+      "children": {
+        "$type": "div",
+        "className": "showcase_movie",
+        "data-state": "id",
+        "data-state-path": "$.view.show.id",
+        "data-bind-state": "key",
         "children": {
-          "type": "div",
-          "props": {
-            "className": "showcase_movie",
-            "data-state": "id",
-            "data-state-path": "$.view.show.id",
-            "data-bind-state": "key",
-            "children": {
-              "type": "form",
-              "props": {
-                "className": "showcase_movie_image",
-                "data-event": "on_click_movie",
-                "data-bind-event": "onSubmit",
-                "data-state-type": "dictionary",
-                "children": [
-                  {
-                    "type": "input",
-                    "props": {
-                      "type": "hidden",
-                      "name": "id",
-                      "data-bind-state": "defaultValue",
-                      "data-state": "id",
-                      "data-state-path": "$.view.show.id"
-                    }
-                  },
-                  {
-                    "type": "input",
-                    "props": {
-                      "type": "hidden",
-                      "name": "media_type",
-                      "data-bind-state": "defaultValue",
-                      "data-state": "media_type",
-                      "data-state-path": "$.view.show.media_type",
-                      "data-state-default-value": "tv"
-                    }
-                  },
-                  {
-                    "type": "input",
-                    "props": {
-                      "className": "showcase_movie_image",
-                      "type": "image",
-                      "data-bind-state": "src",
-                      "data-state": "show_poster_image",
-                      "alt": ""
-                    }
-                  }
-                ]
-              }
+          "$type": "form",
+          "className": "showcase_movie_image",
+          "data-event": "on_click_movie",
+          "data-bind-event": "onSubmit",
+          "data-state-type": "dictionary",
+          "children": [
+            {
+              "$type": "input",
+              "type": "hidden",
+              "name": "id",
+              "data-bind-state": "defaultValue",
+              "data-state": "id",
+              "data-state-path": "$.view.show.id"
+            },
+            {
+              "$type": "input",
+              "type": "hidden",
+              "name": "media_type",
+              "data-bind-state": "defaultValue",
+              "data-state": "media_type",
+              "data-state-path": "$.view.show.media_type",
+              "data-state-default-value": "tv"
+            },
+            {
+              "$type": "input",
+              "type": "image",
+              "className": "showcase_movie_image",
+              "data-bind-state": "src",
+              "data-state": "show_poster_image",
+              "alt": ""
             }
-          }
+          ]
         }
       }
     },
     "trending": {
-      "type": "div",
-      "props": {
-        "className": "showcase",
-        "data-state": "trending",
-        "data-state-repeat": "true",
-        "data-state-repeat-key": "show",
+      "$type": "div",
+      "className": "showcase",
+      "data-state": "trending",
+      "data-state-repeat": "true",
+      "data-state-repeat-key": "show",
+      "children": {
+        "$type": "div",
+        "className": "showcase_movie",
+        "data-state": "id",
+        "data-state-path": "$.view.show.id",
+        "data-bind-state": "key",
         "children": {
-          "type": "div",
-          "props": {
-            "className": "showcase_movie",
-            "data-state": "id",
-            "data-state-path": "$.view.show.id",
-            "data-bind-state": "key",
-            "children": {
-              "type": "form",
-              "props": {
-                "className": "showcase_movie_image",
-                "data-event": "on_click_movie",
-                "data-bind-event": "onSubmit",
-                "data-state-type": "dictionary",
-                "children": [
-                  {
-                    "type": "input",
-                    "props": {
-                      "type": "hidden",
-                      "name": "id",
-                      "data-bind-state": "defaultValue",
-                      "data-state": "id",
-                      "data-state-path": "$.view.show.id"
-                    }
-                  },
-                  {
-                    "type": "input",
-                    "props": {
-                      "type": "hidden",
-                      "name": "media_type",
-                      "data-bind-state": "defaultValue",
-                      "data-state": "media_type",
-                      "data-state-path": "$.view.show.media_type",
-                      "data-state-default-value": "tv"
-                    }
-                  },
-                  {
-                    "type": "input",
-                    "props": {
-                      "className": "showcase_movie_image",
-                      "type": "image",
-                      "data-bind-state": "src",
-                      "data-state": "show_backdrop_image",
-                      "alt": ""
-                    }
-                  }
-                ]
-              }
+          "$type": "form",
+          "className": "showcase_movie_image",
+          "data-event": "on_click_movie",
+          "data-bind-event": "onSubmit",
+          "data-state-type": "dictionary",
+          "children": [
+            {
+              "$type": "input",
+              "type": "hidden",
+              "name": "id",
+              "data-bind-state": "defaultValue",
+              "data-state": "id",
+              "data-state-path": "$.view.show.id"
+            },
+            {
+              "$type": "input",
+              "type": "hidden",
+              "name": "media_type",
+              "data-bind-state": "defaultValue",
+              "data-state": "media_type",
+              "data-state-path": "$.view.show.media_type",
+              "data-state-default-value": "tv"
+            },
+            {
+              "$type": "input",
+              "type": "image",
+              "className": "showcase_movie_image",
+              "data-bind-state": "src",
+              "data-state": "show_backdrop_image",
+              "alt": ""
             }
-          }
+          ]
         }
       }
     },
     "netflix_originals_row": {
-      "props": {
-        "children": [
-          {
-            "type": "h1",
-            "props": {
-              "className": "movieShowcase__heading",
-              "data-state": "netflix_originals_title",
-              "children": "(netflix_originals_title)"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "movieShowcase__container",
-              "draggable": "true",
-              "children": {
-                "type": "div",
-                "props": {
-                  "data-view": "netflix_originals"
-                }
-              }
-            }
+      "$children": [
+        {
+          "$type": "h1",
+          "className": "movieShowcase__heading",
+          "data-state": "netflix_originals_title",
+          "children": "(netflix_originals_title)"
+        },
+        {
+          "$type": "div",
+          "className": "movieShowcase__container",
+          "draggable": "true",
+          "children": {
+            "$type": "div",
+            "data-view": "netflix_originals"
           }
-        ]
-      }
+        }
+      ]
     },
     "trending_row": {
-      "props": {
-        "children": [
-          {
-            "type": "h1",
-            "props": {
-              "className": "movieShowcase__heading",
-              "data-state": "trending_title",
-              "children": "(trending_title)"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "movieShowcase__container",
-              "draggable": "true",
-              "children": {
-                "type": "div",
-                "props": {
-                  "data-view": "trending"
-                }
-              }
-            }
+      "$children": [
+        {
+          "$type": "h1",
+          "className": "movieShowcase__heading",
+          "data-state": "trending_title",
+          "children": "(trending_title)"
+        },
+        {
+          "$type": "div",
+          "className": "movieShowcase__container",
+          "draggable": "true",
+          "children": {
+            "$type": "div",
+            "data-view": "trending"
           }
-        ]
-      }
+        }
+      ]
     },
     "header": {
-      "type": "header",
-      "props": {
-        "data-style": "movie_background_image_style",
-        "className": "header",
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "className": "header__container",
+      "$type": "header",
+      "data-style": "movie_background_image_style",
+      "className": "header",
+      "children": [
+        {
+          "$type": "div",
+          "className": "header__container",
+          "children": [
+            {
+              "$type": "h1",
+              "className": "header_title",
+              "data-state": "movie_title",
+              "data-state-path": "$.app.$states.movie.title",
+              "data-state-default-value": "Title",
+              "children": "(movie_title)"
+            },
+            {
+              "$type": "button",
+              "className": "header__container-btnPlay",
+              "data-bind-event": "onClick",
+              "data-event": "on_click_play",
               "children": [
                 {
-                  "type": "h1",
-                  "props": {
-                    "className": "header_title",
-                    "data-state": "movie_title",
-                    "data-state-path": "$.app.$states.movie.title",
-                    "data-state-default-value": "Title",
-                    "children": "(movie_title)"
-                  }
+                  "$type": "div",
+                  "data-view": "play_icon",
+                  "className": "header_container_button_play"
                 },
                 {
-                  "type": "button",
-                  "props": {
-                    "className": "header__container-btnPlay",
-                    "data-bind-event": "onClick",
-                    "data-event": "on_click_play",
-                    "children": [
-                      {
-                        "type": "div",
-                        "props": {
-                          "data-view": "play_icon",
-                          "className": "header_container_button_play"
-                        }
-                      },
-                      {
-                        "type": "span",
-                        "props": {
-                          "data-state": "play_title"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "button",
-                  "props": {
-                    "className": "header__container-btnMyList",
-                    "data-bind-event": "onClick",
-                    "data-event": "on_click_play",
-                    "children": [
-                      {
-                        "type": "div",
-                        "props": {
-                          "data-view": "add_icon",
-                          "className": "header__container-btnMyList-add"
-                        }
-                      },
-                      {
-                        "type": "span",
-                        "props": {
-                          "data-state": "my_list_title"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "p",
-                  "props": {
-                    "className": "header__container-overview",
-                    "data-state": "movie_overview",
-                    "data-state-path": "$.app.$states.movie.overview",
-                    "data-state-default-value": "Movie Overview"
-                  }
+                  "$type": "span",
+                  "data-state": "play_title"
                 }
               ]
+            },
+            {
+              "$type": "button",
+              "className": "header__container-btnMyList",
+              "data-bind-event": "onClick",
+              "data-event": "on_click_play",
+              "children": [
+                {
+                  "$type": "div",
+                  "data-view": "add_icon",
+                  "className": "header__container-btnMyList-add"
+                },
+                {
+                  "$type": "span",
+                  "data-state": "my_list_title"
+                }
+              ]
+            },
+            {
+              "$type": "p",
+              "className": "header__container-overview",
+              "data-state": "movie_overview",
+              "data-state-path": "$.app.$states.movie.overview",
+              "data-state-default-value": "Movie Overview"
             }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "header--fadeBottom"
-            }
-          }
-        ]
-      }
+          ]
+        },
+        {
+          "$type": "div",
+          "className": "header--fadeBottom"
+        }
+      ]
     },
     "modal": {
-      "props": {
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "className": "backdrop",
-              "data-bind-event": "onClick",
-              "data-event": "on_click_modal_background"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "modal show",
-              "data-style": "movie_background_image_style",
-              "children": {
-                "type": "div",
-                "props": {
-                  "className": "modal__container",
-                  "children": [
-                    {
-                      "type": "h1",
-                      "props": {
-                        "className": "modal__title",
-                        "data-state": "movie_title",
-                        "data-state-path": "$.app.$states.movie.title",
-                        "data-state-default-value": "Title",
-                        "children": "(movie_title)"
-                      }
-                    },
-                    {
-                      "type": "p",
-                      "props": {
-                        "className": "modal__info",
-                        "children": [
-                          {
-                            "type": "span",
-                            "props": {
-                              "className": "modal__rating",
-                              "data-state": "movie_rating",
-                              "data-state-path": "$.app.$states.movie.rating",
-                              "data-state-default-value": "0",
-                              "children": "Rating: (movie_rating) "
-                            }
-                          },
-                          {
-                            "type": "span",
-                            "props": {
-                              "data-state": "movie_release",
-                              "data-state-path": "$.app.$states.movie.release",
-                              "data-state-default-value": "",
-                              "children": "Release: (movie_release) "
-                            }
-                          },
-                          {
-                            "type": "span",
-                            "props": {
-                              "data-state": "movie_runtime",
-                              "data-state-path": "$.app.$states.movie.runtime",
-                              "data-state-default-value": "0",
-                              "children": "Runtime: (movie_runtime) minutes"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "p",
-                      "props": {
-                        "className": "modal__overview",
-                        "data-state": "movie_overview",
-                        "data-state-path": "$.app.$states.movie.overview",
-                        "data-state-default-value": "Movie Overview"
-                      }
-                    },
-                    {
-                      "type": "button",
-                      "props": {
-                        "className": "modal__btn modal__btn--red",
-                        "data-bind-event": "onClick",
-                        "data-event": "on_click_play",
-                        "children": [
-                          {
-                            "type": "div",
-                            "props": {
-                              "data-view": "play_icon",
-                              "className": "header_container_button_play"
-                            }
-                          },
-                          {
-                            "type": "span",
-                            "props": {
-                              "data-state": "play_title"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "button",
-                      "props": {
-                        "className": "modal__btn",
-                        "data-bind-event": "onClick",
-                        "data-event": "on_click_play",
-                        "children": [
-                          {
-                            "type": "div",
-                            "props": {
-                              "data-view": "add_icon",
-                              "className": "modal__btn--icon"
-                            }
-                          },
-                          {
-                            "type": "span",
-                            "props": {
-                              "data-state": "my_list_title"
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    "main": {
-      "type": "div",
-      "props": {
-        "className": "container",
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "data-view": "header"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "movieShowcase",
-              "children": [
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "netflix_originals_row"
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "trending_row"
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "trending_row"
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "trending_row"
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "trending_row"
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "data-view": "trending_row"
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "home": {
-      "props": {
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "data-view": "main"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "data-view": "modal",
-              "data-if": "should_show_modal"
-            }
-          }
-        ]
-      }
-    },
-    "no_results": {
-      "type": "div",
-      "props": {
-        "className": "no-results",
-        "children": {
-          "type": "div",
-          "props": {
-            "className": "no-results__text",
-            "children": {
-              "type": "p",
-              "props": {
-                "data-state": "title",
-                "data-state-path": "$.app.$states.title",
-                "data-state-default-value": "",
+      "$children": [
+        {
+          "$type": "div",
+          "className": "backdrop",
+          "data-bind-event": "onClick",
+          "data-event": "on_click_modal_background"
+        },
+        {
+          "$type": "div",
+          "className": "modal show",
+          "data-style": "movie_background_image_style",
+          "children": {
+            "$type": "div",
+            "className": "modal__container",
+            "children": [
+              {
+                "$type": "h1",
+                "className": "modal__title",
+                "data-state": "movie_title",
+                "data-state-path": "$.app.$states.movie.title",
+                "data-state-default-value": "Title",
+                "children": "(movie_title)"
+              },
+              {
+                "$type": "p",
+                "className": "modal__info",
                 "children": [
-                  "Your search for (title) did not have any matches.",
                   {
-                    "type": "br"
+                    "$type": "span",
+                    "className": "modal__rating",
+                    "data-state": "movie_rating",
+                    "data-state-path": "$.app.$states.movie.rating",
+                    "data-state-default-value": "0",
+                    "children": "Rating: (movie_rating) "
                   },
                   {
-                    "type": "br"
+                    "$type": "span",
+                    "data-state": "movie_release",
+                    "data-state-path": "$.app.$states.movie.release",
+                    "data-state-default-value": "",
+                    "children": "Release: (movie_release) "
                   },
-                  "Suggestions:",
                   {
-                    "type": "br"
+                    "$type": "span",
+                    "data-state": "movie_runtime",
+                    "data-state-path": "$.app.$states.movie.runtime",
+                    "data-state-default-value": "0",
+                    "children": "Runtime: (movie_runtime) minutes"
+                  }
+                ]
+              },
+              {
+                "$type": "p",
+                "className": "modal__overview",
+                "data-state": "movie_overview",
+                "data-state-path": "$.app.$states.movie.overview",
+                "data-state-default-value": "Movie Overview"
+              },
+              {
+                "$type": "button",
+                "className": "modal__btn modal__btn--red",
+                "data-bind-event": "onClick",
+                "data-event": "on_click_play",
+                "children": [
+                  {
+                    "$type": "div",
+                    "data-view": "play_icon",
+                    "className": "header_container_button_play"
                   },
                   {
-                    "type": "br"
-                  },
-                  "⦿ Try different keywords.",
+                    "$type": "span",
+                    "data-state": "play_title"
+                  }
+                ]
+              },
+              {
+                "$type": "button",
+                "className": "modal__btn",
+                "data-bind-event": "onClick",
+                "data-event": "on_click_play",
+                "children": [
                   {
-                    "type": "br"
+                    "$type": "div",
+                    "data-view": "add_icon",
+                    "className": "modal__btn--icon"
                   },
-                  "⦿ Looking for a movie or TV show?",
                   {
-                    "type": "br"
-                  },
-                  "⦿ Try using a movie, TV show title, an actor or director.",
-                  {
-                    "type": "br"
-                  },
-                  "⦿ Try a genre, like comedy, romance, sports, or drama."
+                    "$type": "span",
+                    "data-state": "my_list_title"
+                  }
                 ]
               }
-            }
+            ]
           }
+        }
+      ]
+    },
+    "main": {
+      "$type": "div",
+      "className": "container",
+      "children": [
+        {
+          "$type": "div",
+          "data-view": "header"
+        },
+        {
+          "$type": "div",
+          "className": "movieShowcase",
+          "children": [
+            {
+              "$type": "div",
+              "data-view": "netflix_originals_row"
+            },
+            {
+              "$type": "div",
+              "data-view": "trending_row"
+            },
+            {
+              "$type": "div",
+              "data-view": "trending_row"
+            },
+            {
+              "$type": "div",
+              "data-view": "trending_row"
+            },
+            {
+              "$type": "div",
+              "data-view": "trending_row"
+            },
+            {
+              "$type": "div",
+              "data-view": "trending_row"
+            }
+          ]
+        }
+      ]
+    },
+    "home": {
+      "$children": [
+        {
+          "$type": "div",
+          "data-view": "main"
+        },
+        {
+          "$type": "div",
+          "data-view": "modal",
+          "data-if": "should_show_modal"
+        }
+      ]
+    },
+    "no_results": {
+      "$type": "div",
+      "className": "no-results",
+      "children": {
+        "$type": "div",
+        "className": "no-results__text",
+        "children": {
+          "$type": "p",
+          "data-state": "title",
+          "data-state-path": "$.app.$states.title",
+          "data-state-default-value": "",
+          "children": [
+            "Your search for (title) did not have any matches.",
+            {
+              "$type": "br"
+            },
+            {
+              "$type": "br"
+            },
+            "Suggestions:",
+            {
+              "$type": "br"
+            },
+            {
+              "$type": "br"
+            },
+            "⦿ Try different keywords.",
+            {
+              "$type": "br"
+            },
+            "⦿ Looking for a movie or TV show?",
+            {
+              "$type": "br"
+            },
+            "⦿ Try using a movie, TV show title, an actor or director.",
+            {
+              "$type": "br"
+            },
+            "⦿ Try a genre, like comedy, romance, sports, or drama."
+          ]
         }
       }
     },
     "results": {
-      "type": "div",
-      "props": {
-        "className": "search-container",
-        "data-state": "query",
-        "data-state-repeat": "true",
-        "data-state-repeat-key": "show",
+      "$type": "div",
+      "className": "search-container",
+      "data-state": "query",
+      "data-state-repeat": "true",
+      "data-state-repeat-key": "show",
+      "children": {
+        "$type": "div",
+        "className": "movie",
+        "data-state": "id",
+        "data-state-path": "$.view.show.id",
+        "data-bind-state": "key",
         "children": {
-          "type": "div",
-          "props": {
-            "className": "movie",
-            "data-state": "id",
-            "data-state-path": "$.view.show.id",
-            "data-bind-state": "key",
-            "children": {
-              "type": "div",
-              "props": {
-                "className": "movie__column-poster",
-                "children": {
-                  "type": "form",
-                  "props": {
-                    "className": "movie__poster",
-                    "data-event": "on_click_movie",
-                    "data-bind-event": "onSubmit",
-                    "data-state-type": "dictionary",
-                    "children": [
-                      {
-                        "type": "input",
-                        "props": {
-                          "type": "hidden",
-                          "name": "id",
-                          "data-bind-state": "defaultValue",
-                          "data-state": "id",
-                          "data-state-path": "$.view.show.id"
-                        }
-                      },
-                      {
-                        "type": "input",
-                        "props": {
-                          "type": "hidden",
-                          "name": "media_type",
-                          "data-bind-state": "defaultValue",
-                          "data-state": "media_type",
-                          "data-state-path": "$.view.show.media_type",
-                          "data-state-default-value": "tv"
-                        }
-                      },
-                      {
-                        "type": "input",
-                        "props": {
-                          "className": "movie__poster",
-                          "type": "image",
-                          "data-bind-state": "src",
-                          "data-state": "show_poster_image",
-                          "alt": ""
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "search": {
-      "props": {
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "data-view": "results",
-              "data-unless": "search_no_results"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "data-view": "no_results",
-              "data-if": "search_no_results"
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "data-view": "modal",
-              "data-if": "should_show_modal"
-            }
-          }
-        ]
-      }
-    },
-    "dropdown": {
-      "type": "div",
-      "props": {
-        "className": "navigation__container--userLogo",
-        "children": [
-          {
-            "type": "div",
-            "props": {
-              "className": "dropdownContent",
-              "children": [
-                {
-                  "type": "div",
-                  "props": {
-                    "children": [
-                      {
-                        "type": "div",
-                        "props": {
-                          "className": "dropdownContent--user"
-                        }
-                      },
-                      {
-                        "type": "p",
-                        "props": {
-                          "className": "dropdownContent--user-text",
-                          "data-state": "user_one"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "children": [
-                      {
-                        "type": "div",
-                        "props": {
-                          "className": "dropdownContent--user dropdownContent--user-2"
-                        }
-                      },
-                      {
-                        "type": "p",
-                        "props": {
-                          "className": "dropdownContent--user-text",
-                          "data-state": "user_two"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "div",
-                  "props": {
-                    "children": [
-                      {
-                        "type": "div",
-                        "props": {
-                          "className": "dropdownContent--user dropdownContent--user-3"
-                        }
-                      },
-                      {
-                        "type": "p",
-                        "props": {
-                          "className": "dropdownContent--user-text",
-                          "data-state": "user_three"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "type": "p",
-                  "props": {
-                    "className": "dropdownContent-text",
-                    "data-state": "manage_profiles_title"
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "type": "div",
-            "props": {
-              "className": "dropdownContent dropdownContent--2",
-              "children": [
-                {
-                  "type": "p",
-                  "props": {
-                    "className": "dropdownContent-textOutside",
-                    "data-state": "account_title"
-                  }
-                },
-                {
-                  "type": "p",
-                  "props": {
-                    "className": "dropdownContent-textOutside",
-                    "data-state": "help_title"
-                  }
-                },
-                {
-                  "type": "p",
-                  "props": {
-                    "className": "dropdownContent-textOutside",
-                    "data-state": "sign_out_title"
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "navigation_bar": {
-      "type": "nav",
-      "props": {
-        "className": "navigation",
-        "data-style": "conditional_navigation_bar_style",
-        "data-bind-event": "scroll",
-        "data-event": "on_scroll",
-        "data-event-target": "window",
-        "data-event-state": "scrollY",
-        "data-event-state-path": "$.event.currentTarget.scrollY",
-        "data-event-delay": "0",
-        "data-event-delay-type": "debounce",
-        "children": {
-          "type": "ul",
-          "props": {
-            "className": "navigation__container",
+          "$type": "div",
+          "className": "movie__column-poster",
+          "children": {
+            "$type": "form",
+            "className": "movie__poster",
+            "data-event": "on_click_movie",
+            "data-bind-event": "onSubmit",
+            "data-state-type": "dictionary",
             "children": [
               {
-                "type": "img",
-                "props": {
-                  "className": "navigation__container--logo",
-                  "data-state": "netflix_logo",
-                  "data-bind-state": "src",
-                  "data-bind-event": "onClick",
-                  "data-event": "on_logo_click",
-                  "alt": ""
-                }
+                "$type": "input",
+                "type": "hidden",
+                "name": "id",
+                "data-bind-state": "defaultValue",
+                "data-state": "id",
+                "data-state-path": "$.view.show.id"
               },
               {
-                "type": "div",
-                "props": {
-                  "className": "navigation__container--downArrow-2",
-                  "data-view": "down_icon"
-                }
+                "$type": "input",
+                "type": "hidden",
+                "name": "media_type",
+                "data-bind-state": "defaultValue",
+                "data-state": "media_type",
+                "data-state-path": "$.view.show.media_type",
+                "data-state-default-value": "tv"
               },
               {
-                "type": "HomeButton"
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "shows_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "movies_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "recently_added_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "my_list_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation__container--left",
-                  "children": [
-                    {
-                      "type": "div",
-                      "props": {
-                        "data-view": "search_icon",
-                        "className": "logo"
-                      }
-                    },
-                    {
-                      "type": "input",
-                      "props": {
-                        "className": "navigation__container--left__input",
-                        "name": "title",
-                        "type": "text",
-                        "defaultValue": "",
-                        "placeholder": "Title, Genres, People",
-                        "data-bind-event": "onKeyUp",
-                        "data-event": "on_change_title",
-                        "data-event-state": "title",
-                        "data-event-state-path": "$.event.currentTarget.value",
-                        "data-event-state-default-value": "",
-                        "data-event-delay": "1000",
-                        "data-event-delay-type": "debounce"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "kids_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "className": "navigation_bar_link pseudo-link",
-                  "data-state": "dvd_title"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "data-view": "bell_icon",
-                  "className": "navigation__container--bellLogo"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "data-view": "dropdown"
-                }
-              },
-              {
-                "type": "div",
-                "props": {
-                  "data-view": "down_icon",
-                  "className": "navigation__container--downArrow"
-                }
+                "$type": "input",
+                "className": "movie__poster",
+                "type": "image",
+                "data-bind-state": "src",
+                "data-state": "show_poster_image",
+                "alt": ""
               }
             ]
           }
         }
       }
+    },
+    "search": {
+      "$children": [
+        {
+          "$type": "div",
+          "data-view": "results",
+          "data-unless": "search_no_results"
+        },
+        {
+          "$type": "div",
+          "data-view": "no_results",
+          "data-if": "search_no_results"
+        },
+        {
+          "$type": "div",
+          "data-view": "modal",
+          "data-if": "should_show_modal"
+        }
+      ]
+    },
+    "dropdown": {
+      "$type": "div",
+      "className": "navigation__container--userLogo",
+      "children": [
+        {
+          "$type": "div",
+          "className": "dropdownContent",
+          "children": [
+            {
+              "$type": "div",
+              "children": [
+                {
+                  "$type": "div",
+                  "className": "dropdownContent--user"
+                },
+                {
+                  "$type": "p",
+                  "className": "dropdownContent--user-text",
+                  "data-state": "user_one"
+                }
+              ]
+            },
+            {
+              "$type": "div",
+              "children": [
+                {
+                  "$type": "div",
+                  "className": "dropdownContent--user dropdownContent--user-2"
+                },
+                {
+                  "$type": "p",
+                  "className": "dropdownContent--user-text",
+                  "data-state": "user_two"
+                }
+              ]
+            },
+            {
+              "$type": "div",
+              "children": [
+                {
+                  "$type": "div",
+                  "className": "dropdownContent--user dropdownContent--user-3"
+                },
+                {
+                  "$type": "p",
+                  "className": "dropdownContent--user-text",
+                  "data-state": "user_three"
+                }
+              ]
+            },
+            {
+              "$type": "p",
+              "className": "dropdownContent-text",
+              "data-state": "manage_profiles_title"
+            }
+          ]
+        },
+        {
+          "$type": "div",
+          "className": "dropdownContent dropdownContent--2",
+          "children": [
+            {
+              "$type": "p",
+              "className": "dropdownContent-textOutside",
+              "data-state": "account_title"
+            },
+            {
+              "$type": "p",
+              "className": "dropdownContent-textOutside",
+              "data-state": "help_title"
+            },
+            {
+              "$type": "p",
+              "className": "dropdownContent-textOutside",
+              "data-state": "sign_out_title"
+            }
+          ]
+        }
+      ]
+    },
+    "navigation_bar": {
+      "$type": "nav",
+      "className": "navigation",
+      "data-style": "conditional_navigation_bar_style",
+      "data-bind-event": "scroll",
+      "data-event": "on_scroll",
+      "data-event-target": "window",
+      "data-event-state": "scrollY",
+      "data-event-state-path": "$.event.currentTarget.scrollY",
+      "data-event-delay": "0",
+      "data-event-delay-type": "debounce",
+      "children": {
+        "$type": "ul",
+        "className": "navigation__container",
+        "children": [
+          {
+            "$type": "img",
+            "className": "navigation__container--logo",
+            "data-state": "netflix_logo",
+            "data-bind-state": "src",
+            "data-bind-event": "onClick",
+            "data-event": "on_logo_click",
+            "alt": ""
+          },
+          {
+            "$type": "div",
+            "className": "navigation__container--downArrow-2",
+            "data-view": "down_icon"
+          },
+          {
+            "$type": "HomeButton"
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "shows_title"
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "movies_title"
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "recently_added_title"
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "my_list_title"
+          },
+          {
+            "$type": "div",
+            "className": "navigation__container--left",
+            "children": [
+              {
+                "$type": "div",
+                "data-view": "search_icon",
+                "className": "logo"
+              },
+              {
+                "$type": "input",
+                "type": "text",
+                "className": "navigation__container--left__input",
+                "name": "title",
+                "defaultValue": "",
+                "placeholder": "Title, Genres, People",
+                "data-bind-event": "onKeyUp",
+                "data-event": "on_change_title",
+                "data-event-state": "title",
+                "data-event-state-path": "$.event.currentTarget.value",
+                "data-event-state-default-value": "",
+                "data-event-delay": "1000",
+                "data-event-delay-type": "debounce"
+              }
+            ]
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "kids_title"
+          },
+          {
+            "$type": "div",
+            "className": "navigation_bar_link pseudo-link",
+            "data-state": "dvd_title"
+          },
+          {
+            "$type": "div",
+            "data-view": "bell_icon",
+            "className": "navigation__container--bellLogo"
+          },
+          {
+            "$type": "div",
+            "data-view": "dropdown"
+          },
+          {
+            "$type": "div",
+            "data-view": "down_icon",
+            "className": "navigation__container--downArrow"
+          }
+        ]
+      }
     }
   },
   "$view": {
-    "type": "div",
-    "props": {
-      "data-bind-event": "DOMContentLoaded",
-      "data-event": "on_load",
-      "data-event-target": "window",
-      "children": [
-        {
-          "type": "div",
-          "props": {
-            "data-view": "navigation_bar"
-          }
-        },
-        {
-          "type": "div",
-          "props": {
-            "data-if-path": "/",
-            "data-view": "home"
-          }
-        },
-        {
-          "type": "div",
-          "props": {
-            "data-if-path": "/search",
-            "data-view": "search"
-          }
-        },
-        {
-          "type": "div",
-          "props": {
-            "data-unless-path": "^/(?:search)?$",
-            "data-view": "404",
-            "data-path-type": "regular_expression"
-          }
-        }
-      ]
-    }
+    "$type": "div",
+    "data-bind-event": "DOMContentLoaded",
+    "data-event": "on_load",
+    "data-event-target": "window",
+    "children": [
+      {
+        "$type": "div",
+        "data-view": "navigation_bar"
+      },
+      {
+        "$type": "div",
+        "data-if-path": "/",
+        "data-view": "home"
+      },
+      {
+        "$type": "div",
+        "data-if-path": "/search",
+        "data-view": "search"
+      },
+      {
+        "$type": "div",
+        "data-unless-path": "^/(?:search)?$",
+        "data-view": "404",
+        "data-path-type": "regular_expression"
+      }
+    ]
   }
 }
