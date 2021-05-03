@@ -1,5 +1,13 @@
 # Backlog
 
+## React Native Needs
++ Multi Prop State and Event Binding. You can have multiple events and props on one element; not styles.
++ If I want to support proper XML, i.e., not JSX and JSON which support more than strings, then I need a way to map strings to primitive types.
++ I need to bind all core components, e.g., View, Svg, etc., to composers since RN is unlike React where core elements are component functions.
++ Do imperative APIs, e.g., Alert, need to be mapped to Redux middleware?
++ Do stacks needed to be created imperatively?
++ Merge the Demo Disney+ into here.
+
 + ❌ Triage this list and categorize them logically instead of just by importance.
 + ❌ Grab all comments from the code that are TODO-ish and consolidate them here.
 + ❌ Organize the "imperative" library code into a react library that can be published to NPM with `create-react-library`.
