@@ -1,0 +1,19 @@
+{
+  "name": "covfefe",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "ajv": "^6.10.0",
+    "jsonpath-plus": "^4.0.0",
+    "mathjs": "^8.0.1",
+    "path-to-regexp": "^6.1.0",
+    "react": "^16.13.1",
+    "react-redux": "^7.2.0",
+    "redux": "^4.0.5",
+    "urijs": "^1.19.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

@@ -1,19 +1,13 @@
 {
-  "name": "covfefe",
+  "name": "netflux",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "ajv": "^6.10.0",
+    "covfefe": "git+https://github.com/ttahmouch/covfefe.git#feature/jsonml+disneyplus",
     "history": "^4.10.1",
-    "jsonpath-plus": "^4.0.0",
-    "mathjs": "^8.0.1",
-    "path-to-regexp": "^6.1.0",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-redux": "^7.2.0",
-    "redux": "^4.0.5",
-    "redux-devtools-extension": "^2.13.8",
-    "urijs": "^1.19.1"
+    "react-dom": "^16.14.0",
+    "redux-devtools-extension": "^2.13.9"
   },
   "devDependencies": {
     "react-scripts": "^2.1.8"

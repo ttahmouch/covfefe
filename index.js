@@ -1773,7 +1773,5 @@ export const View = ({view = view}) => {
 }
 
 export const App = ({store = store, view = view}) => (
-    <Provider store={store}>
-        <View view={view}/>
-    </Provider>
+    React.createElement(Provider, {store}, React.createElement(View, {view}))
 );

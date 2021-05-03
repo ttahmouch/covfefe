@@ -12,7 +12,7 @@ import {
     createLogMiddleware,
     createRouteMiddleware,
     storeFromConfiguration
-} from "./app.js";
+} from "covfefe";
 
 // const history = createMemoryHistory();
 const history = createBrowserHistory();
