@@ -1,16 +1,8 @@
 {
   "name": "expo-disneyplus",
   "version": "0.0.1",
-  "description": "Disney+ UI Clone with Expo",
-  "author": "Caleb Nance",
-  "license": "MIT",
-  "keywords": [
-    "expo",
-    "react native",
-    "react navigation",
-    "disneyplus"
-  ],
-  "main": "src/App.js",
+  "private": true,
+  "main": "src/index.js",
   "scripts": {
     "dev": "expo start",
     "start": "expo start",
@@ -23,11 +15,13 @@
   },
   "dependencies": {
     "@react-native-community/masked-view": "0.1.10",
+    "covfefe": "git+https://github.com/ttahmouch/covfefe.git#feature/jsonml+disneyplus",
     "expo": "^41.0.0",
     "expo-app-loading": "^1.0.1",
     "expo-asset": "~8.3.1",
     "expo-constants": "~10.1.3",
     "expo-font": "~9.1.0",
+    "history": "^5.0.0",
     "prop-types": "^15.7.2",
     "react": "16.13.1",
     "react-dom": "16.13.1",
@@ -41,7 +35,8 @@
     "react-native-web": "~0.13.12",
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
-    "react-navigation-tabs": "^2.11.0"
+    "react-navigation-tabs": "^2.11.0",
+    "redux-devtools-extension": "^2.13.9"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
@@ -64,6 +59,5 @@
   },
   "eslintIgnore": [
     "babel.config.js"
-  ],
-  "private": true
+  ]
 }

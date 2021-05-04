@@ -1,5 +1,7 @@
-import * as React from 'react';
-import { Image, StatusBar, Text, View } from 'react-native';
+import React, {createElement} from 'react';
+import ReactNative, { Image, StatusBar, Text, View } from 'react-native';
+import {composeWithDevTools} from "redux-devtools-extension";
+import {createMemoryHistory} from 'history';
 import { registerRootComponent } from 'expo';
 import AppLoading from 'expo-app-loading';
 import { colors, fonts, func, gStyle, images } from './constants';
@@ -15,6 +17,14 @@ import ProfileAppSettings from './screens/ProfileAppSettings';
 import ProfileWatchlist from './screens/ProfileWatchlist';
 import SvgBackground from './components/Svg.Background';
 import Header from './components/Header';
+import {
+    App,
+    createElementWithCustomDataProps,
+    createEventMiddleware,
+    createLogMiddleware,
+    createRouteMiddleware,
+    storeFromConfiguration
+} from "covfefe";
 
 const SvgDownloads = ({ active = true, fill = null, size = 24 }) => {
   const fillColor = fill || active ? colors.white : colors.inactiveGrey;
@@ -206,7 +216,7 @@ const Stack = createAppContainer(createStackNavigator(
   { headerMode: 'none', initialRouteName: 'Main', mode: 'modal' }
 ));
 
-class App extends React.Component {
+class Root extends React.Component {
   constructor(props) {
     super(props);
 
@@ -233,4 +243,22 @@ class App extends React.Component {
   }
 }
 
-registerRootComponent(App);
+const history = createMemoryHistory();
+const {"location": route = {}} = history;
+const middleware = [createLogMiddleware(), createEventMiddleware(), createRouteMiddleware(history)];
+const composer = composeWithDevTools({"trace": false, "maxAge": 1000});
+const store = storeFromConfiguration({
+    state: {
+        "$composers": {...ReactNative},
+        "$view": {"$type": "Text", "children": "Fuck"}
+    },
+    middleware,
+    composer,
+    route
+});
+const view = {};
+
+React.createElement = createElementWithCustomDataProps({createElement}, store, view);
+// ReactDOM.render(<App store={store} view={view}/>, document.getElementById("root"));
+registerRootComponent(() => <App store={store} view={view}/>);
+// registerRootComponent(Root);
