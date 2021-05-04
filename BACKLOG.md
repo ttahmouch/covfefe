@@ -7,6 +7,7 @@
 + Do imperative APIs, e.g., Alert, need to be mapped to Redux middleware?
 + Do stacks needed to be created imperatively?
 + Merge the Demo Disney+ into here.
++ Add nested compositions directly in `style` values to allow them to be composed without being returnd from a composition, e.g., HTTP Requests.
 
 + ❌ Triage this list and categorize them logically instead of just by importance.
 + ❌ Grab all comments from the code that are TODO-ish and consolidate them here.
