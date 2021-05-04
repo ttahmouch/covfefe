@@ -6,7 +6,8 @@
     "covfefe": "git+https://github.com/ttahmouch/covfefe.git#feature/jsonml+disneyplus",
     "history": "^4.10.1",
     "react": "^16.13.1",
-    "react-dom": "^16.14.0",
+    "react-dom": "^16.13.1",
+    "react-redux": "^7.2.4",
     "redux-devtools-extension": "^2.13.9"
   },
   "devDependencies": {

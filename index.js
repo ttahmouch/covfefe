@@ -9,6 +9,10 @@ import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
 import * as mathjs from "mathjs";
 
+Object.fromEntries = typeof Object.fromEntries === "function"
+    ? Object.fromEntries
+    : ((iterable) => ([...iterable].reduce((map, [name, value]) => (map[name] = value, map), {})));
+
 // Types ---------------------------------------------------------------------------------------------------------------
 
 export const headers = {"content-type": ""};
@@ -1761,13 +1765,13 @@ export const storeFromConfiguration = (config = {},
 };
 
 export const View = ({view = view}) => {
-    console.time("Render");
+    // console.time("Render");
     view["data-depth"] = 0;
     view["data-dispatchers"] = view["data-dispatchers"] || [];
     view["data-dispatchers"].forEach(({$target, $from, $dispatcher} = {}) => window[$target].removeEventListener($from, $dispatcher));
     view["data-dispatchers"] = [];
     const element = React.createElement(viewFromAppState(useSelector((state) => state)));
-    console.timeEnd("Render");
+    // console.timeEnd("Render");
 
     return element;
 }
