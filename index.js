@@ -1666,7 +1666,7 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
         "data-bind-event-value": $bindEventValue = bindEvent({$states, "$store": store, "$props": props})
-    } = props;
+    } = props || {};
     const {$bindEvent = "data-bind-event", $eventValue = undefined} = $bindEventValue;
 
     $state && (view[$state] = $stateValue);
@@ -1762,10 +1762,10 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
         // $view && console.groupEnd();
 
         if (isElementLike($element)) {
-            const {type = "", "props": {children = [], ...props} = {}} = toElementLonghand($element);
+            const {type = "", "props": {"children": $children = [], ...props} = {}} = toElementLonghand($element);
             const _type = getType(components, type);
             const _props = {...props, ...$props};
-            const _children = [].concat(children).map(toChild);
+            const _children = [].concat($children).concat(children).map(toChild);
             return toElement(_type, _props, ..._children);
         }
 

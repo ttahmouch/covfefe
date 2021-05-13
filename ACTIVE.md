@@ -38,4 +38,5 @@
     Allow `data-multi-state` to bind `{"value": "User Input", "placeholder": "Movie Title,..."}` without a single `data-bind="value"`?
 + ❌ Action Sequences
 + ❌ Support Action Sequences because order matters for being able to display a modal dialog after data is fetched.
-
++ ❌ Should fonts be a first-class citizen? Think about how platform-checks should be made declaratively.
+    Are views and styles the only things that need platform checks? Inline all styles instead of CSS in Netflux? How Media Query?
