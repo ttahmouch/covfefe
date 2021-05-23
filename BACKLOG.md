@@ -47,7 +47,6 @@
 + ❌ Improve JSON JSX format, or allow XML to be used instead.
 + ❌ Aborting HTTP Requests.
 + ❌ Animations
-+ ❌ Support embedding composers inside types like styles instead of generating styles from composers.
 + ❌ Make input state from input fields with unique names not get provided in an array.
 + ❌ Create convenience for managing query parameter expansion for a request composer?
 + ❌ Check the order of the composition when recursively composing is `json_component` composition.

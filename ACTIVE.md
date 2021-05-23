@@ -40,3 +40,5 @@
 + ❌ Support Action Sequences because order matters for being able to display a modal dialog after data is fetched.
 + ❌ Should fonts be a first-class citizen? Think about how platform-checks should be made declaratively.
     Are views and styles the only things that need platform checks? Inline all styles instead of CSS in Netflux? How Media Query?
++ ❌ Support embedding composers inside types like styles instead of generating styles from composers. Support `style` and `data-style?
+    Support dereferencing styles the same way we handle HTTP requests.

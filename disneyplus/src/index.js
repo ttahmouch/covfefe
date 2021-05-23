@@ -1,16 +1,23 @@
-import React, {createElement, useEffect, useState} from "react";
-import ReactNative, {Alert, Dimensions, FlatList, Image, Platform, Switch, Text, TextInput, View} from "react-native";
+import React, {createElement, useState} from "react";
+import ReactNative, {Alert, Dimensions, Image, Platform, Switch, Text, TextInput} from "react-native";
 import {composeWithDevTools} from "redux-devtools-extension";
 import {createMemoryHistory} from "history";
 import {registerRootComponent} from "expo";
-import {createAppContainer, withNavigation} from "react-navigation";
+import {createAppContainer} from "react-navigation";
 import {createStackNavigator} from "react-navigation-stack";
 import * as ReactNativeSvg from "react-native-svg";
 import {createBottomTabNavigator} from "react-navigation-tabs";
 import {App, createElementWithCustomDataProps, createEventMiddleware, createLogMiddleware, createRouteMiddleware, storeFromConfiguration} from "covfefe";
 import Carousel from "react-native-snap-carousel";
 import Constants from "expo-constants";
+import app, {$states} from "./disneyplux.json";
 
+// # React Native Concerns
+// + Styling (data-style needs to be referencable, composable, like
+// + Repeating (data-bind-state binds to children by default when repeating.)
+// + Event Handling (React Native events don't include the same metadata as DOM events.)
+// + Function Props (Are these any different from traditional events? I think so as they don't indicate a side-effect,
+// i.e., user input, response, etc.)
 const {height, width} = Dimensions.get("window");
 const device = {
     width,
@@ -42,1014 +49,128 @@ const device = {
 //     })
 // };
 
-const ProfileAppSettings = ({navigation}) => {
+// const ImageSlide = ({source = null, width: imageWidth = device.width}) => {
+//     const [{height, width}, setState] = useState({"height": 168, "width": imageWidth});
+//
+//     // useEffect(() => {
+//     //     if (source) {
+//     //         const {height, width} = Image.resolveAssetSource(source);
+//     //         setState({
+//     //             "height": Math.round((imageWidth * height) / width),
+//     //             "width": imageWidth
+//     //         });
+//     //     }
+//     // }, [source, imageWidth]);
+//
+//     return React.createElement({
+//         "$type": "Image",
+//         "style": {height, width},
+//         "source": source
+//     });
+// };
+
+const DPImage = ({image, ...props}) => {
+    // const [source, setSource] = useState({"height": 168, "width": imageWidth});
+    // useEffect(() => {
+    //     const {height, width} = Image.resolveAssetSource(image);
+    //
+    // }, [image]);
     return React.createElement({
-        "$type": "View",
-        "style": {
-            "backgroundColor": "#0B0D15",
-            "flex": 1
-        },
-        "children": [
-            {
-                "$type": "View",
-                "style": {"position": "absolute"},
-                "children": {
-                    "$type": "View",
-                    "data-view": "svg_background"
-                }
-            },
-            {
-                "$type": "View",
-                "style": {
-                    "alignItems": "flex-start",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "paddingBottom": 4,
-                    "paddingHorizontal": 16,
-                    "paddingTop": device.iPhoneNotch ? 54 : 30
-                },
-                "children": [
-                    {
-                        "$type": "View",
-                        "data-view": "header_back_button",
-                        "onPress": () => navigation.goBack()
-                    },
-                    {
-                        "$type": "View",
-                        "style": {
-                            "flex": 4,
-                            "height": 35,
-                            "justifyContent": "flex-end"
-                        },
-                        "children": {
-                            "$type": "View",
-                            "data-view": "header_title",
-                            "children": "App Settings"
-                        }
-                    },
-                    {
-                        "$type": "View",
-                        "style": {"flex": 1}
-                    }
-                ]
-            },
-            {
-                "$type": "View",
-                "data-view": "screen_settings_body"
-            }
-        ]
+        "$type": "Image",
+        "source": image,
+        // "source": Image.resolveAssetSource(image),
+        ...props
     });
 };
 
-const ProfileWatchList = ({navigation}) => {
-    return React.createElement({
-        "$type": "View",
-        "style": {
-            "backgroundColor": "#0B0D15",
-            "flex": 1
-        },
-        "children": [
-            {
-                "$type": "View",
-                "style": {
-                    "position": "absolute"
-                },
-                "children": {
-                    "$type": "View",
-                    "data-view": "svg_background"
-                }
-            },
-            {
-                "$type": "View",
-                "style": {
-                    "alignItems": "flex-start",
-                    "flexDirection": "row",
-                    "justifyContent": "space-between",
-                    "paddingBottom": 4,
-                    "paddingHorizontal": 16,
-                    "paddingTop": device.iPhoneNotch ? 54 : 30
-                },
-                "children": [
-                    {
-                        "$type": "View",
-                        "data-view": "header_back_button",
-                        "onPress": () => navigation.goBack()
-                    },
-                    {
-                        "$type": "View",
-                        "style": {
-                            "flex": 4,
-                            "height": 35,
-                            "justifyContent": "flex-end"
-                        },
-                        "children": {
-                            "$type": "View",
-                            "data-view": "header_title",
-                            "children": "Watch List"
-                        }
-                    },
-                    {
-                        "$type": "View",
-                        "style": {"flex": 1}
-                    }
-                ]
-            }
-        ]
-    });
-};
-
-export const HeaderAccounts = ({navigation}) => {
-    return React.createElement({
-        "$type": "View",
-        "style": {
-            "alignItems": "center",
-            "width": "100%"
-        },
-        "children": [
-            {
-                "$type": "View",
-                "style": {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "justifyContent": "center",
-                    "paddingBottom": 30,
-                    "paddingTop": device.iPhoneNotch ? 64 : 40,
-                    "width": "100%"
-                },
-                "children": [
-                    {
-                        "$type": "View",
-                        "style": {
-                            "alignItems": "center",
-                            "marginHorizontal": 10
-                        },
-                        "children": [
-                            {
-                                "$type": "Image",
-                                "source": require("./assets/images/profiles/stormtrooper.jpg"),
-                                "style": {
-                                    "borderRadius": 74 / 2,
-                                    "height": 74,
-                                    "marginBottom": 6,
-                                    "overflow": "hidden",
-                                    "resizeMode": "contain",
-                                    "width": 74
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#FFFFFF",
-                                    "fontSize": 12,
-                                    "fontWeight": "bold",
-                                    // "fontFamily": fonts.bold,
-                                    "marginTop": 4
-                                },
-                                "children": "Laura"
-                            },
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "position": "absolute",
-                                    "borderColor": "#FFFFFF",
-                                    "borderRadius": 74 / 2,
-                                    "borderWidth": 2,
-                                    "height": 74,
-                                    "width": 74
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "$type": "View",
-                        "style": {
-                            "alignItems": "center",
-                            "marginHorizontal": 10
-                        },
-                        "children": [
-                            {
-                                "$type": "Image",
-                                "source": require("./assets/images/profiles/yoda.jpg"),
-                                "style": {
-                                    "borderRadius": 74 / 2,
-                                    "height": 74,
-                                    "marginBottom": 6,
-                                    "overflow": "hidden",
-                                    "resizeMode": "contain",
-                                    "width": 74
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#A4A3A2",
-                                    "fontSize": 12,
-                                    "fontWeight": "500",
-                                    // "fontFamily": fonts.medium,
-                                    "marginTop": 4
-                                },
-                                "children": "Tony"
-                            }
-                        ]
-                    },
-                    {
-                        "$type": "TouchableOpacity",
-                        "activeOpacity": 0.7,
-                        "onPress": () => navigation.navigate("ModalAddProfile"),
-                        "style": {
-                            "alignItems": "center",
-                            "marginHorizontal": 10
-                        },
-                        "children": [
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#50525D",
-                                    "borderRadius": 74 / 2,
-                                    "height": 74,
-                                    "justifyContent": "center",
-                                    "marginBottom": 4,
-                                    "width": 74
-                                },
-                                "children": {
-                                    "$type": "View",
-                                    "data-view": "svg_plus",
-                                    "height": 40,
-                                    "width": 40
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#A4A3A2",
-                                    "fontSize": 12,
-                                    "fontWeight": "500",
-                                    // "fontFamily": fonts.medium,
-                                    "marginTop": 4
-                                },
-                                "children": "Add Profile"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "$type": "TouchableOpacity",
-                "activeOpacity": 0.7,
-                "onPress": () => navigation.navigate("ModalManageProfiles"),
-                "style": {
-                    "alignItems": "center",
-                    "backgroundColor": "#404249",
-                    "borderRadius": 4,
-                    "flexDirection": "row",
-                    "justifyContent": "center",
-                    "marginBottom": 24
-                },
-                "children": [
-                    {
-                        "$type": "Text",
-                        "style": {
-                            "color": "#FFFFFF",
-                            "fontWeight": "500",
-                            // "fontFamily": fonts.medium,
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 8,
-                            "textTransform": "uppercase"
-                        },
-                        "children": "Edit Profiles"
-                    }
-                ]
-            }
-
-        ]
-    });
-};
-
-export const HeaderAccountsWithNavigation = withNavigation(HeaderAccounts);
-
-export const TouchLineItem = ({iconSize = 20, onPress, text}) => {
-    return React.createElement({
-        "$type": "TouchableOpacity",
-        "activeOpacity": 0.7,
-        "onPress": onPress,
-        "style": {
-            "borderBottomColor": "#A4A3A2",
-            "borderBottomWidth": 1,
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginLeft": 16,
-            "paddingRight": 16,
-            "paddingVertical": 20
-        },
-        "children": [
-            {
-                "$type": "Text",
-                "style": {
-                    "color": "#FFFFFF",
-                    "flex": 2,
-                    "fontWeight": "normal",
-                    // "fontFamily": fonts.regular,
-                    "fontSize": 16
-                },
-                "children": text
-            },
-            {
-                "$type": "View",
-                "style": {
-                    "justifyContent": "center"
-                },
-                "children": {
-                    "$type": "View",
-                    "data-view": "svg_arrow_right",
-                    "height": iconSize,
-                    "width": iconSize
-                }
-            }
-        ]
-    });
-};
-
-const Profile = ({navigation}) => {
-    return React.createElement({
-        "$type": "View",
-        "style": {
-            "backgroundColor": "#0B0D15",
-            "flex": 1
-        },
-        "children": [
-            {
-                "$type": "View",
-                "style": {"position": "absolute"},
-                "children": {
-                    "$type": "View",
-                    "data-view": "svg_background"
-                }
-            },
-            {
-                "$type": HeaderAccountsWithNavigation
-            },
-            {
-                "$type": "ScrollView",
-                "children": [
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => navigation.navigate("ProfileWatchList"),
-                        "text": "Watch List"
-                    },
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => navigation.navigate("ProfileAppSettings"),
-                        "text": "App Settings"
-                    },
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => undefined,
-                        "text": "Account"
-                    },
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => undefined,
-                        "text": "Legal"
-                    },
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => undefined,
-                        "text": "Help"
-                    },
-                    {
-                        "$type": "TouchLineItem",
-                        "onPress": () => Alert.alert(
-                            "Sign Out",
-                            "Are you sure that you want to sign out?",
-                            [{"text": "No"}, {"text": "Yes"}],
-                            {"cancelable": false}
-                        ),
-                        "text": "Log Out"
-                    },
-                    {
-                        "$type": "Text",
-                        "style": {
-                            "color": "#A4A3A2",
-                            "fontWeight": "normal",
-                            // "fontFamily": fonts.regular,
-                            "fontSize": 18,
-                            "marginLeft": 16,
-                            "paddingVertical": 16
-                        },
-                        "children": `Version: ${Constants.manifest.version}`
-                    }
-                ]
-            }
-        ]
-    });
-};
-
-const HeaderManage = withNavigation(({
-                                         backText = "Done",
-                                         navigation,
-                                         save = false,
-                                         saveActive = false,
-                                         title = "Manage Profiles"
-                                     }) => {
-    return React.createElement({
-        "$type": "View",
-        "style": {
-            "alignItems": "flex-start",
-            "backgroundColor": "#000000",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "paddingBottom": 4,
-            "paddingHorizontal": 16,
-            "paddingTop": device.iPhoneNotch ? 54 : 30
-        },
-        "children": [
-            {
-                "$type": "TouchableOpacity",
-                "activeOpacity": 0.7,
-                "onPress": () => navigation.goBack(null),
-                "style": {
-                    "alignItems": "flex-start",
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "height": 35
-                },
-                "children": {
-                    "$type": "Text",
-                    "style": {
-                        "color": "#FFFFFF",
-                        "fontWeight": "bold"
-                        // "fontFamily": fonts.bold
-                    },
-                    "children": backText
-                }
-            },
-            title && {
-                "$type": "View",
-                "style": {
-                    "flex": 4,
-                    "height": 35,
-                    "justifyContent": "flex-end"
-                },
-                "children": {
-                    "$type": "Text",
-                    "style": {
-                        "color": "#CACACA",
-                        "fontSize": 18,
-                        "paddingBottom": 4,
-                        "textAlign": "center"
-                    },
-                    "children": title
-                }
-            },
-            save
-                ? {
-                    "$type": "TouchableOpacity",
-                    "activeOpacity": 0.7,
-                    "onPress": () => navigation.goBack(null),
-                    "style": {
-                        "alignItems": "flex-end",
-                        "flex": 1,
-                        "justifyContent": "center",
-                        "height": 35
-                    },
-                    "children": {
-                        "$type": "Text",
-                        "style": {
-                            "color": saveActive ? "#FFFFFF" : "#595959",
-                            "fontWeight": "bold"
-                            // "fontFamily": fonts.bold
-                        },
-                        "children": "Save"
-                    }
-                }
-                : {
-                    "$type": "View",
-                    "style": {"flex": 1}
-                }
-        ]
-    });
-});
-
-export const ModalAddProfile = () => {
-    const [{forKidsValue, text}, setState] = useState({
-        "forKidsValue": false, "text": ""
-    });
-    return React.createElement({
-        "$type": "View",
-        "style": {
-            "backgroundColor": "#000000",
-            "flex": 1
-        },
-        "children": [
-            {
-                "$type": "HeaderManage",
-                "title": "Create Profile",
-                "backText": "Cancel",
-                "save": true,
-                "saveActive": text !== ""
-            },
-            {
-                "$type": "View",
-                "style": {
-                    "alignSelf": "center",
-                    "alignItems": "center",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 60
-                },
-                "children": [
-                    {
-                        "$type": "Image",
-                        "source": require("./assets/images/profiles/stormtrooper.jpg"),
-                        "style": {
-                            "height": 108,
-                            "width": 108,
-                            "borderRadius": 108 / 2,
-                            "overflow": 'hidden',
-                            "resizeMode": "contain"
-                        }
-                    },
-                    {
-                        "$type": "Text",
-                        "style": {
-                            "color": "#FFFFFF",
-                            "fontSize": 16,
-                            // "fontFamily": fonts.regular,
-                            "fontWeight": "normal",
-                            "marginBottom": 24,
-                            "marginTop": 8,
-                            "textAlign": "center"
-                        },
-                        "children": "CHANGE"
-                    },
-                    {
-                        "$type": "TextInput",
-                        "autoCapitalize": "none",
-                        "autoFocus": true,
-                        "keyboardAppearance": "dark",
-                        "onChangeText": (input) => setState({
-                            forKidsValue, "text": input
-                        }),
-                        "selectionColor": "#3070CB",
-                        "style": {
-                            "borderColor": "#FFFFFF",
-                            "borderWidth": 1,
-                            "color": "#FFFFFF",
-                            "fontSize": 16,
-                            "paddingHorizontal": 8,
-                            "paddingVertical": 12,
-                            "width": 260
-                        },
-                        "value": text
-                    },
-                    {
-                        "$type": "View",
-                        "style": {
-                            "alignItems": "center",
-                            "flexDirection": "row",
-                            "marginTop": 16
-                        },
-                        "children": [
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#FFFFFF",
-                                    // "fontFamily": fonts.light,
-                                    "fontWeight": "300",
-                                    "fontSize": 16,
-                                    "marginRight": 8,
-                                    "textTransform": "uppercase"
-                                },
-                                "children": "For Kids"
-                            },
-                            {
-                                "$type": "Switch",
-                                "onValueChange": (value) => {
-                                    if (value === false) {
-                                        Alert.alert(
-                                            "This profile will now allow access to TV shows and movies of all maturity levels.",
-                                            "",
-                                            [{"text": "OK"}],
-                                            {"cancelable": false}
-                                        );
-                                    }
-
-                                    setState({"forKidsValue": value, text});
-                                },
-                                "value": forKidsValue
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    });
-};
-
-export const ModalManageProfiles = ({navigation}) => {
-    return React.createElement({
-        "$type": "View",
-        "style": {"backgroundColor": "#000000", "flex": 1},
-        "children": [
-            {
-                "$type": "HeaderManage"
-            },
-            {
-                "$type": "View",
-                "style": {
-                    "alignSelf": "center",
-                    "flexDirection": "row",
-                    "flexWrap": "wrap",
-                    "justifyContent": "space-between",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 60,
-                    "width": 280
-                },
-                "children": [
-                    {
-                        "$type": "View",
-                        "style": {
-                            "marginBottom": 16
-                        },
-                        "children": [
-                            {
-                                "$type": "Image",
-                                "source": require("./assets/images/profiles/stormtrooper.jpg"),
-                                "style": {
-                                    "height": 108,
-                                    "width": 108,
-                                    "borderRadius": 108 / 2,
-                                    "overflow": 'hidden',
-                                    "resizeMode": "contain"
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#FFFFFF",
-                                    "fontSize": 16,
-                                    // "fontFamily": fonts.regular,
-                                    "fontWeight": "normal",
-                                    "marginTop": 8,
-                                    "textAlign": "center"
-                                },
-                                "children": "Laura"
-                            },
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "backgroundColor": "rgba(0, 0, 0, 0.5)",
-                                    "height": 108,
-                                    "top": 0,
-                                    "position": "absolute",
-                                    "width": 108
-                                }
-                            },
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "alignItems": "center",
-                                    "height": 108,
-                                    "justifyContent": "center",
-                                    "position": "absolute",
-                                    "width": 108
-                                },
-                                "children": {
-                                    "$type": "Svg",
-                                    "height": 40,
-                                    "width": 40,
-                                    "viewBox": "0 0 24 24",
-                                    "children": {
-                                        "$type": "View",
-                                        "data-view": "svg_edit_path",
-                                        "fill": "#FFFFFF"
-                                    }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "$type": "View",
-                        "style": {
-                            "marginBottom": 16
-                        },
-                        "children": [
-                            {
-                                "$type": "Image",
-                                "source": require("./assets/images/profiles/yoda.jpg"),
-                                "style": {
-                                    "height": 108,
-                                    "width": 108,
-                                    "borderRadius": 108 / 2,
-                                    "overflow": 'hidden',
-                                    "resizeMode": "contain"
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#FFFFFF",
-                                    "fontSize": 16,
-                                    // "fontFamily": fonts.regular,
-                                    "fontWeight": "normal",
-                                    "marginTop": 8,
-                                    "textAlign": "center"
-                                },
-                                "children": "Tony"
-                            },
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "backgroundColor": "rgba(0, 0, 0, 0.5)",
-                                    "height": 108,
-                                    "top": 0,
-                                    "position": "absolute",
-                                    "width": 108
-                                }
-                            },
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "alignItems": "center",
-                                    "height": 108,
-                                    "justifyContent": "center",
-                                    "position": "absolute",
-                                    "width": 108
-                                },
-                                "children": {
-                                    "$type": "Svg",
-                                    "height": 40,
-                                    "width": 40,
-                                    "viewBox": "0 0 24 24",
-                                    "children": {
-                                        "$type": "View",
-                                        "data-view": "svg_edit_path",
-                                        "fill": "#FFFFFF"
-                                    }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "$type": "TouchableOpacity",
-                        "style": {
-                            "marginBottom": 16
-                        },
-                        "activeOpacity": 0.7,
-                        "onPress": () => navigation.navigate("ModalAddProfile"),
-                        "children": [
-                            {
-                                "$type": "View",
-                                "style": {
-                                    "alignItems": "center",
-                                    "height": 108,
-                                    "justifyContent": "center",
-                                    "width": 108
-                                },
-                                "children": {
-                                    "$type": "View",
-                                    "style": {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#0B0B0B",
-                                        "borderRadius": 34,
-                                        "height": 68,
-                                        "justifyContent": "center",
-                                        "width": 68
-                                    },
-                                    "children": {
-                                        "$type": "Svg",
-                                        "height": 40,
-                                        "width": 40,
-                                        "viewBox": "0 0 24 24",
-                                        "children": {
-                                            "$type": "View",
-                                            "data-view": "svg_plus_path",
-                                            "fill": "#FFFFFF"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "$type": "Text",
-                                "style": {
-                                    "color": "#FFFFFF",
-                                    "fontSize": 16,
-                                    // "fontFamily": fonts.regular,
-                                    "fontWeight": "normal",
-                                    "marginTop": 8,
-                                    "textAlign": "center"
-                                },
-                                "children": "Add Profile"
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    });
-};
-
-const MediaItemScroller = ({dataset = "hits"}) => {
-    return (
-        <FlatList
-            contentContainerStyle={{"paddingLeft": 16, "paddingRight": 8}}
-            showsHorizontalScrollIndicator={false}
-            data={Object.values({
-                "hdr": [
-                    {"id": 1, "image": require("./assets/images/movies/tfae7.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/roasws.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/ae.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/cm.jpg")}
-                ],
-                "hits": [
-                    {"id": 1, "image": require("./assets/images/movies/tlm.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/tlk.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/thond.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/roasws.jpg")},
-                    {"id": 5, "image": require("./assets/images/movies/ae.jpg")},
-                    {"id": 6, "image": require("./assets/images/movies/fz.jpg")}
-                ],
-                "originals": [
-                    {"id": 1, "image": require("./assets/images/movies/tm.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/f.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/tlk.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/sb.jpg")},
-                    {"id": 5, "image": require("./assets/images/movies/fz.jpg")},
-                    {"id": 6, "image": require("./assets/images/movies/i.jpg")},
-                    {"id": 7, "image": require("./assets/images/movies/b.jpg")}
-                ],
-                "recommended": [
-                    {"id": 1, "image": require("./assets/images/movies/ae.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/anhe4.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/cm.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/tpme1.jpg")},
-                    {"id": 5, "image": require("./assets/images/movies/tfae7.jpg")},
-                    {"id": 6, "image": require("./assets/images/movies/cacw.jpg")},
-                    {"id": 7, "image": require("./assets/images/movies/tesbe5.jpg")},
-                    {"id": 8, "image": require("./assets/images/movies/aotce2.jpg")}
-                ],
-                "trending": [
-                    {"id": 1, "image": require("./assets/images/movies/ae.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/tm.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/ts.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/cm.jpg")},
-                    {"id": 5, "image": require("./assets/images/movies/tlk.jpg")},
-                    {"id": 6, "image": require("./assets/images/movies/z.jpg")},
-                    {"id": 7, "image": require("./assets/images/movies/a.jpg")}
-                ],
-                "vault": [
-                    {"id": 1, "image": require("./assets/images/movies/a.jpg")},
-                    {"id": 2, "image": require("./assets/images/movies/aiw.jpg")},
-                    {"id": 3, "image": require("./assets/images/movies/b.jpg")},
-                    {"id": 4, "image": require("./assets/images/movies/batb.jpg")},
-                    {"id": 5, "image": require("./assets/images/movies/h.jpg")},
-                    {"id": 6, "image": require("./assets/images/movies/f.jpg")},
-                    {"id": 7, "image": require("./assets/images/movies/p.jpg")},
-                    {"id": 8, "image": require("./assets/images/movies/sb.jpg")},
-                    {"id": 9, "image": require("./assets/images/movies/swatsd.jpg")},
-                    {"id": 10, "image": require("./assets/images/movies/thond.jpg")},
-                    {"id": 11, "image": require("./assets/images/movies/tsits.jpg")}
-                ]
-            }[dataset])}
-            horizontal
-            keyExtractor={({id}) => id.toString()}
-            renderItem={({"item": {image}}) => {
-                return (
-                    <View style={{
-                        "borderRadius": 4,
-                        "height": 130,
-                        "marginRight": 8,
-                        "overflow": "hidden",
-                        "width": 93
-                    }}>
-                        {
-                            image
-                                ? (
-                                    <Image source={image} style={{
-                                        "height": "100%",
-                                        "resizeMode": "contain",
-                                        "width": "100%"
-                                    }}/>
-                                )
-                                : (
-                                    <View style={{
-                                        "backgroundColor": "#A4A4A4",
-                                        "height": "100%",
-                                        "width": "100%"
-                                    }}/>
-                                )
-                        }
-                    </View>
-                );
-            }}
-        />
-    );
-};
-
-const ImageSlide = ({source = null, width: imageWidth = device.width}) => {
-    const [{height, width}, setState] = useState({"height": 0, "width": imageWidth});
-
-    useEffect(() => {
-        if (source) {
-            const {height, width} = Image.resolveAssetSource(source);
-            const responsiveHeight = Math.round((imageWidth * height) / width);
-
-            setState({"height": responsiveHeight, "width": imageWidth});
-        }
-    }, [source, imageWidth]);
-
-    return <Image source={source} style={{height, width}}/>;
-};
-
-const Categories = () => {
-    const children = [
-        {"id": 1, "image": require('./assets/images/logo/disney.png')},
-        {"id": 2, "image": require('./assets/images/logo/pixar.png')},
-        {"id": 3, "image": require('./assets/images/logo/marvel.png')},
-        {"id": 4, "image": require('./assets/images/logo/star-wars.png')},
-        {"id": 5, "image": require('./assets/images/logo/national-geographic.png')}
-    ];
-    const {length} = children;
+const Categories = ({categories = []}) => {
+    const {length} = categories;
     const size = Math.ceil((device.width - 16 - length * 18) / length);
 
     return React.createElement({
         "$type": "View",
-        "style": {
-            "alignItems": "flex-start",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "paddingBottom": 8,
-            "paddingLeft": 16,
-            "paddingTop": 24
-        },
-        "children": children.map(({id, image}) => {
-            return {
-                "$type": "TouchableOpacity",
-                "activeOpacity": 0.7,
-                "key": id,
-                "onPress": () => undefined,
-                "style": {
-                    "alignItems": "center",
-                    "borderColor": "#384569",
-                    "borderRadius": 4,
-                    "borderWidth": 1,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "marginRight": 16,
-                    "height": size
-                },
-                "children": [
-                    {
-                        "$type": "View",
-                        "style": {
-                            "borderRadius": 2,
-                            "overflow": "hidden",
-                            "position": "absolute"
-                        },
-                        "children": {
-                            "$type": "View",
-                            "data-view": "svg_category_background",
-                            "height": size - 2,
-                            "width": size
-                        }
+        "data-style": "categories",
+        "data-state": "categories",
+        "data-bind-state": "data-bind-state",
+        "data-state-repeat": "true",
+        "data-state-repeat-key": "category",
+        "data-bind-template": "",
+        "children": {
+            "$type": "TouchableOpacity",
+            "activeOpacity": 0.7,
+            "data-state": "id",
+            "data-state-path": "$.view.category.id",
+            "data-bind-state": "key",
+            "onPress": () => undefined,
+            "style": {
+                "alignItems": "center",
+                "borderColor": "#384569",
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "flex": 1,
+                "justifyContent": "center",
+                "marginRight": 16,
+                "height": size
+            },
+            "children": [
+                {
+                    "$type": "View",
+                    "style": {
+                        "borderRadius": 2,
+                        "overflow": "hidden",
+                        "position": "absolute"
                     },
-                    {
-                        "$type": "Image",
-                        "source": image,
-                        "style": {
-                            "height": 36,
-                            "width": 64
-                        }
+                    "children": {
+                        "$type": "View",
+                        "data-view": "svg_category_background",
+                        "data-state": "category_size",
+                        "data-bind-state": "width",
+                        "height": size - 2,
+                        // "width": size
                     }
-                ]
-            };
-        })
+                },
+                {
+                    "$type": "DPImage",
+                    "data-state": "image",
+                    "data-state-path": "$.view.category.image",
+                    "data-bind-state": "image",
+                    "style": {
+                        "height": 36,
+                        "width": 64
+                    }
+                }
+            ]
+        }
     });
 };
 
-class SlideShow extends React.Component {
-    render() {
-        // autoplay={true}
-        // autoplayInterval={5000}
-        // ref={(c) => (this.carousel = c)}
-        return (
-            <Carousel
-                data={[
-                    {"image": require('./assets/images/slides/star-wars-mandalorian.png')},
-                    {"image": require('./assets/images/slides/avengers-endgame.png')},
-                    {"image": require('./assets/images/slides/avatar.png')},
-                    {"image": require('./assets/images/slides/captain-marvel.png')}
-                ]}
-                loop={true}
-                renderItem={({"item": {image}}) => (
-                    <ImageSlide source={image} width={device.width - 52}/>
-                )}
-                sliderWidth={device.width}
-                itemWidth={device.width - 52}
-                vertical={false}/>
-        );
-    }
-}
+// class SlideShow extends React.Component {
+//     render() {
+//         // autoplay={true}
+//         // autoplayInterval={5000}
+//         // ref={(c) => (this.carousel = c)}
+//         // loop={true}
+//         // renderItem={({"item": {image}}) => (<ImageSlide source={image} width={device.width - 52}/>)}
+//         return React.createElement({
+//             "$type": "Carousel",
+//             "data-state": "carousel",
+//             "data-bind-state": "data",
+//             "renderItem": ({"item": {image}}) => React.createElement({"$type": "Image", "source": image}),
+//             "sliderWidth": device.width,
+//             "itemWidth": device.width - 52,
+//             "vertical": false
+//         });
+//         // return (
+//         //     <Carousel
+//         //         data-state="carousel"
+//         //         data-bind-state="data"
+//         //         renderItem={({"item": {image}}) => React.createElement({"$type": "Image", "source": image})}
+//         //         sliderWidth={device.width}
+//         //         itemWidth={device.width - 52}
+//         //         vertical={false}/>
+//         // );
+//     }
+// }
 
 const {Svg, Path} = ReactNativeSvg;
 const Stack = createAppContainer(createStackNavigator(
@@ -1134,9 +255,314 @@ const Stack = createAppContainer(createStackNavigator(
                     ),
                     "StackProfile": createStackNavigator(
                         {
-                            Profile,
-                            ProfileAppSettings,
-                            ProfileWatchList
+                            "Profile": ({navigation}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "style": {
+                                        "backgroundColor": "#0B0D15",
+                                        "flex": 1
+                                    },
+                                    "children": [
+                                        // Background
+                                        {
+                                            "$type": "View",
+                                            "data-view": "screen_background"
+                                        },
+                                        // Header
+                                        {
+                                            "$type": "View",
+                                            "style": {
+                                                "alignItems": "center",
+                                                "width": "100%"
+                                            },
+                                            "children": [
+                                                {
+                                                    "$type": "View",
+                                                    "style": {
+                                                        "alignItems": "center",
+                                                        "flexDirection": "row",
+                                                        "justifyContent": "center",
+                                                        "paddingBottom": 30,
+                                                        "paddingTop": device.iPhoneNotch ? 64 : 40,
+                                                        "width": "100%"
+                                                    },
+                                                    "children": [
+                                                        {
+                                                            "$type": "View",
+                                                            "style": {
+                                                                "alignItems": "center",
+                                                                "marginHorizontal": 10
+                                                            },
+                                                            "children": [
+                                                                {
+                                                                    "$type": "View",
+                                                                    "data-view": "profile_image",
+                                                                    "source": {
+                                                                        "uri": "https://github.com/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/stormtrooper.jpg?raw=true",
+                                                                        "width": 30,
+                                                                        "height": 30
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "$type": "View",
+                                                                    "data-view": "profile_name_selected",
+                                                                    "children": "Laura"
+                                                                },
+                                                                {
+                                                                    "$type": "View",
+                                                                    "data-view": "profile_image_selected"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "style": {
+                                                                "alignItems": "center",
+                                                                "marginHorizontal": 10
+                                                            },
+                                                            "children": [
+                                                                {
+                                                                    "$type": "View",
+                                                                    "data-view": "profile_image",
+                                                                    "source": {
+                                                                        "uri": "https://github.com/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/iron-man.jpg?raw=true",
+                                                                        "width": 30,
+                                                                        "height": 30
+                                                                    }
+                                                                },
+                                                                {
+                                                                    "$type": "View",
+                                                                    "data-view": "profile_name",
+                                                                    "children": "Tony"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "onPress": () => navigation.navigate("ModalAddProfile"),
+                                                            "data-view": "profile_add_button"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "onPress": () => navigation.navigate("ModalManageProfiles"),
+                                                    "data-view": "profile_edit_button"
+                                                }
+                                            ]
+                                        },
+                                        // Body
+                                        {
+                                            "$type": "ScrollView",
+                                            "children": [
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => navigation.navigate("ProfileWatchList"),
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "Watch List"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => navigation.navigate("ProfileAppSettings"),
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "App Settings"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => undefined,
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "Account"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => undefined,
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "Legal"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => undefined,
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "Help"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "profile_row",
+                                                    "onPress": () => Alert.alert(
+                                                        "Sign Out",
+                                                        "Are you sure that you want to sign out?",
+                                                        [{"text": "No"}, {"text": "Yes"}],
+                                                        {"cancelable": false}
+                                                    ),
+                                                    "children": [
+                                                        {
+                                                            "$type": "Text",
+                                                            "data-style": "profile_row_text",
+                                                            "children": "Log Out"
+                                                        },
+                                                        {
+                                                            "$type": "View",
+                                                            "data-view": "profile_arrow_right"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "$type": "Text",
+                                                    "style": {
+                                                        "color": "#A4A3A2",
+                                                        "fontWeight": "normal",
+                                                        // "fontFamily": fonts.regular,
+                                                        "fontSize": 18,
+                                                        "marginLeft": 16,
+                                                        "paddingVertical": 16
+                                                    },
+                                                    "children": `Version: ${Constants.manifest.version}`
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                });
+                            },
+                            "ProfileAppSettings": ({navigation}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "style": {
+                                        "backgroundColor": "#0B0D15",
+                                        "flex": 1
+                                    },
+                                    "children": [
+                                        {
+                                            "$type": "View",
+                                            "data-view": "screen_background"
+                                        },
+                                        {
+                                            "$type": "View",
+                                            "data-style": "header",
+                                            "children": [
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "header_back_button_with_left_arrow",
+                                                    "onPress": () => navigation.goBack()
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "style": {
+                                                        "flex": 4,
+                                                        "height": 35,
+                                                        "justifyContent": "flex-end"
+                                                    },
+                                                    "children": {
+                                                        "$type": "View",
+                                                        "data-view": "header_title_text",
+                                                        "children": "App Settings"
+                                                    }
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "style": {"flex": 1}
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "$type": "View",
+                                            "data-view": "screen_settings_body"
+                                        }
+                                    ]
+                                });
+                            },
+                            "ProfileWatchList": ({navigation}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "style": {
+                                        "backgroundColor": "#0B0D15",
+                                        "flex": 1
+                                    },
+                                    "children": [
+                                        {
+                                            "$type": "View",
+                                            "data-view": "screen_background"
+                                        },
+                                        {
+                                            "$type": "View",
+                                            "data-style": "header",
+                                            "children": [
+                                                {
+                                                    "$type": "View",
+                                                    "data-view": "header_back_button_with_left_arrow",
+                                                    "onPress": () => navigation.goBack()
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "style": {
+                                                        "flex": 4,
+                                                        "height": 35,
+                                                        "justifyContent": "flex-end"
+                                                    },
+                                                    "children": {
+                                                        "$type": "View",
+                                                        "data-view": "header_title_text",
+                                                        "children": "Watch List"
+                                                    }
+                                                },
+                                                {
+                                                    "$type": "View",
+                                                    "style": {"flex": 1}
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                });
+                            }
                         },
                         {
                             "initialRouteName": "Profile",
@@ -1162,7 +588,11 @@ const Stack = createAppContainer(createStackNavigator(
                                             "resizeMode": "contain",
                                             "width": "100%"
                                         },
-                                        "source": require("./assets/images/profiles/stormtrooper.jpg")
+                                        "source": {
+                                            "uri": "https://github.com/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/stormtrooper.jpg?raw=true",
+                                            "width": 30,
+                                            "height": 30
+                                        }
                                     }
                                 })
                             }
@@ -1183,8 +613,431 @@ const Stack = createAppContainer(createStackNavigator(
                 }
             )
         },
-        "ModalAddProfile": withNavigation(ModalAddProfile),
-        ModalManageProfiles
+        "ModalAddProfile": ({navigation}) => {
+            const [{forKidsValue, text}, setState] = useState({
+                "forKidsValue": false, "text": ""
+            });
+            return React.createElement({
+                "$type": "View",
+                "style": {
+                    "backgroundColor": "#000000",
+                    "flex": 1
+                },
+                "children": [
+                    {
+                        "$type": "View",
+                        "data-style": "header",
+                        "children": [
+                            {
+                                "$type": "View",
+                                "data-view": "header_back_button_with_text",
+                                "onPress": () => navigation.goBack(null),
+                                "children": {
+                                    "$type": "Text",
+                                    "data-style": "header_back_button_with_text",
+                                    "children": "Cancel"
+                                }
+                            },
+                            {
+                                "$type": "View",
+                                "style": {
+                                    "flex": 4,
+                                    "height": 35,
+                                    "justifyContent": "flex-end"
+                                },
+                                "children": {
+                                    "$type": "View",
+                                    "data-view": "header_title_text",
+                                    "children": "Create Profile"
+                                }
+                            },
+                            {
+                                "$type": "TouchableOpacity",
+                                "activeOpacity": 0.7,
+                                "onPress": () => navigation.goBack(null),
+                                "style": {
+                                    "alignItems": "flex-end",
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "height": 35
+                                },
+                                "children": {
+                                    "$type": "Text",
+                                    "style": {
+                                        "color": text !== "" ? "#FFFFFF" : "#595959",
+                                        "fontWeight": "bold"
+                                        // "fontFamily": fonts.bold
+                                    },
+                                    "children": "Save"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "$type": "View",
+                        "style": {
+                            "alignSelf": "center",
+                            "alignItems": "center",
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 60
+                        },
+                        "children": [
+                            {
+                                "$type": "Image",
+                                "source": {
+                                    "uri": "https://github.com/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/stormtrooper.jpg?raw=true",
+                                    "width": 30,
+                                    "height": 30
+                                },
+                                "style": {
+                                    "height": 108,
+                                    "width": 108,
+                                    "borderRadius": 54,
+                                    "overflow": 'hidden',
+                                    "resizeMode": "contain"
+                                }
+                            },
+                            {
+                                "$type": "Text",
+                                "style": {
+                                    "color": "#FFFFFF",
+                                    "fontSize": 16,
+                                    // "fontFamily": fonts.regular,
+                                    "fontWeight": "normal",
+                                    "marginBottom": 24,
+                                    "marginTop": 8,
+                                    "textAlign": "center"
+                                },
+                                "children": "CHANGE"
+                            },
+                            {
+                                "$type": "TextInput",
+                                "autoCapitalize": "none",
+                                "autoFocus": true,
+                                "keyboardAppearance": "dark",
+                                "onChangeText": (input) => setState({forKidsValue, "text": input}),
+                                "selectionColor": "#3070CB",
+                                "style": {
+                                    "borderColor": "#FFFFFF",
+                                    "borderWidth": 1,
+                                    "color": "#FFFFFF",
+                                    "fontSize": 16,
+                                    "paddingHorizontal": 8,
+                                    "paddingVertical": 12,
+                                    "width": 260
+                                },
+                                "value": text
+                            },
+                            {
+                                "$type": "View",
+                                "style": {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "marginTop": 16
+                                },
+                                "children": [
+                                    {
+                                        "$type": "Text",
+                                        "style": {
+                                            "color": "#FFFFFF",
+                                            // "fontFamily": fonts.light,
+                                            "fontWeight": "300",
+                                            "fontSize": 16,
+                                            "marginRight": 8,
+                                            "textTransform": "uppercase"
+                                        },
+                                        "children": "For Kids"
+                                    },
+                                    {
+                                        "$type": "Switch",
+                                        "onValueChange": (value) => {
+                                            if (value === false) {
+                                                Alert.alert(
+                                                    "This profile will now allow access to TV shows and movies of all maturity levels.",
+                                                    "",
+                                                    [{"text": "OK"}],
+                                                    {"cancelable": false}
+                                                );
+                                            }
+
+                                            setState({"forKidsValue": value, text});
+                                        },
+                                        "value": forKidsValue
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            });
+        },
+        "ModalManageProfiles": ({navigation}) => {
+            return React.createElement({
+                "$type": "View",
+                "style": {
+                    "backgroundColor": "#000000",
+                    "flex": 1
+                },
+                "children": [
+                    {
+                        "$type": "View",
+                        "data-style": "header",
+                        "children": [
+                            {
+                                "$type": "View",
+                                "data-view": "header_back_button_with_text",
+                                "onPress": () => navigation.goBack(null),
+                                "children": {
+                                    "$type": "Text",
+                                    "data-style": "header_back_button_with_text",
+                                    "children": "Done"
+                                }
+                            },
+                            {
+                                "$type": "View",
+                                "style": {
+                                    "flex": 4,
+                                    "height": 35,
+                                    "justifyContent": "flex-end"
+                                },
+                                "children": {
+                                    "$type": "View",
+                                    "data-view": "header_title_text",
+                                    "children": "Manage Profiles"
+                                }
+                            },
+                            {
+                                "$type": "View",
+                                "style": {"flex": 1}
+                            }
+                        ]
+                    },
+                    {
+                        "$type": "View",
+                        "style": {
+                            "alignSelf": "center",
+                            "flexDirection": "row",
+                            "flexWrap": "wrap",
+                            "justifyContent": "space-between",
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 60,
+                            "width": 280
+                        },
+                        "children": [
+                            {
+                                "$type": "View",
+                                "style": {
+                                    "marginBottom": 16
+                                },
+                                "children": [
+                                    {
+                                        "$type": "DPImage",
+                                        // "data-state": "stormtrooper",
+                                        "data-state-path": "$.app.$states.profiles.0.image",
+                                        "data-bind-state": "image",
+                                        "style": {
+                                            "height": 108,
+                                            "width": 108,
+                                            "borderRadius": 54,
+                                            "overflow": "hidden",
+                                            "resizeMode": "contain"
+                                        }
+                                    },
+                                    // {
+                                    //     "$type": "Image",
+                                    //     // "data-state": "stormtrooper",
+                                    //     // "data-state-path": "$.app.$states.profiles.0.image",
+                                    //     // "data-state-path-value": require("../src/assets/images/profiles/stormtrooper.jpg"),
+                                    //     // "data-bind-state": "source",
+                                    //     "source": require("../src/assets/images/profiles/stormtrooper.jpg"),
+                                    //     "style": {
+                                    //         "height": 108,
+                                    //         "width": 108,
+                                    //         "borderRadius": 54,
+                                    //         "overflow": "hidden",
+                                    //         "resizeMode": "contain"
+                                    //     }
+                                    // },
+                                    {
+                                        "$type": "Text",
+                                        "data-state-path": "$.app.$states.profiles.0.name",
+                                        "style": {
+                                            "color": "#FFFFFF",
+                                            "fontSize": 16,
+                                            // "fontFamily": fonts.regular,
+                                            "fontWeight": "normal",
+                                            "marginTop": 8,
+                                            "textAlign": "center"
+                                        }
+                                    },
+                                    {
+                                        "$type": "View",
+                                        "style": {
+                                            "backgroundColor": "rgba(0, 0, 0, 0.5)",
+                                            "height": 108,
+                                            "top": 0,
+                                            "position": "absolute",
+                                            "width": 108
+                                        }
+                                    },
+                                    {
+                                        "$type": "View",
+                                        "style": {
+                                            "alignItems": "center",
+                                            "height": 108,
+                                            "justifyContent": "center",
+                                            "position": "absolute",
+                                            "width": 108
+                                        },
+                                        "children": {
+                                            "$type": "Svg",
+                                            "height": 40,
+                                            "width": 40,
+                                            "viewBox": "0 0 24 24",
+                                            "children": {
+                                                "$type": "View",
+                                                "data-view": "svg_edit_path",
+                                                "fill": "#FFFFFF"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "$type": "View",
+                                "style": {
+                                    "marginBottom": 16
+                                },
+                                "children": [
+                                    {
+                                        "$type": "DPImage",
+                                        "data-state-path": "$.app.$states.profiles.1.image",
+                                        "data-bind-state": "image",
+                                        "style": {
+                                            "height": 108,
+                                            "width": 108,
+                                            "borderRadius": 54,
+                                            "overflow": 'hidden',
+                                            "resizeMode": "contain"
+                                        }
+                                    },
+                                    // {
+                                    //     "$type": "Image",
+                                    //     "data-state-path": "$.app.$states.profiles.1.image",
+                                    //     // "data-state-path-value": require("../src/assets/images/profiles/stormtrooper.jpg"),
+                                    //     "data-bind-state": "source",
+                                    //     // "source": require("../src/assets/images/profiles/stormtrooper.jpg"),
+                                    //     "style": {
+                                    //         "height": 108,
+                                    //         "width": 108,
+                                    //         "borderRadius": 54,
+                                    //         "overflow": 'hidden',
+                                    //         "resizeMode": "contain"
+                                    //     }
+                                    // },
+                                    {
+                                        "$type": "Text",
+                                        "data-state-path": "$.app.$states.profiles.1.name",
+                                        "style": {
+                                            "color": "#FFFFFF",
+                                            "fontSize": 16,
+                                            // "fontFamily": fonts.regular,
+                                            "fontWeight": "normal",
+                                            "marginTop": 8,
+                                            "textAlign": "center"
+                                        }
+                                    },
+                                    {
+                                        "$type": "View",
+                                        "style": {
+                                            "backgroundColor": "rgba(0, 0, 0, 0.5)",
+                                            "height": 108,
+                                            "top": 0,
+                                            "position": "absolute",
+                                            "width": 108
+                                        }
+                                    },
+                                    {
+                                        "$type": "View",
+                                        "style": {
+                                            "alignItems": "center",
+                                            "height": 108,
+                                            "justifyContent": "center",
+                                            "position": "absolute",
+                                            "width": 108
+                                        },
+                                        "children": {
+                                            "$type": "Svg",
+                                            "height": 40,
+                                            "width": 40,
+                                            "viewBox": "0 0 24 24",
+                                            "children": {
+                                                "$type": "View",
+                                                "data-view": "svg_edit_path",
+                                                "fill": "#FFFFFF"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "$type": "TouchableOpacity",
+                                "style": {
+                                    "marginBottom": 16
+                                },
+                                "activeOpacity": 0.7,
+                                "onPress": () => navigation.navigate("ModalAddProfile"),
+                                "children": [
+                                    {
+                                        "$type": "View",
+                                        "style": {
+                                            "alignItems": "center",
+                                            "height": 108,
+                                            "justifyContent": "center",
+                                            "width": 108
+                                        },
+                                        "children": {
+                                            "$type": "View",
+                                            "style": {
+                                                "alignItems": "center",
+                                                "backgroundColor": "#0B0B0B",
+                                                "borderRadius": 34,
+                                                "height": 68,
+                                                "justifyContent": "center",
+                                                "width": 68
+                                            },
+                                            "children": {
+                                                "$type": "Svg",
+                                                "height": 40,
+                                                "width": 40,
+                                                "viewBox": "0 0 24 24",
+                                                "children": {
+                                                    "$type": "View",
+                                                    "data-view": "svg_plus_path",
+                                                    "fill": "#FFFFFF"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "$type": "Text",
+                                        "style": {
+                                            "color": "#FFFFFF",
+                                            "fontSize": 16,
+                                            // "fontFamily": fonts.regular,
+                                            "fontWeight": "normal",
+                                            "marginTop": 8,
+                                            "textAlign": "center"
+                                        },
+                                        "children": "Add Profile"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
     },
     {
         "headerMode": "none",
@@ -1193,7 +1046,9 @@ const Stack = createAppContainer(createStackNavigator(
     }
 ));
 
+const window = Dimensions.get("window");
 const state = {
+    ...app,
     "$composers": {
         ...Object.keys(ReactNative)
             .filter((key) => {
@@ -1225,14 +1080,88 @@ const state = {
         Text,
         TextInput,
         Switch,
-        SlideShow,
+        Carousel,
         Categories,
-        MediaItemScroller,
-        HeaderManage,
-        TouchLineItem,
-        HeaderAccounts
+        DPImage,
+        "category_size": [
+            {
+                "$compose": "create",
+                "$value": {
+                    "window_width": {
+                        "$compose": "read",
+                        "$value": "$.app.$states.window_width",
+                        "$default": 0
+                    },
+                    "number_of_categories": {
+                        "$compose": "read",
+                        "$value": "$.app.$states.categories.length",
+                        "$default": 0
+                    }
+                }
+            },
+            {
+                "$compose": "math",
+                "$value": "ceil((window_width - 16 - number_of_categories * 18) / number_of_categories)",
+                "$default": 0
+            }
+        ]
     },
-    "$styles": {},
+    "$states": {
+        ...$states,
+        "window_width": window.width,
+        "window_height": window.height
+    },
+    "$styles": {
+        "categories": {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "paddingBottom": 8,
+            "paddingLeft": 16,
+            "paddingTop": 24
+        },
+        "header": {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "paddingBottom": 4,
+            "paddingHorizontal": 16,
+            "paddingTop": device.iPhoneNotch ? 54 : 30
+        },
+        "profile_row": {
+            "borderBottomColor": "#A4A3A2",
+            "borderBottomWidth": 1,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginLeft": 16,
+            "paddingRight": 16,
+            "paddingVertical": 20
+        },
+        "profile_row_text": {
+            "color": "#FFFFFF",
+            "flex": 2,
+            "fontWeight": "normal",
+            // "fontFamily": fonts.regular,
+            "fontSize": 16
+        },
+        "header_back_button_with_text": {
+            "color": "#FFFFFF",
+            "fontWeight": "bold"
+            // "fontFamily": fonts.bold
+        },
+        "header_title": {
+            "flex": 4,
+            "height": 35,
+            "justifyContent": "flex-end"
+        },
+        "home_row_item": {
+            "height": 130,
+            "width": 93,
+            "borderRadius": 4,
+            "marginRight": 8,
+            "overflow": "hidden"
+        }
+    },
     "$events": {
         "on_press_logo": [
             {
@@ -1561,6 +1490,12 @@ const state = {
         "header_back_button": {
             "$type": "TouchableOpacity",
             "activeOpacity": 0.7,
+            "onPress": null,
+            "children": []
+        },
+        "header_back_button_with_left_arrow": {
+            "$type": "View",
+            "data-view": "header_back_button",
             "style": {
                 "alignSelf": "center",
                 "flex": 1
@@ -1570,7 +1505,23 @@ const state = {
                 "data-view": "svg_arrow_left"
             }
         },
+        "header_back_button_with_text": {
+            "$type": "View",
+            "data-view": "header_back_button",
+            "style": {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "justifyContent": "center",
+                "height": 35
+            },
+            "children": []
+        },
         "header_title": {
+            "$type": "View",
+            "data-style": "header_title",
+            "children": []
+        },
+        "header_title_text": {
             "$type": "Text",
             "style": {
                 "color": "#FFFFFF",
@@ -1582,14 +1533,137 @@ const state = {
         },
         "header": {
             "$type": "View",
+            "data-style": "header",
+            "children": []
+        },
+        "profile_add_image": {
+            "$type": "View",
             "style": {
-                "alignItems": "flex-start",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "paddingBottom": 4,
-                "paddingHorizontal": 16,
-                "paddingTop": device.iPhoneNotch ? 54 : 30
+                "height": 74,
+                "width": 74,
+                "borderRadius": 37,
+                "alignItems": "center",
+                "backgroundColor": "#50525D",
+                "justifyContent": "center",
+                "marginBottom": 4
             },
+            "children": {
+                "$type": "View",
+                "data-view": "svg_plus",
+                "height": 40,
+                "width": 40
+            }
+        },
+        "profile_image": {
+            "$type": "Image",
+            "source": 0,
+            "style": {
+                "height": 74,
+                "width": 74,
+                "borderRadius": 37,
+                "marginBottom": 6,
+                "overflow": "hidden",
+                "resizeMode": "contain",
+            }
+        },
+        "profile_image_selected": {
+            "$type": "View",
+            "style": {
+                "position": "absolute",
+                "borderColor": "#FFFFFF",
+                "borderRadius": 37,
+                "borderWidth": 2,
+                "height": 74,
+                "width": 74
+            }
+        },
+        "profile_name": {
+            "$type": "Text",
+            "style": {
+                "color": "#A4A3A2",
+                "fontSize": 12,
+                "fontWeight": "500",
+                // "fontFamily": fonts.medium,
+                "marginTop": 4
+            },
+            "children": ""
+        },
+        "profile_name_selected": {
+            "$type": "Text",
+            "style": {
+                "color": "#FFFFFF",
+                "fontSize": 12,
+                "fontWeight": "bold",
+                // "fontFamily": fonts.medium,
+                "marginTop": 4
+            },
+            "children": ""
+        },
+        "profile_edit_button_title": {
+            "$type": "Text",
+            "style": {
+                "color": "#FFFFFF",
+                "fontWeight": "500",
+                // "fontFamily": fonts.medium,
+                "paddingHorizontal": 16,
+                "paddingVertical": 8,
+                "textTransform": "uppercase"
+            },
+            "children": "Edit Profiles"
+        },
+        "profile_edit_button": {
+            "$type": "TouchableOpacity",
+            "activeOpacity": 0.7,
+            "onPress": null,
+            "style": {
+                "alignItems": "center",
+                "backgroundColor": "#404249",
+                "borderRadius": 4,
+                "flexDirection": "row",
+                "justifyContent": "center",
+                "marginBottom": 24
+            },
+            "children": {
+                "$type": "View",
+                "data-view": "profile_edit_button_title"
+            }
+        },
+        "profile_add_button": {
+            "$type": "TouchableOpacity",
+            "activeOpacity": 0.7,
+            "style": {
+                "alignItems": "center",
+                "marginHorizontal": 10
+            },
+            "children": [
+                {
+                    "$type": "View",
+                    "data-view": "profile_add_image"
+                },
+                {
+                    "$type": "View",
+                    "data-view": "profile_name",
+                    "children": "Add Profile"
+                }
+            ]
+        },
+        "profile_arrow_right": {
+            "$type": "View",
+            "style": {
+                "justifyContent": "center"
+            },
+            "children": {
+                "$type": "View",
+                "data-view": "svg_arrow_right",
+                "height": 20,
+                "width": 20
+            }
+        },
+        "profile_row": {
+            "$type": "TouchableOpacity",
+            "activeOpacity": 0.7,
+            "onPress": null,
+            "data-style": "profile_row",
             "children": []
         },
         "settings_downloads_bar": {
@@ -1730,6 +1804,49 @@ const state = {
                 }
             ]
         },
+        "home_row_item_image": {
+            "$type": "Image",
+            "style": {
+                "height": "100%",
+                "width": "100%",
+                "resizeMode": "contain",
+                "backgroundColor": "#A4A4A4"
+            },
+            "source": 0
+        },
+        "home_row_item": {
+            "$type": "View",
+            "style": {
+                "height": 130,
+                "width": 93,
+                "borderRadius": 4,
+                "marginRight": 8,
+                "overflow": "hidden"
+            },
+            "children": {
+                "$type": "View",
+                "data-view": "home_row_item_image"
+            }
+        },
+        "home_row": {
+            "$type": "FlatList",
+            "data-state": "originals",
+            "data-bind-state": "data",
+            "contentContainerStyle": {
+                "paddingLeft": 16,
+                "paddingRight": 8
+            },
+            "showsHorizontalScrollIndicator": false,
+            "horizontal": true,
+        },
+        "screen_background": {
+            "$type": "View",
+            "style": {"position": "absolute"},
+            "children": {
+                "$type": "View",
+                "data-view": "svg_background"
+            }
+        },
         "screen_downloads": {
             "$type": "View",
             "style": {
@@ -1739,22 +1856,11 @@ const state = {
             "children": [
                 {
                     "$type": "View",
-                    "style": {"position": "absolute"},
-                    "children": {
-                        "$type": "View",
-                        "data-view": "svg_background"
-                    }
+                    "data-view": "screen_background"
                 },
                 {
                     "$type": "View",
-                    "style": {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "justifyContent": "space-between",
-                        "paddingBottom": 4,
-                        "paddingHorizontal": 16,
-                        "paddingTop": device.iPhoneNotch ? 54 : 30
-                    },
+                    "data-style": "header",
                     "children": [
                         {
                             "$type": "View",
@@ -1765,7 +1871,7 @@ const state = {
                             },
                             "children": {
                                 "$type": "View",
-                                "data-view": "header_title",
+                                "data-view": "header_title_text",
                                 "children": "Downloads"
                             }
                         }
@@ -1838,11 +1944,7 @@ const state = {
             "children": [
                 {
                     "$type": "View",
-                    "style": {"position": "absolute"},
-                    "children": {
-                        "$type": "View",
-                        "data-view": "svg_background"
-                    }
+                    "data-view": "screen_background"
                 },
                 {
                     "$type": "ScrollView",
@@ -1867,10 +1969,18 @@ const state = {
                             }
                         },
                         {
-                            "$type": "SlideShow"
+                            "$type": "Carousel",
+                            "data-state": "carousel",
+                            "data-bind-state": "data",
+                            "renderItem": ({"item": {image}}) => React.createElement({"$type": "Image", "source": image}),
+                            "sliderWidth": device.width,
+                            "itemWidth": device.width - 52,
+                            "vertical": false
                         },
                         {
-                            "$type": "Categories"
+                            "$type": "Categories",
+                            "data-state": "categories",
+                            "data-bind-state": "categories"
                         },
                         {
                             "$type": "Text",
@@ -1886,8 +1996,22 @@ const state = {
                             "children": "Originals"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "originals"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "originals",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "Text",
@@ -1903,8 +2027,22 @@ const state = {
                             "children": "Recommended For You"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "recommended"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "recommended",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "Text",
@@ -1920,8 +2058,22 @@ const state = {
                             "children": "Hit Movies"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "hits"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "hits",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "Text",
@@ -1937,8 +2089,22 @@ const state = {
                             "children": "Trending"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "trending"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "trending",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "Text",
@@ -1954,8 +2120,22 @@ const state = {
                             "children": "Out of the Vault"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "vault"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "vault",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "Text",
@@ -1971,8 +2151,22 @@ const state = {
                             "children": "Ultra HD and HDR"
                         },
                         {
-                            "$type": "MediaItemScroller",
-                            "dataset": "hdr"
+                            "$type": "View",
+                            "data-view": "home_row",
+                            "data-state": "hdr",
+                            "data-bind-state": "data",
+                            "keyExtractor": ({id}) => id.toString(),
+                            "renderItem": ({"item": {image}}) => {
+                                return React.createElement({
+                                    "$type": "View",
+                                    "data-style": "home_row_item",
+                                    "children": {
+                                        "$type": "View",
+                                        "data-view": "home_row_item_image",
+                                        "source": image
+                                    }
+                                });
+                            },
                         },
                         {
                             "$type": "View",
@@ -1994,13 +2188,7 @@ const state = {
             "children": [
                 {
                     "$type": "View",
-                    "style": {
-                        "position": "absolute"
-                    },
-                    "children": {
-                        "$type": "View",
-                        "data-view": "svg_background"
-                    }
+                    "data-view": "screen_background"
                 },
                 {
                     "$type": "ScrollView",
@@ -2110,6 +2298,40 @@ const state = {
                 {
                     "$type": "View",
                     "data-view": "settings_downloads_bar"
+                },
+                {
+                    "$type": "View",
+                    "data-state": "movies",
+                    "data-state-value": [
+                        {
+                            "id": "0",
+                            "name": "Pokemon: The First Movie"
+                        },
+                        {
+                            "id": "1",
+                            "name": "Pokemon: The Movie 2000"
+                        }
+                    ],
+                    "data-bind-state": "data-bind-state",
+                    "data-state-repeat": "true",
+                    "data-state-repeat-key": "movie",
+                    "data-bind-template": "",
+                    "children": [
+                        {
+                            "$type": "View",
+                            "data-state": "id",
+                            "data-state-path": "$.view.movie.id",
+                            "data-bind-state": "key",
+                            "children": {
+                                "$type": "Text",
+                                "style": {
+                                    "color": "purple"
+                                },
+                                "data-state": "name",
+                                "data-state-path": "$.view.movie.name",
+                            }
+                        }
+                    ]
                 }
             ]
         }
