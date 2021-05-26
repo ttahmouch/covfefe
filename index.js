@@ -1657,7 +1657,8 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-state-type": $stateType = $stateValue === null ? "null" : typeof $stateValue,
         "data-state-params": $stateParams = $stateType === "object" ? $stateValue : {[$state]: toNormalizedJson($stateValue)},
         // TODO: Support binding state to multiple props.
-        "data-bind-state": $bindState = $stateType !== "undefined" ? "children" : "data-bind-state",
+        // "data-bind-state": $bindState = $stateType !== "undefined" ? "children" : "data-bind-state",
+        "data-bind-state": $bindState = $stateType !== "undefined" && !$shouldStateRepeat ? "children" : "data-bind-state",
         "data-should-bind-template": $shouldBindTemplate = $bindState === "children" && children.length === 0,
         "data-bind-template": $bindTemplate = !$shouldBindTemplate ? "" : $stateType === "object"
             ? serializeJson($stateValue)
