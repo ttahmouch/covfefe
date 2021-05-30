@@ -8,7 +8,7 @@ import {createStackNavigator} from "react-navigation-stack";
 import * as ReactNativeSvg from "react-native-svg";
 import {createBottomTabNavigator} from "react-navigation-tabs";
 import {App, createElementWithCustomDataProps, createEventMiddleware, createLogMiddleware, createRouteMiddleware, storeFromConfiguration} from "covfefe";
-import Carousel from "react-native-snap-carousel";
+import * as ReactNativeSnapCarousel from "react-native-snap-carousel";
 import Constants from "expo-constants";
 import app, {$states} from "./disneyplux.json";
 
@@ -99,7 +99,7 @@ const DPImage = ({image, ...props}) => {
     });
 };
 
-const Categories = ({categories = []}) => {
+const DPCategories = ({categories = []}) => {
     const {length} = categories;
     const size = Math.ceil((device.width - 16 - length * 18) / length);
 
@@ -188,7 +188,7 @@ const Categories = ({categories = []}) => {
 //     }
 // }
 
-const Stack = createAppContainer(createStackNavigator(
+const DPStack = createAppContainer(createStackNavigator(
     {
         "Main": {
             "screen": createBottomTabNavigator(
@@ -1129,22 +1129,27 @@ const react_native_components = [
     "View",
     "VirtualizedList"
 ];
+const react_native_snap_carousel_components = [
+    "Carousel",
+    "Pagination",
+    "ParallaxImage"
+];
 const ambiguous_react_native_svg_components = react_native_svg_components
     .filter((component = "") => react_native_components.includes(component));
 const state = {
     ...app,
     "$composers": {
+        ...react_native_snap_carousel_components
+            .reduce((snap_carousel, key) => ({...snap_carousel, [key]: ReactNativeSnapCarousel[key]}), {}),
         ...react_native_svg_components
-            .reduce((react_native_svg, key) => ({...react_native_svg, [key]: ReactNativeSvg[key]}), {}),
+            .reduce((svg, key) => ({...svg, [key]: ReactNativeSvg[key]}), {}),
         ...react_native_components
             .reduce((react_native, key) => ({...react_native, [key]: ReactNative[key]}), {}),
         ...ambiguous_react_native_svg_components
-            .reduce((react_native_svg, key) => ({...react_native_svg, [`Svg${key}`]: ReactNativeSvg[key]}), {}),
-        // RNSC
-        Carousel,
+            .reduce((svg, key) => ({...svg, [`Svg${key}`]: ReactNativeSvg[key]}), {}),
         // Disney Plux
-        Stack,
-        Categories,
+        DPStack,
+        DPCategories,
         DPImage,
         "category_size": [
             {
@@ -2043,7 +2048,7 @@ const state = {
                             "vertical": false
                         },
                         {
-                            "$type": "Categories",
+                            "$type": "DPCategories",
                             "data-state": "categories",
                             "data-bind-state": "categories"
                         },
@@ -2434,7 +2439,7 @@ const state = {
             //     ]
             // },
             {
-                "$type": "Stack"
+                "$type": "DPStack"
             }
         ]
     }
