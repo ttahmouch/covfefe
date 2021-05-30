@@ -1,5 +1,5 @@
 import React, {createElement, useState} from "react";
-import ReactNative, {Alert, Dimensions, Image, Platform, Switch, Text, TextInput} from "react-native";
+import ReactNative, {Alert, Dimensions, Platform} from "react-native";
 import {composeWithDevTools} from "redux-devtools-extension";
 import {createMemoryHistory} from "history";
 import {registerRootComponent} from "expo";
@@ -116,6 +116,8 @@ const Categories = ({categories = []}) => {
             "data-state-path": "$.view.category.id",
             "data-bind-state": "key",
             "onPress": () => undefined,
+            // "data-event": "on_press_logo",
+            // "data-bind-event": "onPress",
             "style": {
                 "alignItems": "center",
                 "borderColor": "#384569",
@@ -186,7 +188,6 @@ const Categories = ({categories = []}) => {
 //     }
 // }
 
-const {Svg, Path} = ReactNativeSvg;
 const Stack = createAppContainer(createStackNavigator(
     {
         "Main": {
@@ -480,7 +481,8 @@ const Stack = createAppContainer(createStackNavigator(
                                                         "marginLeft": 16,
                                                         "paddingVertical": 16
                                                     },
-                                                    "children": `Version: ${Constants.manifest.version}`
+                                                    "data-state": "app_version",
+                                                    "data-bind-template": "Version: (app_version)"
                                                 }
                                             ]
                                         }
@@ -1059,42 +1061,89 @@ const Stack = createAppContainer(createStackNavigator(
         "mode": "modal"
     }
 ));
-
+// Corrected ambiguous component issues between RN and RNSVG.
+// Moved from a black list to a white list approach for allowing core components from RN and RNSVG.
+// Ensured that issues with event type and dataset in RN are corrected to match the behavior from the DOM in React.JS.
 const window = Dimensions.get("window");
+const react_native_svg_components = [
+    "Circle",
+    "ClipPath",
+    "Defs",
+    "Ellipse",
+    "ForeignObject",
+    "G",
+    "Image",
+    "Line",
+    "LinearGradient",
+    "LocalSvg",
+    "Marker",
+    "Mask",
+    "Path",
+    "Pattern",
+    "Polygon",
+    "Polyline",
+    "RadialGradient",
+    "Rect",
+    "Shape",
+    "Stop",
+    "Svg",
+    "SvgAst",
+    "SvgCss",
+    "SvgCssUri",
+    "SvgFromUri",
+    "SvgFromXml",
+    "SvgUri",
+    "SvgWithCss",
+    "SvgWithCssUri",
+    "SvgXml",
+    "Symbol",
+    "TSpan",
+    "Text",
+    "TextPath",
+    "Use",
+    "WithLocalSvg"
+];
+const react_native_components = [
+    "ActivityIndicator",
+    "Button",
+    "DrawerLayoutAndroid",
+    "FlatList",
+    "Image",
+    "ImageBackground",
+    "InputAccessoryView",
+    "KeyboardAvoidingView",
+    "Modal",
+    "Pressable",
+    "RefreshControl",
+    "SafeAreaView",
+    "ScrollView",
+    "SectionList",
+    "StatusBar",
+    "Switch",
+    "Text",
+    "TextInput",
+    "TouchableHighlight",
+    "TouchableNativeFeedback",
+    "TouchableOpacity",
+    "TouchableWithoutFeedback",
+    "View",
+    "VirtualizedList"
+];
+const ambiguous_react_native_svg_components = react_native_svg_components
+    .filter((component = "") => react_native_components.includes(component));
 const state = {
     ...app,
     "$composers": {
-        ...Object.keys(ReactNative)
-            .filter((key) => {
-                switch (key) {
-                    case "AsyncStorage":
-                    case "CheckBox":
-                    case "Clipboard":
-                    case "DatePickerAndroid":
-                    case "DatePickerIOS":
-                    case "ImagePickerIOS":
-                    case "MaskedViewIOS":
-                    case "Picker":
-                    case "PickerIOS":
-                    case "ProgressBarAndroid":
-                    case "ProgressViewIOS":
-                    case "PushNotificationIOS":
-                    case "SegmentedControlIOS":
-                    case "Slider":
-                    case "StatusBarIOS":
-                        return false;
-                    default:
-                        return true;
-                }
-            })
+        ...react_native_svg_components
+            .reduce((react_native_svg, key) => ({...react_native_svg, [key]: ReactNativeSvg[key]}), {}),
+        ...react_native_components
             .reduce((react_native, key) => ({...react_native, [key]: ReactNative[key]}), {}),
-        ...ReactNativeSvg,
-        Stack,
-        Image,
-        Text,
-        TextInput,
-        Switch,
+        ...ambiguous_react_native_svg_components
+            .reduce((react_native_svg, key) => ({...react_native_svg, [`Svg${key}`]: ReactNativeSvg[key]}), {}),
+        // RNSC
         Carousel,
+        // Disney Plux
+        Stack,
         Categories,
         DPImage,
         "category_size": [
@@ -1123,7 +1172,10 @@ const state = {
     "$states": {
         ...$states,
         "window_width": window.width,
-        "window_height": window.height
+        "window_height": window.height,
+        "app_version": Constants.manifest.version,
+        "device_model": typeof Constants.platform.ios !== "undefined" ? Constants.platform.ios.model : "Unknown Device",
+        "should_show_modal": true
     },
     "$styles": {
         "categories": {
@@ -1694,9 +1746,7 @@ const state = {
                     "style": {
                         "color": "#FFFFFF"
                     },
-                    "children": typeof Constants.platform.ios !== "undefined"
-                        ? Constants.platform.ios.model
-                        : "Unknown Device"
+                    "data-state": "device_model"
                 },
                 {
                     "$type": "View",
@@ -1978,6 +2028,7 @@ const state = {
                                 },
                                 "children": {
                                     "$type": "View",
+                                    "data-if": "should_show_modal",
                                     "data-view": "svg_disney_plus_logo"
                                 }
                             }
@@ -2354,6 +2405,34 @@ const state = {
                 "$type": "StatusBar",
                 "hidden": true
             },
+            // {
+            //     "$type": "Svg",
+            //     "height": 200,
+            //     "width": 200,
+            //     "children": [
+            //         {
+            //             "$type": "SvgImage",
+            //             "x": "5%",
+            //             "y": "5%",
+            //             "width": "50%",
+            //             "height": "90%",
+            //             "preserveAspectRatio": "xMidYMid slice",
+            //             "opacity": "0.5",
+            //             "href": "https://picsum.photos/200/200",
+            //             "clipPath": "url(#clip)"
+            //         },
+            //         {
+            //             "$type": "SvgText",
+            //             "x": "50",
+            //             "y": "50",
+            //             "textAnchor": "middle",
+            //             "fontWeight": "bold",
+            //             "fontSize": "16",
+            //             "fill": "blue",
+            //             "children": "HOGWARTS"
+            //         }
+            //     ]
+            // },
             {
                 "$type": "Stack"
             }

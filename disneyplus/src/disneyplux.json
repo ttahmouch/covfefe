@@ -499,7 +499,7 @@
         "$action": "create_$states_items",
         "$value": {
           "items": {
-            "should_show_modal": false
+            "should_show_modal": true
           }
         }
       }

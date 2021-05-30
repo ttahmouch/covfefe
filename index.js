@@ -1173,6 +1173,7 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
         const from = `${status}`;
         const dataset = datasetFromProps(events[from] || {});
         Object.defineProperty(event, "type", {"value": from});
+        // event.type = from
         event.currentTarget.dataset = dataset;
         return dispatch(event, states);
     });
@@ -1438,15 +1439,15 @@ export const isEvent = (event, dependencies = {isAction, isEventReference}) => {
 
 export const isDomEvent = (event) => (typeof event === "object" && event !== null && typeof event.type === "string");
 
-// export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
-//     const {eventTypeFromDomEvent} = dependencies;
-//     const type = eventTypeFromDomEvent(event) || "";
-//
-//     return event.currentTarget instanceof XMLHttpRequest
-//         && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
-// };
+export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
+    const {eventTypeFromDomEvent} = dependencies;
+    const type = eventTypeFromDomEvent(event) || "";
 
-export const isDomProgressEvent = (event) => event instanceof ProgressEvent;
+    return event.currentTarget instanceof XMLHttpRequest
+        && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
+};
+
+// export const isDomProgressEvent = (event) => event instanceof ProgressEvent;
 
 export const isDomFormEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
     const {eventTypeFromDomEvent} = dependencies;
@@ -1607,23 +1608,31 @@ export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDi
     const {$states = state, $store = store, $props = {}} = config;
     const view = viewStateFromStates($states) || {};
     const dispatch = eventDispatcherForStore($store, view) || ((event = domEvent) => undefined);
-    const {"data-event": $to = undefined, "data-event-target": $target = "self", "data-bind-event": $from = "data-bind-event"} = $props;
+    // Should I create something like `data-event-state` to allow things like unique IDs to be found on events from
+    // repeated elements, e.g., categories or movies in a row?
+    const {
+        "data-event": $to = undefined,
+        "data-event-target": $target = "self",
+        "data-bind-event": $from = "data-bind-event"
+    } = $props;
+    const dataset = datasetFromProps($props) || {};
+    const $dispatcher = (event) => {
+        const {type = "", currentTarget = {}} = event;
+        // Does this need to be a lowercase string with the `on` stripped from the prefix?
+        !type && (event.type = $from);
+        !currentTarget.dataset && (currentTarget.dataset = dataset);
+        return dispatch(event, $states);
+    };
 
     switch ($target) {
         case "window":
         case "document":
-            const dataset = datasetFromProps($props) || {};
-            const $dispatcher = (event) => {
-                event.currentTarget.dataset = dataset;
-                return dispatch(event, $states);
-            };
             view["data-dispatchers"] = [...view["data-dispatchers"], {$target, $from, $dispatcher}];
             window[$target].addEventListener($from, $dispatcher);
             return {"$bindEvent": undefined, "$eventValue": undefined};
         case "self":
         default:
-            // Can I get a reference to the element from within the createElement method to avoid setting the prop?
-            return {"$bindEvent": $from, "$eventValue": $to ? (event) => dispatch(event, $states) : undefined};
+            return {"$bindEvent": $from, "$eventValue": $to ? $dispatcher : undefined};
     }
 };
 
@@ -1657,7 +1666,6 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-state-type": $stateType = $stateValue === null ? "null" : typeof $stateValue,
         "data-state-params": $stateParams = $stateType === "object" ? $stateValue : {[$state]: toNormalizedJson($stateValue)},
         // TODO: Support binding state to multiple props.
-        // "data-bind-state": $bindState = $stateType !== "undefined" ? "children" : "data-bind-state",
         "data-bind-state": $bindState = $stateType !== "undefined" && !$shouldStateRepeat ? "children" : "data-bind-state",
         "data-should-bind-template": $shouldBindTemplate = $bindState === "children" && children.length === 0,
         "data-bind-template": $bindTemplate = !$shouldBindTemplate ? "" : $stateType === "object"
