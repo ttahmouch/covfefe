@@ -11,7 +11,6 @@
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
     "urijs": "^1.19.1",
-    "util": "^0.12.4",
     "whatwg-url": "^8.5.0"
   },
   "main": "index.js",
