@@ -8,6 +8,7 @@ import Ajv from "ajv";
 import URITemplate from "urijs/src/URITemplate";
 import {compile, match} from "path-to-regexp";
 import * as mathjs from "mathjs";
+import {URL, URLSearchParams} from "whatwg-url";
 
 Object.fromEntries = typeof Object.fromEntries === "function"
     ? Object.fromEntries
@@ -716,7 +717,9 @@ export const encodeUri = (composer = {}, dependencies = {create, deserializeUrl,
         href = "", host = "", protocol = "", username = "", password = "", hostname = "", port = "",
         pathname = "/", search = "", hash = "", "searchParams": params = {}
     } = create({...composer, $value}) || {};
-    const base = typeof window !== "undefined" ? window.location.toString() : "https://hostname";
+    const base = typeof window !== "undefined" && typeof window.location !== "undefined"
+        ? window.location.toString()
+        : "https://hostname";
     const url = deserializeUrl({"url": base});
     const searchParams = new URLSearchParams(params).toString();
 
@@ -1338,7 +1341,9 @@ export const dispatchRoutePathParamsToStore = (pathParams = {}, states = state, 
 };
 
 export const dispatchRouteToStore = (route = {"pathname": "/", "search": "", "hash": ""},
-                                     store = store) => {
+                                     store = store,
+                                     dependencies = {URLSearchParams}) => {
+    const {URLSearchParams} = dependencies;
     const {
         pathname = "/", search = "", hash = "",
         pathParams = {}, searchParams = Object.fromEntries(new URLSearchParams(search)),
