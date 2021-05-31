@@ -10,8 +10,7 @@
     "react": "^16.13.1",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
-    "urijs": "^1.19.1",
-    "whatwg-url": "^8.5.0"
+    "urijs": "^1.19.1"
   },
   "main": "index.js",
   "scripts": {
