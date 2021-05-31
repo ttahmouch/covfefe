@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "ajv": "^6.10.0",
+    "core-js-pure": "^3.13.1",
     "jsonpath-plus": "^4.0.0",
     "mathjs": "^8.0.1",
     "path-to-regexp": "^6.1.0",
