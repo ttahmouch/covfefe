@@ -11,6 +11,12 @@ import * as mathjs from "mathjs";
 import URL from "core-js-pure/features/url";
 import URLSearchParams from "core-js-pure/features/url-search-params";
 
+// Is there a reason for these to be WHATWG?
+if (typeof global !== "undefined") {
+    global.URL = URL;
+    global.URLSearchParams = URLSearchParams;
+}
+
 Object.fromEntries = typeof Object.fromEntries === "function"
     ? Object.fromEntries
     : ((iterable) => ([...iterable].reduce((map, [name, value]) => (map[name] = value, map), {})));
