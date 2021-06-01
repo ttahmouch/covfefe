@@ -12,10 +12,9 @@ import URL from "core-js-pure/features/url";
 import URLSearchParams from "core-js-pure/features/url-search-params";
 
 // Is there a reason for these to be WHATWG?
-if (typeof global !== "undefined") {
-    global.URL = URL;
-    global.URLSearchParams = URLSearchParams;
-}
+// This only works in the DOM because WebPack maps `global` to `window`.
+global.URL = URL;
+global.URLSearchParams = URLSearchParams;
 
 Object.fromEntries = typeof Object.fromEntries === "function"
     ? Object.fromEntries
@@ -1455,12 +1454,16 @@ export const isEvent = (event, dependencies = {isAction, isEventReference}) => {
 
 export const isDomEvent = (event) => (typeof event === "object" && event !== null && typeof event.type === "string");
 
-export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent}) => {
-    const {eventTypeFromDomEvent} = dependencies;
+export const isDomProgressEvent = (event, dependencies = {eventTypeFromDomEvent, "isInteger": Number.isInteger}) => {
+    const {eventTypeFromDomEvent, isInteger} = dependencies;
     const type = eventTypeFromDomEvent(event) || "";
+    const status = Number(type) || 0;
 
     return event.currentTarget instanceof XMLHttpRequest
-        && ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type);
+        && (
+            ["abort", "error", "load", "loadend", "loadstart", "progress", "timeout"].includes(type)
+            || (isInteger(status) && status > 0)
+        );
 };
 
 // export const isDomProgressEvent = (event) => event instanceof ProgressEvent;
