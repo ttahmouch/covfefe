@@ -1,39 +1,89 @@
+import * as ReactNativeSnapCarousel from "react-native-snap-carousel";
+import * as ReactNativeSvg from "react-native-svg";
+import Constants from "expo-constants";
 import React, {createElement, useState} from "react";
 import ReactNative, {Alert, Dimensions, Platform} from "react-native";
-import {composeWithDevTools} from "redux-devtools-extension";
-import {createMemoryHistory} from "history";
-import {registerRootComponent} from "expo";
-import {createAppContainer} from "react-navigation";
-import {createStackNavigator} from "react-navigation-stack";
-import * as ReactNativeSvg from "react-native-svg";
-import {createBottomTabNavigator} from "react-navigation-tabs";
-import {App, createElementWithCustomDataProps, createEventMiddleware, createLogMiddleware, createRouteMiddleware, storeFromConfiguration} from "covfefe";
-import * as ReactNativeSnapCarousel from "react-native-snap-carousel";
-import Constants from "expo-constants";
 import app, {$states} from "./disneyplux.json";
+import {App, createElementWithCustomDataProps, createEventMiddleware, createLogMiddleware, createRouteMiddleware, storeFromConfiguration} from "covfefe";
+import {composeWithDevTools} from "redux-devtools-extension";
+import {createAppContainer} from "react-navigation";
+import {createBottomTabNavigator} from "react-navigation-tabs";
+import {createMemoryHistory} from "history";
+import {createStackNavigator} from "react-navigation-stack";
+import {registerRootComponent} from "expo";
 
 // # React Native Concerns
-// + Styling (data-style needs to be referencable, composable, like
-// + Repeating (data-bind-state binds to children by default when repeating.)
-// + Event Handling (React Native events don't include the same metadata as DOM events.)
+// + Styling (data-style needs to be referencable, composable, like data-view).
+// + ✅ Repeating (data-bind-state binds to children by default when repeating.)
+// + ✅ Event Handling (React Native events don't include the same metadata as DOM events.)
 // + Function Props (Are these any different from traditional events? I think so as they don't indicate a side-effect,
 // i.e., user input, response, etc.)
-// TT | Incrementally converted practically all of the JS components that contained `React.createElement({JSON})` to simple JSON elements in the `$views` section of the Redux Store.
-//     There is one component for the `Categories`, i.e., Disney, Pixar, Marvel, Star Wars, Nat Geo, that will not be possible to convert to JSON until I have a way of binding state to multiple props as I need to be able to bind a `size` state to `width` and `height` props for the dimensions of the category icons.
-//     I added some basic state of the `window.(width|height)` to the Redux Store initial state since there isn't an equivalent of `vw` or `vh` units in RN, and there is no way of using an engine like CSS.
-//     I added a basic component called `DPImage` that literally just proxies all props to RN `Image` and maps `image` to `source` prop. This was silly as it was only needed by `iOS` since for some reason if I bound to the `source` prop directly on an `Image` element the runtime would emit a RedBox with a cryptic error message. `Android` handled binding the `source` prop on an `Image` element directly without issue. I'm still unsure why mapping from the `image` prop of the custom `DPImage` component to the RN `source` solves the problem as it doesn't make practical sense.
-//     I still need to make a way to map custom function props to compositions that can return state immediately out of the composition (unlike mapping events to actions which update the Redux Store state when they are dispatched and cause re-renders). Custom function props are unlike events in the sense that they are usually not side-effects, e.g., user input, server responses, etc., but rather they are component lifecycle, e.g., `keyExtractor`, `renderItem` on `FlatList`. When this is done, I should be able to decouple the lambda functions that are currently embedded in examples like `renderItem` into JSON-based compositions. It should work fine for that use-case because the `FlatList` is a component rendered in an element tree. However, in a case like `tabBarIcon` on a `StackNavigator` being an imperative API, i.e., not a component, I don't think this approach will work since it's not a component rendered in an element tree that can use a basic prop. So I will need a way to do the same thing with an imperative API, e.g., `tabBarIcon: ({focused}) => // Set focused state and then React.createElement({}) with it selectable`.
-//     I still need to replace usages of `iPhoneNotch` with something like `SafeAreaView`, but that is `iOS`-only so I may have to consider a library for Android notches. I'd like to not have to use custom logic to account for dimensions on notch devices.
-//     I made all image sources dynamically fetched from an image server, i.e., GitHub. This means I'll eventually need to reduce the Image `source` to composed state that can just structure the URI into an object that may be serialized as the URI right now are pretty large.
-//     I also need to consider not dereferencing views from the Redux Store unnecessarily. I started moving views to the `$views` section of the Redux Store as an incremental way of shifting as many of the components from the JS functions to JSON as was reasonable. I may need to reconsider bringing some of the `data-view` references back into their parent JSON to simplify cases of state binding when multiple props are supported in state binding.
-//     I also currently left the usage of React Navigation intact to prove that an implementation of a third-party navigation engine works perfectly fine while still keeping the majority of the application code declarative using JSON. However, I can't avoid needing to provide functions for things like `focused` for the tab button presses, and `navigation` to push and pop routes from the stack. I will build a parallel implementation showing how to handle routing using the built-in routing system in the framework. I will still need to consider how to add animations to the routing engine though to make more polished looking transitions for things like page navigations on a stack.
-//     I also need to consider if it makes sense to add support for dispatching actions to present alerts to the user in the system default alert views for web and native implementations since those should be considered a side-effect much in the same way as an HTTP request. Their practicality is rather limited though since there is nothing stopping someone from implementing a custom modal view and binding state to it from the Redux Store.
-//     There is still an issue with event dispatching in React Native since the event objects that get passed to the event handlers don't contain all the same metadata that they do in React Web. So that will need to be handled somehow to allow for things like `onPress` to work as expected.
-//     I still need to support a platform-agnostic way of handling localization of state from the Redux Store. Right now everything is just treated as generic state so all localizations would have to be provided from the server, or you'd have to implement a way of distinguishing the different state based on the current user's locale in a custom manner.
-//     I still need to decide if it makes sense to expect the consumer of the framework to export all components they will need as a base set in the `$composers`, or if there should be a base set provided for React Native at the very least. It feels perfectly reasonable to expect that they be provided manually as too many assumptions would have to be made about possible components with naming collisions, e.g., Image from RN and image from RNSVG. However, I feel like `$components` should be created to allow distinguishing JS components from arbitrary compositions even though they are technically compositions. Components just don't compose arbitrary state, but rather view elements.
-//     In the same vein, will the framework need to provide things like the window width and height out of the box in React Native since CSS doesn't exist in this context? Right now I added them into the initial state of the Redux Store manually, and this feels reasonable to me.
-//     I would really like a way for styles to be composable, referencable, and propogatable if needed (similarly to views).
-//     I also need to get element repetition polished for React Native as some props are only needed since the behavior of React Native is much stricter about things like setting text as children of nodes in the element tree that are not explicitly `<Text>` elements. This seems to cause an issue with the `children` prop getting set twice before the final elements get set necessitation `"data-bind-state": "data-bind-state"`.
+// + Bind multiple props (e.g., DPCategories, size 👉 height and size 👉 width)
+// + Map custom function props to compositions (i.e., not events that dispatch actions; compositions that return state)
+// (e.g., FlatList 👉 renderItem and FlatList 👉 keyExtractor)
+// + Consider if there is actually a fix for the case of StackNavigator 👉 tabBarIcon since that is not a component
+// (i.e., tabBarIcon: ({focused}) => // Set the focused state and then React.createElement({}) with it selectable)
+// + Replace `iPhoneNotch` usages with `SafeAreaView` (and consider Android notches)
+// + Replace all image sources with {"$compose": "encode", "$type": "uri"}
+
+// I made all image sources dynamically fetched from an image server, i.e., GitHub. This means I'll eventually need to
+// reduce the Image `source` to composed state that can just structure the URI into an object that may be serialized as
+// the URI right now are pretty large.
+
+// I also need to consider not dereferencing views from the Redux Store unnecessarily. I started moving views to the
+// `$views` section of the Redux Store as an incremental way of shifting as many of the components from the JS functions
+// to JSON as was reasonable. I may need to reconsider bringing some of the `data-view` references back into their
+// parent JSON to simplify cases of state binding when multiple props are supported in state binding.
+
+// I also currently left the usage of React Navigation intact to prove that an implementation of a third-party
+// navigation engine works perfectly fine while still keeping the majority of the application code declarative using
+// JSON. However, I can't avoid needing to provide functions for things like `focused` for the tab button presses, and
+// `navigation` to push and pop routes from the stack. I will build a parallel implementation showing how to handle
+// routing using the built-in routing system in the framework. I will still need to consider how to add animations to
+// the routing engine though to make more polished looking transitions for things like page navigations on a stack.
+
+// I also need to consider if it makes sense to add support for dispatching actions to present alerts to the user in the
+// system default alert views for web and native implementations since those should be considered a side-effect much in
+// the same way as an HTTP request. Their practicality is rather limited though since there is nothing stopping someone
+// from implementing a custom modal view and binding state to it from the Redux Store.
+
+// Should this be done with custom middleware in user space? Or is this a core feature of the library? Or hybrid by
+// allowing the middleware to be passed in as an option but not defaulting it?
+
+// ✅ There is still an issue with event dispatching in React Native since the event objects that get passed to the event
+// handlers don't contain all the same metadata that they do in React Web. So that will need to be handled somehow to
+// allow for things like `onPress` to work as expected.
+
+// I still need to support a platform-agnostic way of handling localization of state from the Redux Store. Right now
+// everything is just treated as generic state so all localizations would have to be provided from the server, or you'd
+// have to implement a way of distinguishing the different state based on the current user's locale in a custom manner.
+
+// I still need to decide if it makes sense to expect the consumer of the framework to export all components they will
+// need as a base set in the `$composers`, or if there should be a base set provided for React Native at the very least.
+// It feels perfectly reasonable to expect that they be provided manually as too many assumptions would have to be made
+// about possible components with naming collisions, e.g., Image from RN and image from RNSVG. However, I feel like
+// `$components` should be created to allow distinguishing JS components from arbitrary compositions even though they
+// are technically compositions. Components just don't compose arbitrary state, but rather view elements.
+// In the same vein, will the framework need to provide things like the window width and height out of the box in React
+// Native since CSS doesn't exist in this context? Right now I added them into the initial state of the Redux Store
+// manually, and this feels reasonable to me.
+
+// I would really like a way for styles to be composable, referencable, and propogatable if needed (similarly to views),
+// i.e., "data-style": "style-id"
+// i.e., "data-style": ["style-id", "style-id2"]
+// i.e., "data-style": {"backgroundColor": "red"}
+// i.e., "data-style": {"$style": "style-id", "backgroundColor": "red"}
+// i.e., "data-style": [
+//   {"$style": "style-id", "backgroundColor": "red"},
+//   {"$style": "style-id2", "backgroundColor": {"$compose": "create", "$value": "red"}}},
+//   Last Item Takes Precedence.
+// ]
+// Should this work the same way for state and events?
+
+// ✅ I also need to get element repetition polished for React Native as some props are only needed since the behavior of
+// React Native is much stricter about things like setting text as children of nodes in the element tree that are not
+// explicitly `<Text>` elements. This seems to cause an issue with the `children` prop getting set twice before the
+// final elements get set necessitation `"data-bind-state": "data-bind-state"`.
 const {height, width} = Dimensions.get("window");
 const device = {
     width,
@@ -598,17 +648,14 @@ const DPStack = createAppContainer(createStackNavigator(
                                         "width": 40
                                     },
                                     "children": {
-                                        "$type": "Image",
+                                        "$type": "DPImage",
                                         "style": {
                                             "height": "100%",
-                                            "resizeMode": "contain",
-                                            "width": "100%"
+                                            "width": "100%",
+                                            "resizeMode": "contain"
                                         },
-                                        "source": {
-                                            "uri": "https://github.com/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/stormtrooper.jpg?raw=true",
-                                            "width": 30,
-                                            "height": 30
-                                        }
+                                        "data-state": "profile_image_source",
+                                        "data-bind-state": "image"
                                     }
                                 })
                             }
@@ -1172,7 +1219,25 @@ const state = {
                 "$value": "ceil((window_width - 16 - number_of_categories * 18) / number_of_categories)",
                 "$default": 0
             }
-        ]
+        ],
+        "profile_image_source": {
+            "$compose": "create",
+            "$value": {
+                "uri": {
+                    "$compose": "encode",
+                    "$type": "uri",
+                    "$value": {
+                        "href": "https://github.com",
+                        "pathname": "/ttahmouch/covfefe/blob/feature/jsonml+disneyplus/disneyplus/src/assets/images/profiles/stormtrooper.jpg",
+                        "searchParams": {
+                            "raw": "true"
+                        }
+                    }
+                },
+                "width": 30,
+                "height": 30
+            }
+        }
     },
     "$states": {
         ...$states,
