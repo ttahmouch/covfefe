@@ -368,14 +368,7 @@ export default {
         "navigation_bar": (
             // Pull this up to root when we support binding multiple events.
             <nav className="navigation"
-                 data-style="conditional_navigation_bar_style"
-                 data-bind-event="scroll"
-                 data-event="on_scroll"
-                 data-event-target="window"
-                 data-event-state="scrollY"
-                 data-event-state-path="$.event.currentTarget.scrollY"
-                 data-event-delay="0"
-                 data-event-delay-type="debounce">
+                 data-style="conditional_navigation_bar_style">
                 <ul className="navigation__container">
                     <img className="navigation__container--logo"
                          data-state="netflix_logo"
@@ -425,9 +418,20 @@ export default {
         ...$views
     },
     "$view": (
-        <div data-bind-event="DOMContentLoaded"
-             data-event="on_load"
-             data-event-target="window">
+        <div data-events={{
+            "DOMContentLoaded": {
+                "data-event": "on_load",
+                "data-event-target": "window"
+            },
+            "scroll": {
+                "data-event": "on_scroll",
+                "data-event-target": "window",
+                "data-event-state": "scroll_y",
+                "data-event-state-path": "$.event.currentTarget.scrollY",
+                "data-event-delay": "0",
+                "data-event-delay-type": "debounce"
+            }
+        }}>
             <div data-view="navigation_bar"/>
             <div data-if-path="/"
                  data-view="home"/>

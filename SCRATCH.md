@@ -1700,3 +1700,56 @@ console.assert(composeFromValue([
  * {type: "div", props: {onClick: "", children: []}}
  * {type: "input", props: {type: "text"}}
  */
+
+/**
+ "data-state": $state = undefined,
+ "data-state-repeat": $stateRepeat = undefined,
+ "data-state-default": $stateDefault = undefined,
+ "data-state-path": $statePath = undefined,
+ "data-state-type": $stateType = undefined,
+ "data-state-params": $stateParams = undefined,
+ "data-bind-state": $bindState = undefined,
+ "data-should-bind-template": $shouldBindTemplate = undefined,
+ "data-bind-template": $bindTemplate = undefined
+
+ Consider that all the historic data-* props happen in specific order for things
+ like repetition. An object mapping props to state compositions seems reasonable
+ to me as props must be unique per element, and keeping the compositions as
+ simple identifiers seems reasonable to me as well however it might also be more
+ practical to design it to allow inlining compositions by value. It would just
+ not allow for a case where the value being composed is a basic string as that
+ may be confused with an identifier but that can still be handled by just
+ nesting composers. Also, change this to use `data-state` instead of
+ `data-bind-state` because then it leaves no room for the idea that you could
+ ever bind state using an object and a separate composition, and it simplifies
+ the logic in this method considerably.
+
+ This data structure would map state to props and the state could be represented
+ as IDs or values to be composed. If the state happened to be an Array mapping
+ to children, then you could still state the repeat props and have them work.
+ The shorthand for using a JSON Path selector to select state could still be
+ done by nesting a READ composer. If the children happens to be a string that
+ contains templates, then I would need to map all other states to the Object
+ used for the templates. The only thing that wouldn't work seamlessly would be
+ how you'd map default values to each prop, but compositions do support default
+ values so I can't remember why I needed to support it in the elements
+ themselves.
+
+ {
+   "height": {"$compose": "create", "$value": 50},
+   "width": {"$compose": "create", "$value": 50}
+ }
+
+ Input: {"prop": "state|composition ID", "prop2": {"state": {"$compose": "composition"}}}
+ Output: {"prop": "output state", "prop2": "output state"}
+
+ Does arbitrary state need to be referencable and propogatable like other types,
+ e.g., requests, responses, etc.? Consider allowing composers to be arbitrary
+ state from the root level and implicitly wrapped in a create composer if no
+ $compose key is specified.
+
+ The only reason default values are relevant on elements are because of JSON
+ Path selectors used for convenience. It even applies in composeFromIdentifier
+ when it attempts to reference state if no composition is found of the same name
+ and uses a default value.
+ */

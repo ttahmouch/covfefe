@@ -43,3 +43,101 @@
 + ❌ Support embedding composers inside types like styles instead of generating styles from composers. Support `style` and `data-style?
     Support dereferencing styles the same way we handle HTTP requests.
 + ❌ Upgrade React and React DOM.
+
+---
+
+ # React Native Concerns
+ + Styling (data-style needs to be referencable, composable, like data-view).
+ + ✅ Repeating (data-bind-state binds to children by default when repeating.)
+ + ✅ Event Handling (React Native events don't include the same metadata as
+ DOM events.)
+ + Function Props (Are these any different from traditional events? I think so
+ as they don't indicate a side-effect,i.e., user input, response, etc.)
+ + ✅ Bind multiple props (e.g., DPCategories, size 👉 height and size 👉 width)
+ + Map custom function props to compositions (i.e., not events that dispatch
+ actions; compositions that return state)
+ (e.g., FlatList 👉 renderItem and FlatList 👉 keyExtractor)
+ + Consider if there is actually a fix for the case of StackNavigator 👉
+ tabBarIcon since that is not a component (i.e., tabBarIcon: ({focused}) =>
+ Set the focused state and then React.createElement({}) with it selectable)
+ + Replace `iPhoneNotch` usages with `SafeAreaView` (and consider Android
+ notches)
+ + Replace all image sources with {"$compose": "encode", "$type": "uri"}
+
+ I made all image sources dynamically fetched from an image server, i.e.,
+ GitHub. This means I'll eventually need to reduce the Image `source` to
+ composed state that can just structure the URI into an object that may be
+ serialized as the URI right now are pretty large.
+
+ I also need to consider not dereferencing views from the Redux Store
+ unnecessarily. I started moving views to the `$views` section of the Redux
+ Store as an incremental way of shifting as many of the components from the JS
+ functions to JSON as was reasonable. I may need to reconsider bringing some
+ of the `data-view` references back into their parent JSON to simplify cases
+ of state binding when multiple props are supported in state binding.
+
+ I also currently left the usage of React Navigation intact to prove that an
+ implementation of a third-party navigation engine works perfectly fine while
+ still keeping the majority of the application code declarative using JSON.
+ However, I can't avoid needing to provide functions for things like `focused`
+ for the tab button presses, and `navigation` to push and pop routes from the
+ stack. I will build a parallel implementation showing how to handle routing
+ using the built-in routing system in the framework. I will still need to
+ consider how to add animations to the routing engine though to make more
+ polished looking transitions for things like page navigations on a stack.
+
+ I also need to consider if it makes sense to add support for dispatching
+ actions to present alerts to the user in the system default alert views for web
+ and native implementations since those should be considered a side-effect much
+ in the same way as an HTTP request. Their practicality is rather limited though
+ since there is nothing stopping someone from implementing a custom modal view
+ and binding state to it from the Redux Store.
+
+ Should this be done with custom middleware in user space? Or is this a core
+ feature of the library? Or hybrid by allowing the middleware to be passed in as
+ an option but not defaulting it?
+
+ ✅ There is still an issue with event dispatching in React Native since the
+ event objects that get passed to the event handlers don't contain all the same
+ metadata that they do in React Web. So that will need to be handled somehow to
+ allow for things like `onPress` to work as expected.
+
+ I still need to support a platform-agnostic way of handling localization of
+ state from the Redux Store. Right now everything is just treated as generic
+ state so all localizations would have to be provided from the server, or you'd
+ have to implement a way of distinguishing the different state based on the
+ current user's locale in a custom manner.
+
+ I still need to decide if it makes sense to expect the consumer of the
+ framework to export all components they will need as a base set in the
+ `$composers`, or if there should be a base set provided for React Native at the
+ very least. It feels perfectly reasonable to expect that they be provided
+ manually as too many assumptions would have to be made about possible
+ components with naming collisions, e.g., Image from RN and image from RNSVG.
+ However, I feel like `$components` should be created to allow distinguishing JS
+ components from arbitrary compositions even though they are technically
+ compositions. Components just don't compose arbitrary state, but rather view
+ elements. In the same vein, will the framework need to provide things like the
+ window width and height out of the box in React Native since CSS doesn't exist
+ in this context? Right now I added them into the initial state of the Redux
+ Store manually, and this feels reasonable to me.
+
+ I would really like a way for styles to be composable, referencable, and
+ propogatable if needed (similarly to views),
+ i.e., "data-style": "style-id"
+ i.e., "data-style": ["style-id", "style-id2"]
+ i.e., "data-style": {"backgroundColor": "red"}
+ i.e., "data-style": {"$style": "style-id", "backgroundColor": "red"}
+ i.e., "data-style": [
+ {"$style": "style-id", "backgroundColor": "red"},
+ {"$style": "style-id2", "backgroundColor": {"$compose": "create", "$value": "red"}}},
+ Last Item Takes Precedence.
+ ]
+ Should this work the same way for state and events?
+
+ ✅ I also need to get element repetition polished for React Native as some
+ props are only needed since the behavior of React Native is much stricter about
+ things like setting text as children of nodes in the element tree that are not
+ explicitly `<Text>` elements. This seems to cause an issue with the `children`
+ prop getting set twice before the final elements get set necessitation
+ `"data-bind-state": "data-bind-state"`.

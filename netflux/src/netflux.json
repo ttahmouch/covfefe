@@ -52,7 +52,7 @@
     },
     "is_scrolling": {
       "$compose": "read",
-      "$value": "$.app.$states.isScrolling",
+      "$value": "$.app.$states.is_scrolling",
       "$default": false
     },
     "is_title": [
@@ -512,16 +512,16 @@
                 {
                   "$compose": "create",
                   "$value": {
-                    "scrollY": {
+                    "scroll_y": {
                       "$compose": "read",
-                      "$value": "$.app.$states.scrollY",
+                      "$value": "$.app.$states.scroll_y",
                       "$default": 0
                     }
                   }
                 },
                 {
                   "$compose": "math",
-                  "$value": "tanh(scrollY) * .7",
+                  "$value": "tanh(scroll_y) * .7",
                   "$default": 0
                 }
               ]
@@ -2937,25 +2937,25 @@
         "$action": "create_$states_items",
         "$value": {
           "items": {
-            "scrollY": {
+            "scroll_y": {
               "$compose": "read",
-              "$value": "$.scrollY",
+              "$value": "$.scroll_y",
               "$default": 0
             },
-            "isScrolling": [
+            "is_scrolling": [
               {
                 "$compose": "create",
                 "$value": {
-                  "scrollY": {
+                  "scroll_y": {
                     "$compose": "read",
-                    "$value": "$.scrollY",
+                    "$value": "$.scroll_y",
                     "$default": 0
                   }
                 }
               },
               {
                 "$compose": "math",
-                "$value": "scrollY > 0",
+                "$value": "scroll_y > 0",
                 "$default": false
               }
             ]
@@ -3878,7 +3878,9 @@
         "url": "/trending/all/week?api_key=6eef0740d3ea72e3ca8701f8207cac60&language=en-US",
         "movies": []
       }
-    ]
+    ],
+    "scroll_y": 0,
+    "is_scrolling": false
   },
   "$styles": {},
   "$views": {
@@ -4522,13 +4524,6 @@
       "$type": "nav",
       "className": "navigation",
       "data-style": "conditional_navigation_bar_style",
-      "data-bind-event": "scroll",
-      "data-event": "on_scroll",
-      "data-event-target": "window",
-      "data-event-state": "scrollY",
-      "data-event-state-path": "$.event.currentTarget.scrollY",
-      "data-event-delay": "0",
-      "data-event-delay-type": "debounce",
       "children": {
         "$type": "ul",
         "className": "navigation__container",
@@ -4626,9 +4621,20 @@
   },
   "$view": {
     "$type": "div",
-    "data-bind-event": "DOMContentLoaded",
-    "data-event": "on_load",
-    "data-event-target": "window",
+    "data-events": {
+      "DOMContentLoaded": {
+        "data-event": "on_load",
+        "data-event-target": "window"
+      },
+      "scroll": {
+        "data-event": "on_scroll",
+        "data-event-target": "window",
+        "data-event-state": "scroll_y",
+        "data-event-state-path": "$.event.currentTarget.scrollY",
+        "data-event-delay": "0",
+        "data-event-delay-type": "debounce"
+      }
+    },
     "children": [
       {
         "$type": "div",

@@ -116,6 +116,8 @@ export const elementShorthand = {"$type": "", "$children": []};
 
 export const element = {"type": "", "props": {"children": []}};
 
+export const propertyDescriptor = {"value": undefined, "configurable": true, "enumerable": true, "writable": true};
+
 // Dependencies --------------------------------------------------------------------------------------------------------
 
 export const appStateFromStore = (store = store) => store.getState() || {};
@@ -176,10 +178,10 @@ export const datasetFromProps = (props = {}, dependencies = {snakeToCamelCase}) 
     const prefix = /^data[-]/;
     return Object.keys(props)
         .filter((prop) => prefix.test(prop))
-        .reduce((dataset, prop) => ({...dataset, [snakeToCamelCase(prop.replace(prefix, ''))]: props[prop]}), {});
+        .reduce((dataset, prop) => ({...dataset, [snakeToCamelCase(prop.replace(prefix, ""))]: props[prop]}), {});
 };
 
-export const toType = (value) => Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+export const toType = (value) => Array.isArray(value) ? "array" : value === null ? "null" : typeof value;
 
 export const toNormalizedJson = (value, dependencies = {toType}) => {
     const {toType} = dependencies;
@@ -1128,13 +1130,15 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
                                                appStateFromStates, mockResponseFromResponses, mockSettingFromSettings,
                                                dispatchMockEventAndResponseFromClient, mockEventFromEvents,
                                                dispatchSyncActionToStore, viewStateFromStates, responseStateFromDomEvent,
-                                               datasetFromProps
+                                               datasetFromProps, currentTargetFromDomEvent, eventTypeFromDomEvent,
+                                               propertyDescriptor
                                            }) => {
     const {
         getRequestBody, requestFromAsyncAction, responsesFromAsyncAction, responseFromAsyncAction, eventsFromAsyncAction,
         eventDispatcherForStore, settingsFromAppState, toDereferencedRequest, toDereferencedResponse, appStateFromStates,
         mockResponseFromResponses, mockSettingFromSettings, dispatchMockEventAndResponseFromClient, mockEventFromEvents,
-        dispatchSyncActionToStore, viewStateFromStates, responseStateFromDomEvent, datasetFromProps
+        dispatchSyncActionToStore, viewStateFromStates, responseStateFromDomEvent, datasetFromProps,
+        currentTargetFromDomEvent, eventTypeFromDomEvent, propertyDescriptor
     } = dependencies;
     const app = appStateFromStates(states) || app;
     const view = viewStateFromStates(states) || {};
@@ -1176,18 +1180,21 @@ export const dispatchAsyncActionToStore = (action = asyncAction, states, store =
         .map((from = "") => ({from, "dataset": datasetFromProps(events[from] || {})}))
         .forEach(({from = "", dataset = {}}) => {
             return client.addEventListener(from, (event = domEvent) => {
-                event.currentTarget.dataset = dataset;
+                const type = eventTypeFromDomEvent(event) || "";
+                const currentTarget = currentTargetFromDomEvent(event) || {};
+                Object.defineProperty(event, "type", {...propertyDescriptor, "value": type || from});
+                Object.defineProperty(currentTarget, "dataset", {...propertyDescriptor, "value": dataset});
                 return dispatch(event, states);
             });
         });
 
     client.addEventListener("load", (event = domEvent) => {
-        const {status = 0} = responseStateFromDomEvent(event);
+        const currentTarget = currentTargetFromDomEvent(event) || {};
+        const {status = 0} = responseStateFromDomEvent(event) || {};
         const from = `${status}`;
         const dataset = datasetFromProps(events[from] || {});
-        Object.defineProperty(event, "type", {"value": from});
-        // event.type = from
-        event.currentTarget.dataset = dataset;
+        Object.defineProperty(event, "type", {...propertyDescriptor, "value": from});
+        Object.defineProperty(currentTarget, "dataset", {...propertyDescriptor, "value": dataset});
         return dispatch(event, states);
     });
 
@@ -1622,8 +1629,15 @@ export const eventDispatcherForStore = (store = store, view = {},
 
 // App -----------------------------------------------------------------------------------------------------------------
 
-export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDispatcherForStore, viewStateFromStates}) => {
-    const {datasetFromProps, eventDispatcherForStore, viewStateFromStates} = dependencies;
+export const bindEvent = (config = {},
+                          dependencies = {
+                              datasetFromProps, eventDispatcherForStore, viewStateFromStates, currentTargetFromDomEvent,
+                              eventTypeFromDomEvent, propertyDescriptor
+                          }) => {
+    const {
+        datasetFromProps, eventDispatcherForStore, viewStateFromStates, currentTargetFromDomEvent,
+        eventTypeFromDomEvent, propertyDescriptor
+    } = dependencies;
     const {$states = state, $store = store, $props = {}} = config;
     const view = viewStateFromStates($states) || {};
     const dispatch = eventDispatcherForStore($store, view) || ((event = domEvent) => undefined);
@@ -1635,11 +1649,15 @@ export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDi
         "data-bind-event": $from = "data-bind-event"
     } = $props;
     const dataset = datasetFromProps($props) || {};
+    // Consolidate these event dispatchers since they are mostly identical.
+    // This will need an event: {type: "", currentTarget: {dataset: {}}} and states: {app, view}.
+    // Consider using this to allow for event dispatching from ejected components.
     const $dispatcher = (event) => {
-        const {type = "", currentTarget = {}} = event;
-        // Does this need to be a lowercase string with the `on` stripped from the prefix?
-        !type && (event.type = $from);
-        !currentTarget.dataset && (currentTarget.dataset = dataset);
+        const type = eventTypeFromDomEvent(event) || "";
+        const currentTarget = currentTargetFromDomEvent(event) || {};
+        // Does this need to be a lowercase string with the `on` stripped from the prefix for RN?
+        Object.defineProperty(event, "type", {...propertyDescriptor, "value": type || $from});
+        Object.defineProperty(currentTarget, "dataset", {...propertyDescriptor, "value": dataset});
         return dispatch(event, $states);
     };
 
@@ -1655,14 +1673,37 @@ export const bindEvent = (config = {}, dependencies = {datasetFromProps, eventDi
     }
 };
 
+export const mapStateToProps = (props = {}, states = state, dependencies = {composeFromIdentifier}) => {
+    const {composeFromIdentifier} = dependencies;
+    const toState = (map = {}, prop = "") => {
+        const identifier = props[prop] || "";
+        const state = composeFromIdentifier(identifier, states, "$states");
+        return ({...map, [prop]: state});
+    };
+    return Object.keys(props).reduce(toState, {});
+};
+
+export const mapEventToProps = (props = {}, config = {}, dependencies = {bindEvent}) => {
+    const {bindEvent} = dependencies;
+    const {$props = {}} = config;
+    const toEvent = (map = {}, prop = "") => {
+        const eventProps = props[prop] || {};
+        const elementProps = {...$props, "data-bind-event": prop, ...eventProps};
+        const event = bindEvent({...config, "$props": elementProps});
+        const {$bindEvent = "data-bind-event", $eventValue = undefined} = event;
+        return ({...map, [$bindEvent]: $eventValue});
+    };
+    return Object.keys(props).reduce(toEvent, {});
+};
+
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
                                            dependencies = {
                                                appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate,
-                                               composeValueFromPath, serializeJson, toNormalizedJson
+                                               composeValueFromPath, mapStateToProps, mapEventToProps, serializeJson, toNormalizedJson
                                            }) => {
     const {
         appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate, composeValueFromPath,
-        serializeJson, toNormalizedJson
+        mapStateToProps, mapEventToProps, serializeJson, toNormalizedJson
     } = dependencies;
     const app = appStateFromStore(store) || {};
     const $states = {app, view};
@@ -1670,6 +1711,8 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
     const {
         // Did switching from "" to undefined impact rendering speed?
         "data-state": $state = undefined,
+        "data-states": $stateIdentifiers = {},
+        "data-states-value": $stateValues = mapStateToProps($stateIdentifiers, $states),
         "data-state-repeat": $stateRepeat = undefined,
         "data-state-repeat-depth": $stateRepeatDepth = "0",
         "data-state-repeat-depth-value": $stateRepeatDepthValue = Number($stateRepeatDepth) || 0,
@@ -1693,6 +1736,8 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
         "data-style": $style = undefined,
         "data-style-value": $styleValue = $style && composeFromIdentifier($style, $states, "$styles"),
         "data-bind-style": $bindStyle = $styleValue ? "style" : "data-bind-style",
+        "data-events": $eventIdentifiers = {},
+        "data-events-value": $eventValues = mapEventToProps($eventIdentifiers, {$states, "$store": store, "$props": props}),
         "data-bind-event-value": $bindEventValue = bindEvent({$states, "$store": store, "$props": props})
     } = props || {};
     const {$bindEvent = "data-bind-event", $eventValue = undefined} = $bindEventValue;
@@ -1700,7 +1745,15 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
     $state && (view[$state] = $stateValue);
 
     const reactProps = {
-        "props": {...props, [$bindStyle]: $styleValue, [$bindState]: $stateValue, [$bindEvent]: $eventValue},
+        "props": {
+            ...props,
+            [$bindStyle]: $styleValue,
+            [$bindState]: $stateValue,
+            [$bindEvent]: $eventValue,
+            ...$stateValues,
+            ...$eventValues
+
+        },
         "children": ($shouldStateRepeat && Array.isArray($stateValue) ? $stateValue : [$stateValue])
             .flatMap((item) => {
                 $shouldStateRepeat && (view[$stateRepeatKey] = item);
