@@ -8,7 +8,8 @@
     "jsonpath-plus": "^4.0.0",
     "mathjs": "^8.0.1",
     "path-to-regexp": "^6.1.0",
-    "react": "^16.13.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-redux": "^7.2.0",
     "redux": "^4.0.5",
     "urijs": "^1.19.1"
