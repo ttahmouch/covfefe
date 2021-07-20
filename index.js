@@ -69,7 +69,9 @@ export const node = {"value": "", "dataset": {"event": "", "stateType": "string"
 
 export const target = {...client, ...node};
 
-export const domEvent = {"preventDefault": () => undefined, "type": "", "currentTarget": target, target};
+export const domEvent = {
+    "preventDefault": () => undefined, "type": "", "nativeEvent": {}, "currentTarget": target, target
+};
 
 export const syncAction = {"$action": "", "$path": "", "$value": undefined, "$if": undefined, "$unless": undefined};
 
@@ -119,6 +121,10 @@ export const element = {"type": "", "props": {"children": []}};
 export const propertyDescriptor = {"value": undefined, "configurable": true, "enumerable": true, "writable": true};
 
 // Dependencies --------------------------------------------------------------------------------------------------------
+
+export const isReactWeb = () => typeof document !== "undefined";
+
+export const isReactNative = () => typeof navigator !== "undefined" && navigator.product == "ReactNative";
 
 export const appStateFromStore = (store = store) => store.getState() || {};
 
@@ -1488,6 +1494,8 @@ export const targetFromDomEvent = ({target = {}} = domEvent) => target;
 
 export const currentTargetFromDomEvent = ({currentTarget = {}} = domEvent) => currentTarget;
 
+export const nativeEventFromDomEvent = ({nativeEvent = {}} = domEvent) => nativeEvent;
+
 export const datasetFromDomEvent = ({"currentTarget": {dataset = {}} = {}} = domEvent) => dataset;
 
 export const isSelectableDomEvent = (event = domEvent, dependencies = {datasetFromDomEvent}) => {
@@ -1590,20 +1598,26 @@ export const stateFromDomEvent = (states = state,
 
 export const eventDispatcherForStore = (store = store, view = {},
                                         dependencies = {
-                                            appStateFromStore, datasetFromDomEvent, delay, enumerableDomEvent, eventFromEvents,
-                                            eventIdentifierFromDomEvent, eventTypeFromDomEvent, eventsFromAppState,
-                                            inputStateFromDomEvent, isDomEvent, isDomFormEvent, isDomProgressEvent, isSelectableDomEvent,
-                                            responseStateFromDomEvent, stateFromDomEvent, toDereferencedEvent,
+                                            appStateFromStore, currentTargetFromDomEvent, datasetFromDomEvent, delay,
+                                            enumerableDomEvent, eventFromEvents, eventIdentifierFromDomEvent,
+                                            eventTypeFromDomEvent, eventsFromAppState, inputStateFromDomEvent, isDomEvent,
+                                            isDomFormEvent, isDomProgressEvent, isReactNative, isReactWeb, isSelectableDomEvent,
+                                            nativeEventFromDomEvent, responseStateFromDomEvent, stateFromDomEvent,
+                                            targetFromDomEvent, toDereferencedEvent,
                                         }) => {
     const {
-        appStateFromStore, datasetFromDomEvent, delay, enumerableDomEvent, eventFromEvents,
-        eventIdentifierFromDomEvent, eventTypeFromDomEvent, eventsFromAppState,
-        inputStateFromDomEvent, isDomEvent, isDomFormEvent, isDomProgressEvent, isSelectableDomEvent,
-        responseStateFromDomEvent, stateFromDomEvent, toDereferencedEvent,
+        appStateFromStore, currentTargetFromDomEvent, datasetFromDomEvent, delay, enumerableDomEvent, eventFromEvents,
+        eventIdentifierFromDomEvent, eventTypeFromDomEvent, eventsFromAppState, inputStateFromDomEvent, isDomEvent,
+        isDomFormEvent, isDomProgressEvent, isReactNative, isReactWeb, isSelectableDomEvent, nativeEventFromDomEvent,
+        responseStateFromDomEvent, stateFromDomEvent, targetFromDomEvent, toDereferencedEvent,
     } = dependencies;
     const delayer = delay();
     return (event, states = {}) => {
         const {"input": previousInput = {}, "response": previousResponse = {}} = states;
+        const currentTarget = isReactWeb() ? currentTargetFromDomEvent(event) : {};
+        const nativeEvent = isReactNative() ? nativeEventFromDomEvent(event) : {};
+        // const target = targetFromDomEvent(event) || {};
+        // const currentTarget = currentTargetFromDomEvent(event) || {};
         const dataset = datasetFromDomEvent(event) || {};
         // Compose these?
         const {"eventDelay": delay = "0", eventDelayType = "execute"} = dataset;
@@ -1614,13 +1628,23 @@ export const eventDispatcherForStore = (store = store, view = {},
             // of the nature of XHR, e.g., header splitting, body parsing, etc.
             "input": isDomFormEvent(event) ? inputStateFromDomEvent(event) : previousInput,
             "response": isDomProgressEvent(event) ? responseStateFromDomEvent(event) : previousResponse,
-            "event": isSelectableDomEvent(event) ? enumerableDomEvent(event) : {},
+            // "event": {nativeEvent, currentTarget, target},
+            // "event": {nativeEvent, "currentTarget": {dataset}},
+            // "event": isSelectableDomEvent(event) ? enumerableDomEvent(event) : {},
+            // This should only be relevant for React Native, but how do you tell the difference at runtime?
+            // Instead of making this assume the properties based on the runtime, can you just make it reverse
+            // the properties from the JSON Path selector?
+            "event": {currentTarget, nativeEvent},
             view
         }) || {};
         const $event = toDereferencedEvent(event, $states);
         const eventType = eventTypeFromDomEvent(event);
         const callback = () => store.dispatch({$event, $states, "type": eventType});
-        // console.log(event.type, {$states, $event, "event": enumerableDomEvent(event)});
+        // console.log(event.type, {$states, $event, event});
+        // console.log(event.type, {$event, event});
+        // console.log("Web", isReactWeb());
+        // console.log("Native", isReactNative());
+        // console.log({currentTarget, nativeEvent});
 
         typeof event.preventDefault === "function" && event.preventDefault();
         return delayer({"type": eventDelayType, delay, callback});
@@ -1697,6 +1721,7 @@ export const mapEventToProps = (props = {}, config = {}, dependencies = {bindEve
 };
 
 export const mapCustomPropsToReactProps = (props = {}, children = [], store = {getState: () => ({"$styles": {}})}, view = {},
+                                           toElement = createElementWithCustomDataProps({createElement}, store, view),
                                            dependencies = {
                                                appStateFromStore, bindEvent, composeFromIdentifier, composeStringFromTemplate,
                                                composeValueFromPath, mapStateToProps, mapEventToProps, serializeJson, toNormalizedJson
@@ -1727,7 +1752,6 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
             : $stateDefaultValue,
         "data-state-type": $stateType = $stateValue === null ? "null" : typeof $stateValue,
         "data-state-params": $stateParams = $stateType === "object" ? $stateValue : {[$state]: toNormalizedJson($stateValue)},
-        // TODO: Support binding state to multiple props.
         "data-bind-state": $bindState = $stateType !== "undefined" && !$shouldStateRepeat ? "children" : "data-bind-state",
         "data-should-bind-template": $shouldBindTemplate = $bindState === "children" && children.length === 0,
         "data-bind-template": $bindTemplate = !$shouldBindTemplate ? "" : $stateType === "object"
@@ -1764,7 +1788,7 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
                         return typeof child === "string"
                             ? composeStringFromTemplate(child, $stateParams, $states)
                             : $shouldStateRepeat
-                                ? React.createElement(child)
+                                ? toElement(child)
                                 : child;
                     });
 
@@ -1781,11 +1805,12 @@ export const mapCustomPropsToReactProps = (props = {}, children = [], store = {g
 };
 
 export const toReactProps = (props = {}, children = [], store = {}, view = {},
+                             toElement = createElementWithCustomDataProps({createElement}, store, view),
                              dependencies = {areDataProps, mapCustomPropsToReactProps}) => {
     const {areDataProps, mapCustomPropsToReactProps} = dependencies;
 
     // areDataProps(props) && console.log("toReactProps", props, {...view});
-    return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view) : {props, children};
+    return areDataProps(props) ? mapCustomPropsToReactProps(props, children, store, view, toElement) : {props, children};
 };
 
 export const createElementWithCustomDataProps = (method = {createElement}, store = store, view = view,
@@ -1850,7 +1875,7 @@ export const createElementWithCustomDataProps = (method = {createElement}, store
             return toElement(_type, _props, ..._children);
         }
 
-        const {"props": reactProps, "children": reactChildren} = toReactProps(props, children, store, view);
+        const {"props": reactProps, "children": reactChildren} = toReactProps(props, children, store, view, toElement);
 
         return createElement(type, reactProps, ...reactChildren);
     };
@@ -1877,18 +1902,29 @@ export const storeFromConfiguration = (config = {},
     return store;
 };
 
-export const View = ({view = view}) => {
+export const View = ({
+                         store = store,
+                         view = view,
+                         toElement = createElementWithCustomDataProps({createElement}, store, view),
+                         dependencies = {viewFromAppState, useSelector}
+                     }) => {
+    const {viewFromAppState, useSelector} = dependencies;
     // console.time("Render");
     view["data-depth"] = 0;
     view["data-dispatchers"] = view["data-dispatchers"] || [];
     view["data-dispatchers"].forEach(({$target, $from, $dispatcher} = {}) => window[$target].removeEventListener($from, $dispatcher));
     view["data-dispatchers"] = [];
-    const element = React.createElement(viewFromAppState(useSelector((state) => state)));
     // console.timeEnd("Render");
 
-    return element;
+    return toElement(viewFromAppState(useSelector((state) => state)));
 }
 
-export const App = ({store = store, view = view}) => (
-    React.createElement(Provider, {store}, React.createElement(View, {view}))
-);
+export const App = ({
+                        store = store,
+                        view = view,
+                        toElement = createElementWithCustomDataProps({createElement}, store, view),
+                        dependencies = {Provider, View}
+                    }) => {
+    const {Provider, View} = dependencies;
+    return toElement(Provider, {store}, toElement(View, {store, view, toElement}));
+};

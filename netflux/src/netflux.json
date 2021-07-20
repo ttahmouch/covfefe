@@ -2970,7 +2970,7 @@
           "items": {
             "title": {
               "$compose": "read",
-              "$value": "$.event.currentTarget.value",
+              "$value": "$.title",
               "$default": ""
             }
           }
