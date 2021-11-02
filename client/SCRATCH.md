@@ -1684,3 +1684,19 @@ console.assert(composeFromValue([
  * (Think Switch Cases; Specificity matters hence the default case being first
  * otherwise it would always be black.)
  */
+
+/**
+ * Shorthand
+ *
+ * {$type: "br"}
+ * {$children: []} // Fragment
+ * {$type: "div", onClick: "", $children: []}
+ * {$type: "input", type: "text"}
+ *
+ * Longhand
+ *
+ * {type: "br"}
+ * {props: {children: []}} // Fragment
+ * {type: "div", props: {onClick: "", children: []}}
+ * {type: "input", props: {type: "text"}}
+ */
